@@ -51,6 +51,5 @@ mono_crash.*
 .DS_Store
 Thumbs.db
 
-# Claude Code personal files (per machine)
-CLAUDE.local.md
-.claude/settings.local.json
+# Claude Code configuration (.claude/, CLAUDE.md, .mcp.json) is committed on purpose:
+# it must travel with the repository so every session behaves the same.
