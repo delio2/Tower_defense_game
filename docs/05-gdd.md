@@ -1,330 +1,254 @@
-# 05 — Game Design Document (v0.1)
+# 05 — Game Design Document (v0.2)
 
-> **Titolo provvisorio:** TowerDefense · **Genere:** tower defense roguelite minimal con musica adattiva
-> **Piattaforma:** Android (Google Play), poi iOS · **Orientamento:** verticale · **Pubblico:** adulti 18–45
-> **Modello:** free-to-play onesto: *"paghi per arrivare prima, mai per vincere"*
+> **Titolo:** da definire · **Genere:** difesa del nucleo roguelite con negozio e combo · **Piattaforma:** Android, poi iOS
+> **Orientamento:** verticale · **Pubblico:** adulti 18–45 · **Modello:** onesto, *"mai pay-to-win"* (vedi `02`)
 >
-> Tutti i numeri sono **valori di partenza v0**, da tarare con il prototipo e con le simulazioni automatiche (D11).
-> Contesto e motivazioni: `00`–`04`. I nomi usati nel gioco (torri, nemici, sistemi) sono in inglese, come nel codice.
+> Tutti i numeri sono **valori di partenza v0**, da tarare con il prototipo e con il simulatore automatico (D11).
+> Motivazioni: `00`–`04` (in particolare D17–D21). I nomi nel gioco sono in inglese, come nel codice.
 
 ---
 
-## 0. Glossario (per evitare ambiguità)
+## 0. Glossario
 | Termine | Significato |
 |---|---|
-| **Drop** | l'abilità attiva del giocatore (§11). Non indica il boss |
-| **Peak** | il boss di fine settore (il momento culminante del "set") |
-| **Vinili** (Vinyls) | i modificatori della run scelti tra un settore e l'altro (§13). **Non** sono la valuta |
-| **Royalties** | la valuta permanente (meta) guadagnata a fine run (§14) |
-| **Crediti** | la valuta *dentro* la partita, con cui costruisci e potenzi (§10) |
-| **Shred** | l'effetto dell'Hi-Hat: riduce la corazza |
-| **Exposed** | la sinergia: più danno ai nemici con la corazza ridotta dallo Shred |
-| **Studio** | l'albero della progressione permanente (§14) |
-| **Jam Session** | la modalità sandbox musicale (aggiornamento futuro) |
-| **Core** | la base da difendere, in fondo alla griglia (= l'uscita dei nemici) |
-| **Élite** | la variante potenziata di un nemico (§8) |
+| **Core** | il nucleo al centro, da difendere. Se la sua integrità arriva a 0, la run finisce |
+| **Ring** | l'anello di slot attorno al Core (6 all'inizio, fino a 8) |
+| **Module** | ciò che si monta su uno slot: arma, booster o economia |
+| **Neighbours** | i due slot adiacenti sull'anello (l'anello è circolare: il primo e l'ultimo sono vicini) |
+| **Merge** | comprare un modulo già posseduto lo unisce a quello esistente e ne alza il livello (massimo 3) |
+| **Credits** | la valuta **dentro** la run, per il negozio |
+| **Blueprints** | la valuta **permanente**, per sbloccare nuovi moduli e Core. Non compra potenza |
+| **Pulse** | l'abilità attiva del Core, con ricarica |
+| **Act** | 5 ondate + 1 Guardian. Una run è fatta di 3 atti |
+| **Guardian** | il boss di fine atto |
+| **Core type** | la variante di Core scelta a inizio run, che cambia le regole (come i mazzi di Balatro) |
+| **Grade** | livello di difficoltà aggiuntivo a sblocco (come l'Ascension) |
+| **Replay** | versione + seme + modalità + Core + lista di (tick, comando): basta a riprodurre la run |
 
 ## 1. Pilastri
-1. **Strategia leggibile**: ogni decisione è informata (anteprima delle ondate, danno reale, portata visibile).
-2. **Sempre diverso**: mappe generate, 1 potenziamento su 3, Vinili, Livelli di Pressione.
-3. **Il ritmo si vede e si sente**: tutto pulsa a tempo; funziona muto, con l'audio è speciale (D1).
-4. **Mai pay-to-win**: le modalità competitive hanno la stessa dotazione per tutti.
-5. **Rispetto del tempo**: niente energia né timer, run divisibili, un tetto alla progressione.
+1. **Scelte che contano:** negozio, merge e disposizione sull'anello. Ogni ondata cambia la build.
+2. **Numeri che esplodono, con calma:** crescita esponenziale leggibile, grafica calma (docs/03).
+3. **Rispetto del tempo:** run di 10–15 minuti, niente timer, niente energia, offline.
+4. **Onesto:** mai pay-to-win; il competitivo è a dotazione fissa.
+5. **Condivisibile:** ogni run è un replay, sfidabile e verificabile.
 
-## 2. Ciclo di gioco
-| Livello | Durata | Ciclo |
+## 2. Ciclo e durata
+| Livello | Durata | Contenuto |
 |---|---|---|
-| **Momento** | secondi | Piazza o potenzia → vedi e senti la torre entrare a tempo → i nemici esplodono sul battito |
-| **Ondata** | circa 30 s | Preparazione (senza limite di tempo) → ondata → scegli 1 su 3 |
-| **Settore** | circa 5–6 min | **6 ondate** → boss (**Peak**) → scegli un Vinile |
-| **Run** | circa 17 min | 3 settori (Deep House → Tech House → Techno) → risultati → Royalties |
-| **Meta** | settimane | Studio (potenziamenti), sblocco di strumenti, Livelli di Pressione, Daily Mix |
+| Ondata | circa 25–30 s | Nemici da tutti i lati, i moduli sparano da soli, tu usi il Pulse |
+| Negozio | libero (circa 10–20 s) | Compra, unisci, disponi, vendi, rilancia → "Next wave" |
+| Atto | circa 4–5 min | 5 ondate + Guardian |
+| Run | circa 10–15 min | 3 atti (18 ondate). Se vinci puoi continuare in modalità infinita |
+| Meta | settimane | Sblocchi di moduli e Core con i Blueprints, Grade, modalità online |
 
-## 3. Comandi e interfaccia di gioco
-- **Tocca una casella libera** → si apre un menu radiale con l'**Acoustic Panel** e le torri disponibili (costo e ruolo in icona) → tocca per costruire.
-  Mentre scegli vedi in anteprima la **portata** e il **nuovo percorso** dei nemici (linea tratteggiata).
-- **Tocca una torre** → scheda con danno reale al secondo, sinergie attive, potenziamento e (solo in preparazione) vendita.
-- **Barra in basso** (zona del pollice): ▶ Avvia ondata / ⏩ 1x-2x-3x · ⏸ Pausa · ↶ Annulla (solo in preparazione) · 💥 Drop.
-- **Barra in alto**: vite · crediti · ondata X/6 · BPM · **anteprima dell'ondata successiva** (icone dei nemici e quantità).
-- Nessuno scorrimento: la griglia 9×14 sta tutta nello schermo. Le caselle sono di circa 48 dp o più.
+Salvataggio automatico **a ogni negozio**, con ripresa in qualsiasi momento.
 
-## 4. Griglia e generazione delle mappe
-- **Griglia 9 colonne × 14 righe.** I nemici entrano dall'alto (1–2 caselle di ingresso); il **Core** (la base da difendere) sta in basso.
-- **Tipi di casella:** libera · **Roccia** (bloccata) · **Amplifier** (+20% danno alla torre sopra) · **Dead Zone** (non edificabile, ma percorribile).
-- **Generatore (con seme):**
-  1. posiziona ingressi e Core;
-  2. posiziona 8–14 Rocce con un rumore controllato;
-  3. aggiunge 2–3 Amplifier e 0–3 Dead Zone;
-  4. **validatore**: percorso minimo iniziale di almeno **18 caselle** (su 14 righe un percorso dritto ne fa già 14: serve una deviazione reale) · almeno il 60% delle caselle edificabile · nessun Amplifier irraggiungibile · almeno 2 "strettoie" utili. Se la mappa non passa, cambia sottoseme e riprova.
-- **Pathfinding:** flow field BFS dal Core, ricalcolato a ogni piazzamento. Un piazzamento che chiuderebbe il percorso viene **rifiutato** con un feedback visivo (D9).
-- **Durante l'ondata** non si può costruire su una casella occupata da un nemico. Costruire può deviare i nemici già nel labirinto (costa crediti e non si può vendere: accettato come tattica).
-- **Test automatico:** 10.000 semi generati e validati a ogni modifica del generatore.
+## 3. Arena e unità (deterministico)
+- **Tick fisso: 60 al secondo.** Nessun float nello stato di gioco (D11).
+- **Unità:** 1 unità = 1000 milli. Il Core sta in (0,0) con raggio 0,7. Gli slot dell'anello sono a raggio 1,5. I nemici nascono a raggio 9,0.
+- **Direzioni:** 128 direzioni fisse (tabella intera di coseno e seno ×10.000, uguale su ogni piattaforma).
+- **Movimento dei nemici:** **radiale** verso il Core. Ogni nemico ha una direzione e una distanza, e ogni tick la distanza diminuisce della sua velocità. Il respingimento la aumenta.
+- **Contatto:** a distanza ≤ 0,7 il nemico colpisce il Core (danno da contatto) e scompare.
 
-## 5. Orologio musicale (il sistema centrale)
-- **BPM per settore:** 120 / 124 / 128. **Risoluzione: 96 tick per battito** (copre 1/16, 1/32 e le terzine; D11).
-- **Tempo di simulazione** a passo fisso: il battito è un evento *della simulazione*, ed è **l'orologio che comanda**. L'audio lo segue ed è programmato in anticipo su `AudioSettings.dspTime` (D11, D12).
-- Il DPS delle torri cresce con il BPM (+3,3% a 124, +6,7% a 128). È **voluto** e rientra nel bilanciamento dei settori.
-- **Torri:** sparano su suddivisioni specifiche (tabella §6).
-- **Morti e esplosioni:** effetto visivo e sonoro quantizzati al sedicesimo successivo (al massimo circa 125 ms di ritardo a 120 BPM). Il danno resta immediato.
-- **Velocità 2x e 3x:** la simulazione accelera, la musica resta al suo tempo e viene filtrata (D12).
-- **Pausa:** simulazione ferma, musica sfumata.
-
-## 6. Torri (strumenti) — v0
-Valori al **livello 1** a 120 BPM (1 battito = 0,5 s). Portata in caselle.
-
-| Torre | Costo | Ritmo | Danno/colpo | Portata | Effetto | DPS indicativo |
-|---|---|---|---|---|---|---|
-| **Kick** | 50 | ogni battito | 12 (area r1,5) | 1,5 | onda ad area | 24 per bersaglio |
-| **Hi-Hat** | 40 | 1/16 | 2 | 2,5 | **Shred**: −1 corazza per colpo (max −5, 2 battiti) | 16 |
-| **Bass** | 70 | "e" del 2 e del 4 | 45 | 3 | colpo singolo pesante | 45 |
-| **Clap** | 60 | battiti 2 e 4 | 8 | 2 | **Stun** di ¼ battito (i boss sono immuni dopo 3) | 8 + controllo |
-| **Pad** | 60 | continuo | — | aura 2 | **Slow** del 30% | — |
-| **Lead** | 80 | ogni battito | 8 | 3 | **catena** su 3 bersagli, −20% a ogni rimbalzo | circa 39 totali (su 3 bersagli) |
-
-- **Potenziamenti (D15): potenziare conviene più che costruire.**
-  | Livello | Costo | Efficacia (rispetto al L1) | Resa per credito |
-  |---|---|---|---|
-  | L1 (costruzione) | 1,0× | 100% | 1,00 |
-  | L2 | +0,6× | +80% → 180% | 1,33 per il potenziamento |
-  | L3 (+ ramo) | +0,9× | +100% → 280% | 1,11 per il potenziamento |
-  | **Totale L3** | **2,5×** | **280%** | **1,12** (una torre nuova rende 1,00) |
-
-  Ogni livello porta anche **un pattern ritmico più ricco**. Così si premiano il labirinto compatto e le scelte dei rami, senza rendere inutili le torri nuove.
-- **Al livello 3 scegli uno di 2 rami** (la profondità di Bloons, in forma più leggera):
-  | Torre | Ramo A | Ramo B |
+## 4. Il Core
+- **Integrità:** 100.
+- **Pulse:** 20 danni + **respingimento di 1,5 unità** a tutti i nemici entro 3,0 dal Core. Ricarica di 20 s (1.200 tick); è pronto all'inizio di ogni ondata. I moduli possono modificarlo.
+- **Core type** (varianti; il prototipo usa Standard):
+  | Core type | Regola | Inizio |
   |---|---|---|
-  | Kick | "808" (area più grande, danno prolungato) | "Punch" (doppio colpo, più danno) |
-  | Hi-Hat | "Open Hat" (Shred più forte) | "Roll" (1/32, più colpi) |
-  | Bass | "Sub" (penetra la corazza) | "Wobble" (rallenta chi colpisce) |
-  | Clap | "Snare Roll" (stun più frequente) | "Reverb Clap" (stun ad area) |
-  | Pad | "Drone" (aura che fa danno) | "Freeze Pad" (slow del 50%) |
-  | Lead | "Arp" (6 rimbalzi) | "Pluck" (1 bersaglio, danno critico) |
-- **Sblocchi:** si parte con Kick, Hi-Hat, Bass e Clap. Pad si sblocca alla run 2, Lead vincendo il primo settore. Sweep, Vocal Chop e Sub Station arrivano dallo Studio o dalle stagioni.
-- **Vendita:** 100% del valore, **solo in preparazione** (D9).
-- **Acoustic Panel (D14):** muro economico, **costo 10**, nessun attacco. Blocca il percorso come una torre, quindi serve a costruire il labirinto fin dalla prima ondata.
-  - Si può **trasformare in torre** pagando la differenza (per esempio Panel → Kick = 40). La torre prende il posto del pannello.
-  - Stesse regole delle torri: vendita e annulla solo in preparazione, e mai un piazzamento che chiude il percorso.
-  - Non conta come "tipo di torre" per le sinergie (Full Band, Solo) né per il Vinile Minimal.
-  - Aspetto: una lastra scura bassa, **non pulsa** (non è uno strumento): si distingue a colpo d'occhio dalle torri.
+  | **Standard** | — | Emitter nello slot 0, 6 Credits |
+  | **Merchant** | +1 al tetto dell'interesse, 5 slot | 10 Credits, nessun modulo |
+  | **Bastion** | integrità 150, ricarica del Pulse −25% | Bulwark, 4 Credits |
+  | **Glass** | tutti i danni ×1,5, integrità 50 | Emitter + Amplifier, 2 Credits |
 
-## 7. Sinergie (armonia)
-| Nome | Condizione | Effetto |
-|---|---|---|
-| **Groove** | Kick e Bass entro 2 caselle | il Bass fa +30%: "pompa" in levare dopo il Kick, come il sidechain. Il Bass spara in levare e il Kick sul battere, quindi non coincidono mai: la sinergia è sulla vicinanza |
-| **Harmony** | Lead che colpisce nemici rallentati dal Pad | +2 rimbalzi |
-| **Exposed** | qualsiasi torre contro nemici con corazza ridotta dallo Shred dell'Hi-Hat | +15% danno |
-| **Backbeat** | Clap e Kick entro 2 caselle | lo stun del Clap dura il doppio |
-| **Full Band** | almeno 5 tipi diversi di torre in campo | +10% danno globale |
-| **Solo** | una sola torre di un tipo sulla mappa | quella torre fa +25% |
+## 5. Il Ring (anello)
+- **6 slot** all'inizio, disposti a esagono. Lo **slot extra** (fino a 8) si compra nel negozio dopo il primo Guardian, a 8 Credits.
+- **Vicinato:** ogni slot ha 2 vicini; l'anello è circolare.
+- Nel negozio i moduli si **spostano liberamente** (trascinamento o scambio); durante l'ondata sono bloccati.
 
-Le sinergie attive sono **mostrate con linee luminose tra le torri** e anche con un **suono** (lo strato musicale si arricchisce).
+## 6. Moduli (v0, 14 per il prototipo e l'MVP)
+Costo in Credits. Portata in unità, misurata dalla posizione del modulo sull'anello. Ricarica in tick (60 = 1 s).
 
-## 8. Nemici ("rumore") — v0
-HP base = 30 (settore 1, ondata 1). Velocità in caselle al secondo. Corazza = riduzione fissa per colpo (minimo 1 danno).
-
-| Nemico | HP × | Velocità | Corazza | Ricompensa | Speciale | Da |
+**Armi**
+| Module | Rarità | Costo | Danno | Ricarica | Portata | Comportamento |
 |---|---|---|---|---|---|---|
-| **Static** | 1,0 | 1,0 | 0 | 3 | — | S1 |
-| **Noise** (sciame) | 0,3 | 1,4 | 0 | 1 | gruppi da 8 | S1 |
-| **Glitch** | 0,7 | 1,2 | 0 | 4 | ogni 2 battute salta avanti di 1 casella | S1 |
-| **Distortion** | 2,5 | 0,7 | 4 | 7 | corazzato: il Kick scende a 8 danni per colpo, il Bass resta forte (41). L'Hi-Hat toglie la corazza in circa mezzo battito e apre la strada a tutte le torri | S1 |
-| **Feedback** | 1,5 | 0,9 | 0 | 5 | alla morte si divide in 2 Static da 0,4 HP | S2 |
-| **Silence** | 1,8 | 0,8 | 1 | 8 | **zittisce** le torri entro 1,5 caselle, che si spengono (visivo e audio) | S2 |
-| **Phase** | 1,2 | 1,0 | 0 | 6 | invulnerabile nei battiti dispari (1 e 3), e diventa **trasparente** in quei battiti (leggibile senza audio). Clap e Bass lo colpiscono sempre | S3 |
-| **Boss: The Loop** | 40 | 0,5 | 2 | 50 | al 50% di HP torna indietro di 3 caselle ed evoca la composizione dell'ultima ondata al 30% | fine settore |
+| **Emitter** | C | 3 | 8 | 30 | 4,0 | colpisce il nemico più vicino al Core |
+| **Scatter** | C | 4 | 5 ×3 | 45 | 3,5 | colpisce i 3 nemici più vicini al Core |
+| **Arc** | U | 5 | 6 | 40 | 4,0 | catena su 4 nemici (salto 1,5), −10% a ogni salto |
+| **Lance** | U | 5 | 18 | 90 | 6,0 | trapassa tutti i nemici su una linea verso il bersaglio |
+| **Mortar** | R | 7 | 16 | 90 | 7,0 | esplosione di raggio 1,2 sul nemico più lontano in portata (minimo 2,0) |
 
-- **Élite:** variante di qualsiasi nemico base con HP ×3, corazza +1 e ricompensa ×3, riconoscibile da un **alone e un contorno doppio**. Compaiono dall'ondata 4 di ogni settore (1–2 per ondata) e più spesso con i Livelli di Pressione.
-- **Vite:** 20. Un nemico che passa costa: normale 1, élite 2, boss 5. **Nessuna ricompensa per chi passa** (D10).
+**Booster** (agiscono sui **due vicini**)
+| Module | Rarità | Costo | Effetto (livello 1) |
+|---|---|---|---|
+| **Amplifier** | C | 3 | danno dei vicini ×1,5 |
+| **Lens** | C | 3 | vicini: +1,5 portata e +2 danno fisso |
+| **Overclock** | U | 4 | vicini: ricarica −25% |
+| **Echo** | R | 6 | ogni colpo dei vicini ne genera un secondo al 50% |
+
+**Economia e utilità**
+| Module | Rarità | Costo | Effetto (livello 1) |
+|---|---|---|---|
+| **Bank** | U | 4 | +1 al tetto dell'interesse e +1 Credit per ondata |
+| **Salvage** | C | 3 | +1 Credit ogni 10 uccisioni nell'ondata |
+| **Bulwark** | C | 3 | +25 integrità massima; ripara 5 a ogni ondata |
+| **Frost** | U | 4 | i nemici entro 3,0 dal Core sono rallentati del 25% |
+| **Capacitor** | U | 4 | ricarica del Pulse −20%; il Pulse fa +50% danno |
+
+**Merge (livelli):** comprare un modulo già posseduto (sotto il livello 3) lo **unisce automaticamente**, senza occupare un altro slot.
+| Livello | Armi (danno) | Booster ed economia (effetto) |
+|---|---|---|
+| 1 | ×1,0 | ×1,0 |
+| 2 | ×1,8 | ×1,6 (per esempio Amplifier ×1,8 invece di ×1,5) |
+| 3 | ×3,0 | ×2,2 |
+
+**Vendita:** metà dei Credits spesi (arrotondata per difetto, minimo 1).
+*(Dopo l'MVP: Prism, Singularity, Harvester e altri moduli leggendari; obiettivo circa 40 moduli al lancio.)*
+
+## 7. Formula del danno ("numeri che esplodono")
+**Danno del colpo = (danno base × livello + bonus fissi) × prodotto dei moltiplicatori**
+
+- **Bonus fissi:** Lens e simili. **Moltiplicatori:** Amplifier, Core Glass, Echo (50% sul secondo colpo)…
+- Gli effetti **si moltiplicano tra loro** (due Amplifier vicini a un'arma = ×2,25): è la fonte della crescita esponenziale.
+- **Corazza:** riduzione fissa per colpo, con un danno minimo di 1.
+- **Mostrare i numeri:** notazione compatta (1,2K · 3,4M · 5,6B). Numeri piccoli e tenui per i colpi normali, più grandi (senza flash) per i colpi oltre il 25% della vita del bersaglio. Un'opzione permette di nasconderli.
+
+## 8. Nemici (v0)
+HP in unità di gioco, alla prima ondata. Velocità in unità al secondo.
+| Enemy | HP | Corazza | Velocità | Contatto | Punti | Speciale | Da |
+|---|---|---|---|---|---|---|---|
+| **Drifter** | 20 | 0 | 0,9 | 5 | 1,0 | — | atto 1 |
+| **Swarmlet** | 6 | 0 | 1,3 | 2 | 0,3 | arriva in gruppi da 5 vicini | atto 1 |
+| **Brute** | 70 | 3 | 0,55 | 15 | 3,0 | corazzato | atto 1 (ondata 3+) |
+| **Dasher** | 14 | 0 | 0,8 | 5 | 1,5 | ogni 3 s scatta ×3 per 0,5 s | atto 2 |
+| **Splitter** | 30 | 0 | 0,85 | 6 | 2,0 | alla morte si divide in 2 Swarmlet | atto 2 |
+| **Warden** | 40 | 1 | 0,7 | 8 | 3,0 | scudo: −50% danno ai nemici entro 1,5 | atto 3 |
+| **Guardian** | 400 | 5 | 0,4 | 40 | — | boss di fine atto; ogni 25% di vita perso chiama 5 Swarmlet | ondata 6 di ogni atto |
+
+- **Élite** (dall'atto 2): HP ×3, corazza +1, alone doppio. Una o due per ondata.
+- **Forme:** senza facce e mai infantili; la lingua visiva è in docs/03.
 
 ## 9. Ondate e difficoltà
-- **6 ondate per settore + il boss (Peak)** (D3). Indice globale `g` = 1…18. Resta un **parametro** nei dati.
-- **Moltiplicatore di HP:** `hp(g) = 1.148^(g-1)` → ondata 18 ≈ 10,5×.
-- **Budget di punti per ondata:** `budget(g) = 12 · 1.21^(g-1)` → ondata 18 ≈ 25× l'ondata 1. Ogni nemico ha un costo in punti (Static 1, Noise 0,3, Glitch 1,2, Distortion 3, Feedback 2, Silence 3, Phase 2,5).
-- **Verifica di massima delle formule** (calcolo a tavolino): in una run completa si guadagnano circa **10.900 crediti** in totale, mentre l'ondata 18 ha circa **96.000 HP** totali. Il rapporto crediti/HP resta quello della versione a 8 ondate (circa 0,11), quindi il settore 3 è ancora **impegnativo ma superabile**. Va confermato con il simulatore.
-- **Regole di composizione:** massimo 3 tipi per ondata · un nemico nuovo appare prima **da solo**, così si legge · l'**ondata 3** di ogni settore è "a tema" (tutta corazzata, tutta sciame…) · l'ondata 6 prepara il Peak.
-- Le ondate del settore sono **generate dal seme e mostrate in anteprima**: niente sorprese ingiuste.
-- **Livelli di Pressione** (sblocco sequenziale, cumulativi):
-  | Livello | Modificatore | Livello | Modificatore |
-  |---|---|---|---|
-  | 1 | nemici +10% HP | 6 | meno Amplifier sulla mappa |
-  | 2 | crediti iniziali −20% | 7 | il boss ha uno scudo che si rigenera |
-  | 3 | nemici +10% velocità | 8 | le scelte 1 su 3 diventano 1 su 2 |
-  | 4 | Feedback e Silence già dal settore 1 | 9 | vite 15 |
-  | 5 | élite in ogni ondata dispari | 10 | +1 nemico speciale per settore |
+- Indice globale **g = 1…18** (atto a, ondata w: g = 6(a−1) + w; w = 6 è il Guardian).
+- **HP:** `hp(g) = 1.20^(g−1)` (ondata 18 ≈ 22×). **Budget:** `budget(g) = 8 × 1.10^(g−1)` punti (ondata 18 ≈ 40).
+- I nemici entrano in **20 s**, a intervalli regolari, da **direzioni casuali ma dal seme**. Regole: un nuovo tipo entra prima **da solo**; massimo 3 tipi per ondata; l'ondata 3 di ogni atto è "a tema".
+- **Anteprima:** nel negozio si vede la composizione dell'ondata successiva (icone e quantità).
+- Calcoli interi o a virgola fissa, senza `Math.Pow` (non è deterministico tra piattaforme): la crescita si calcola per moltiplicazioni successive.
+- **Grade** (Ascension): dopo la prima vittoria si sbloccano i Grade 1–10 (nemici +10% HP, meno Credits, Guardian con scudo, un'élite in più…).
+- **Modalità infinita** dopo la vittoria: la crescita continua, per le classifiche e per le build folli.
 
-  Livelli 11–20: da definire dopo i test.
+## 10. Economia e negozio
+- **Credits iniziali:** secondo il Core type (Standard: 6).
+- **A fine ondata:** 4 Credits + **interesse** (1 ogni 5 posseduti, massimo 5) + 3 dopo un Guardian.
+- **Negozio:** **4 offerte**. Probabilità: C 60% · U 30% · R 10% (le R solo dall'atto 2). Solo moduli sbloccati.
+- **Rilancio:** 1 Credit, +1 per ogni altro rilancio nello stesso negozio.
+- **Comprare:** serve uno slot libero, oppure un merge. Con l'anello pieno bisogna prima vendere.
+- **Slot extra:** offerta fissa dopo il primo Guardian (8 Credits, fino a 8 slot).
+- **Anteprima dell'ondata** sempre visibile nel negozio.
 
-## 10. Economia della partita
-- **Crediti iniziali:** 150.
-- **Ricompensa:** quella del nemico × `(1 + 0.068·(g−1))` (→ ×2,16 all'ondata 18, come prima all'ondata 24).
-- **Bonus a fine ondata:** `20 + 5·w` (w = ondata nel settore).
-- **Interesse:** +5% dei crediti non spesi a fine ondata, **tetto 25**.
-- **Chiama prima l'ondata** (mentre la precedente è ancora in corso, dopo che tutti i suoi nemici sono entrati): +10% del budget dell'ondata in crediti.
-  Le **scelte 1 su 3** delle ondate finite si **accumulano** (icona con un numero) e si fanno alla prima preparazione utile. Nessuna finestra interrompe un'ondata in corso.
-- **Obiettivo di bilanciamento:** con un gioco "buono" si arriva al boss del settore 3 con 3–8 vite perse. Con un gioco "medio" si perde tra i settori 2 e 3.
+## 11. Progressione permanente (senza grind di potenza)
+- **Blueprints:** 1 per ondata superata, 3 per Guardian, +bonus Grade.
+- **Archive** (lo sblocco): spendi i Blueprints per aggiungere **nuovi moduli al pool** e **nuovi Core type**. **Nessun potenziamento di statistiche.**
+- Obiettivo: sblocco completo in circa 60–80 run *(stima)*. Tempi e accelerazione onesta in `02`.
+- Nelle **modalità competitive** si usa un pool e un Core **fissi e uguali per tutti**: lo stato degli sblocchi non conta.
 
-## 11. Il Drop (azione attiva)
-- **Carica:** ogni uccisione riempie la barra in base alla sua ricompensa; è piena circa ogni 1,5 ondate.
-- **Attivazione:** tocchi 💥 → parte un **build-up di 1 battuta** (riser audio, la griglia si illumina) → il Drop colpisce **sul battere della battuta successiva**.
-- **Effetto:** 150 danni più l'8% degli HP massimi a tutti i nemici sullo schermo, e stun di 1 battito.
-- **Perfect (facoltativo):** se durante il build-up tocchi di nuovo lo schermo sul battito (±90 ms), il danno sale del 25%. Un indicatore visivo mostra il battito. Opzione "Assistito": il Perfect è automatico e il danno sale del 10%.
-  Nelle modalità competitive il Perfect assistito **non dà punti** (§15).
-- Nel tutorial la barra è **caricata dal copione** (§16).
-
-## 12. Scelta 1 su 3 dopo ogni ondata
-- **Rarità:** Comune 70% · Rara 25% · Epica 5%. **Garanzia:** almeno una Rara ogni 4 scelte.
-- 1 rilancio gratuito per run (più Remix via pubblicità o Pass, **tranne nel Daily Mix**).
-- Le carte proposte vengono da un **flusso RNG dedicato** (D11): a parità di seme e di scelte, tutti vedono le stesse proposte.
-- **Categorie ed esempi v0:**
-  | Carta | Rarità | Effetto |
-  |---|---|---|
-  | Tight Kick | C | Kick +20% danno |
-  | Swing | C | Hi-Hat: Shred dura +1 battito |
-  | Deep Low End | C | Bass +1 portata |
-  | Tip Jar | C | +40 crediti subito |
-  | Rehearsal | C | la prossima torre costa −30% |
-  | Crowd Energy | C | la barra del Drop si carica +20% più veloce |
-  | Double Clap | R | il Clap spara anche sul battito 4 in levare |
-  | Resonance | R | gli Amplifier danno +40% invece di +20% |
-  | Encore Budget | R | bonus di fine ondata +50% |
-  | Wide Stereo | R | tutte le aure +0,5 portata |
-  | Polyrhythm | R | una torre a scelta spara anche in terzine |
-  | Sidechain | R | la sinergia Groove vale +60% invece di +30% |
-  | Headliner | E | la torre più potenziata fa ×2 danno |
-  | Second Drop | E | il Drop si può usare 2 volte di seguito |
-  | Key Change | E | tutte le torri +1 livello di pattern (senza pagare) |
-  | Mixdown | E | +1 scelta in tutte le prossime decisioni 1 su 3 |
-
-  Obiettivo per il lancio: circa 40 carte.
-
-## 13. Vinili (reliquie tra un settore e l'altro)
-Scegli 1 su 3 alla fine dei settori 1 e 2. Esempi v0:
-| Vinile | Effetto |
-|---|---|
-| **White Label** | le carte Rare appaiono il doppio delle volte |
-| **Minimal** | puoi usare al massimo **2 tipi** di torre, ma fanno +50% (un limite sul numero di torri romperebbe il labirinto) |
-| **Maximal** | torri −25% di costo, −15% di danno |
-| **Four to the Floor** | ogni 4 battiti tutte le torri sparano un colpo extra |
-| **Afterparty** | +2 vite a ogni boss sconfitto |
-| **Vinyl Crackle** | i nemici corazzati perdono 1 corazza per battito nella portata di un Hi-Hat |
-| **Crate Digger** | +30% Royalties a fine run |
-| **Remix Culture** | +2 rilanci per settore |
-| **Bassline** | i Bass colpiscono anche in levare sugli altri battiti, con −40% di danno |
-| **Silent Disco** | immunità agli effetti Silence |
-
-## 14. Progressione permanente (Studio)
-- **Valuta: Royalties.** Si guadagnano circa 14 per ondata superata, 50 per boss, +10% per ogni Livello di Pressione. Una run media dà circa 250 (una run vinta circa 400).
-- **Studio: 4 rami × 10 nodi, con un tetto finale**:
-  | Ramo | Contenuto |
-  |---|---|
-  | Rhythm Section | danno per tipo di torre, **massimo +15%** in totale |
-  | Economy | crediti iniziali, interesse, bonus di fine ondata |
-  | Tempo | carica ed effetto del Drop |
-  | Crates | rilanci, probabilità di rarità, scelte extra di Vinili |
-- **Costo totale:** circa 65.000 Royalties. Tempi *(stima)*: gratuito circa 3 mesi · Pass circa 6 settimane · Pass più pacchetti 2–3 settimane.
-  Conto di verifica: 65.000 / 90 giorni ≈ 720 al giorno, cioè circa 1,5 run al giorno con Encore (×2). È coerente con 3 o più sessioni al giorno.
-- **Principio:** lo Studio aggiunge al massimo circa +20% di potenza complessiva. **L'abilità deve contare di più.** Tutto lo Studio è **disattivato nel Daily Mix e nel Weekly Set**.
-- **Maestria:** ogni torre ha 5 livelli di maestria (in base all'uso). Sblocca varianti estetiche e sonore e, a livello 5, un terzo ramo al L3.
-
-## 15. Modalità
-| Modalità | Regole | Classifica |
+## 12. Modalità
+| Modalità | Fase | Regole |
 |---|---|---|
-| **Run** | 3 settori, Studio attivo, Livelli di Pressione | record personale |
-| **Daily Mix** | 1 settore (circa 6 min), **seme = data del "giorno PGS"** (le classifiche giornaliere di Play Games si azzerano a mezzanotte **UTC−7**: seme e classifica devono cambiare nello stesso momento), **dotazione fissa** (Acoustic Panel più tutte le 6 torri base, anche quelle non ancora sbloccate: fa da "assaggio"; niente Studio, niente pubblicità o Pass), tentativi illimitati, vale il migliore | PGS, giornaliera |
-| **Weekly Set** | run da 3 settori con seme settimanale (cambia tra sabato e domenica, **UTC−7**, come la classifica settimanale PGS) e dotazione fissa | PGS, settimanale |
-| *After Hours* (aggiornamento) | infinita | tutti i tempi |
-| *Jam Session* (aggiornamento) | sandbox musicale, nessun nemico o nemici opzionali | — |
+| **Run** | lancio | Scegli Core e Grade; offline |
+| **Daily Run** | lancio | Seme del giorno, Core e pool fissi; classifica; fantasmi dei migliori |
+| **Weekly Run** | lancio | Come sopra, settimanale, con regole speciali (per esempio "solo booster rari") |
+| **Endless** | lancio | Dopo la vittoria: crescita infinita |
+| **Leagues** | aggiornamento 1 | Gruppi da 30, settimanali, promozioni e retrocessioni; seme e dotazione uguali per il gruppo |
+| **Duel** | aggiornamento 1 | Stesso seme di un avversario reale (il suo replay); si vede il suo andamento; rating di abilità |
+| **Siege** | aggiornamento 2 | Componi un'ondata d'attacco con un budget; gli altri la affrontano; premi se cadono |
+| **Community Guardian** | aggiornamento 2 | Boss settimanale con vita condivisa da tutti |
 
-**Punteggio (modalità competitive):** `ondate superate × 1000 + vite rimaste × 50 + crediti a fine run ÷ 10 + Drop Perfect × 100`.
-Il Perfect **assistito** non conta nel punteggio.
+**Punteggio competitivo:** ondate superate (prima) → danno totale (seconda chiave) → meno tick impiegati (terza).
 
-## 16. Primo avvio (FTUE) — copione
+## 13. Replay e verifica (D19)
+- **Formato:** versione del gioco + versione del bilanciamento + modalità + seme + Core type + Grade + lista di (tick, comando).
+- **Comandi:** `Buy(offerIndex, slot)` · `Sell(slot)` · `Move(from, to)` · `Undo` · `Reroll` · `StartWave` · `Pulse`. La pausa e la velocità **non** sono comandi: non cambiano il risultato.
+- **`Undo`** ripristina lo stato del negozio prima dell'ultimo `Buy`, `Sell` o `Move` della visita corrente (a più livelli). `Reroll` e `StartWave` svuotano la pila: il rilancio non si può annullare, perché si vedrebbero le offerte future gratis. `Undo` non usa il generatore casuale, quindi resta deterministico e registrato nel replay.
+- **Verifica:** rigiocando il replay si deve ottenere lo stesso hash finale e lo stesso punteggio. In locale subito (test); sul server con Cloud Code C# dall'aggiornamento 1.
+- I replay valgono **solo per la stessa versione di bilanciamento**: classifiche e fantasmi sono divisi per versione o stagione.
+
+## 14. Primo avvio (FTUE)
 | Tempo | Evento |
 |---|---|
-| 0 s | Logo → **solo in UE/UK: modulo di consenso** (Google UMP, compare solo dove è obbligatorio; D16) → **settore guidato "Soundcheck"** (mappa fissa, 3 ondate, **effetti ridotti**: nessun flash forte). Nessun menu, nessun account |
-| circa 5 s | Freccia su una casella: "Tocca" → costruisci un **Kick** → la griglia **pulsa** e parte il battito (**primo "aha"**) |
-| circa 15 s | Ondata 1 (4 Static): esplodono a tempo |
-| circa 35 s | "Metti un pannello qui" → un **Acoustic Panel** (costa pochissimo) **allunga il percorso** (vedi la linea che cambia), poi "Costruisci qui" → un Hi-Hat. Impari labirinto e torri giocando |
-| circa 50 s | Ondata 2 → **prima scelta 1 su 3** (tutte e 3 le carte utili) |
-| circa 75 s | Ondata 3 con un mini-boss → la barra del Drop è piena → "Tocca 💥" → **DROP** (**secondo "aha"**, entro 90 s) |
-| circa 100 s | Risultati → prime Royalties → si sblocca il menu principale |
-| dopo | Proposta "riduci flash" (fotosensibilità) → prima run vera. Gli altri sistemi (Studio, Daily Mix, Pass) si sbloccano **uno alla volta** nelle prime 3 run |
+| 0 s | (solo UE/UK) consenso → atto guidato, effetti ridotti, nessun menu |
+| circa 5 s | Il Core ha già un Emitter: "Tocca Next wave". 5 Drifter arrivano e l'Emitter li abbatte |
+| circa 30 s | **Primo negozio (guidato):** "Compra l'Amplifier e mettilo **accanto** all'Emitter" → nell'ondata successiva i numeri salgono di ×1,5 (**primo "aha"**) |
+| circa 60 s | Arriva uno sciame: "Tocca il Core per il **Pulse**" → onda che respinge i nemici (**secondo "aha"**) |
+| circa 90 s | Secondo negozio: "Compra un altro Emitter" → **merge** a livello 2 |
+| poi | Il resto si scopre giocando; Archive e Daily si sbloccano uno alla volta nelle prime 3 run |
 
-Regola: al massimo **una riga di testo** per suggerimento; si impara facendo.
+Al massimo **una riga di testo** per suggerimento.
 
-## 17. Schermate e flusso
-`Avvio → [UE/UK, primo avvio: consenso UMP] → [primo avvio: Soundcheck → proposta "riduci flash"] → Menu principale`
-- **Menu principale:** Gioca (Run) · Daily Mix · Studio · Backstage Pass · Negozio · Impostazioni
-- **Preparazione run:** scelta del Livello di Pressione e del seme (casuale o inserito)
-- **Partita** (§3) → **Scelta 1 su 3** (finestra) → **Fine settore: scelta del Vinile** → **Risultati** (Royalties, Encore ×2, punteggio)
-- **Studio** (albero) · **Maestria** · **Pass** (percorso gratuito e premium) · **Negozio** (Starter, VIP, pacchetti, Sound Pack)
-- **Impostazioni:** audio (musica, effetti), **riduci flash**, qualità grafica, daltonismo, Drop assistito, lingua, account PGS, privacy e consenso
+## 15. Interfaccia (verticale, una mano)
+- **In alto:** integrità del Core · ondata X/18 · Credits.
+- **Al centro:** l'arena circolare con il Core e l'anello.
+- **In basso, durante l'ondata:** grande pulsante **Pulse** con la ricarica visibile · velocità 1x/2x/3x · pausa.
+- **In basso, nel negozio:** 4 **carte offerta** (icona, nome, costo, effetto breve) · Rilancio · **Annulla** · **Next wave**. Le combo attive si vedono come **linee morbide** tra i vicini.
+- Pulsanti di almeno 48 dp, pochissimo testo, icone.
 
-## 18. Monetizzazione (sintesi, dettagli in `02`)
-- Rewarded: **Encore** (×2 Royalties) · **Rewind** (1 per run: ricarica il salvataggio automatico all'inizio dell'ondata persa, così puoi rigiocarla cambiando strategia) · **Remix** (+1 rilancio) · **Crate Digging** (forziere del giorno). Circa 10 al giorno, nessun effetto nelle modalità competitive.
-- **Backstage Pass** (circa 4,99 € ogni 30 giorni, senza rinnovo automatico): premi senza pubblicità (stessi limiti), progressione ×2, percorso premium. Si lancia solo con **D30 ≥ 7%** e un test positivo (vedi `02`).
-- **VIP per sempre** (circa 7,99 €), **Starter Pack** (1,99 €), **pacchetti di Royalties**, **Sound Pack** estetici.
-- Da definire più avanti (non servono per il prototipo): contenuto del forziere Crate Digging, missioni giornaliere e settimanali, come avanza il percorso del Pass (punti ottenuti giocando).
-- Niente energia, niente interstitial, niente casse casuali a pagamento.
+### 15.1 Interazione nel negozio: trascinare (dettagli in docs/03 parte C)
+| Gesto | Risultato |
+|---|---|
+| Trascina una **carta** su uno slot libero | Compra e piazza il modulo |
+| Trascina una carta su un **modulo uguale** | **Merge**, con la sua animazione |
+| Trascina un **modulo** su un altro slot | Lo sposta (scambio se lo slot è occupato) |
+| Trascina un modulo sulla **zona Vendi** | Lo vende (ricavo mostrato prima di lasciare) |
+| Tocca una carta e poi uno slot | Alternativa senza trascinamento |
+| **Annulla** | Annulla l'ultimo acquisto, vendita o spostamento del negozio (non il rilancio) |
 
-## 19. Architettura tecnica (alto livello)
-Codice in inglese, un modulo per responsabilità, dati di bilanciamento in **ScriptableObject**.
+- **Durante il trascinamento:** l'oggetto sta **sopra il dito**; gli slot validi si illuminano; la **calamita** aggancia lo slot vicino; in alto compare l'**anteprima** dell'effetto (per esempio "danni al secondo: 16 → 24 (+50%)", "Livello 2 → ×1,8", "Vendi: +2").
+- **Anteprima calcolata dalla simulazione** (funzione di sola lettura su una copia dell'anello): quello che vedi è esattamente quello che succede.
 
+### 15.2 Opzioni (dal prototipo)
+Riduci movimento · intensità degli effetti · numeri dei danni (tutti / solo grandi / nessuno) · vibrazioni · velocità 1x/2x/3x. In seguito: dimensione del testo, daltonismo, alto contrasto (docs/03 parte C §7).
+
+## 16. Architettura tecnica (aggiornata)
 | Modulo | Responsabilità |
 |---|---|
-| `Simulation` | ciclo a passo fisso, deterministico, RNG con seme; nessuna dipendenza da Unity nella logica pura (testabile) |
-| `BeatClock` | BPM, suddivisioni, eventi di battito nel tempo di simulazione, collegamento a `dspTime` |
-| `Grid` / `MapGenerator` | griglia, tipi di casella, generazione più validatore |
-| `Pathfinding` | flow field BFS, verifica dei piazzamenti |
-| `Towers` / `Enemies` | stato, bersagli, effetti, sinergie |
-| `WaveDirector` | budget, composizione, anteprima |
-| `Draft` / `Vinyls` | scelte 1 su 3, rarità, garanzia |
-| `Economy` | crediti, interesse, ricompense |
-| `Music` | strati, programmazione `PlayScheduled`, filtri, quantizzazione |
-| `Presentation` | grafica, pulsazioni, VFX (legge lo stato, non lo modifica) |
-| `Meta` | Studio, maestrie, sblocchi, valuta |
-| `Save` | salvataggio locale (a fine ondata) più cloud PGS |
-| `Services` | pubblicità, IAP, PGS, analytics, consenso (dietro interfacce, sostituibili). **Durante lo sviluppo: implementazioni finte**; quelle reali prima dei test esterni o della pubblicazione (vedi `04`, D13) |
+| `Simulation` | ciclo a tick fisso (60/s), deterministico, interi; nessun tipo Unity; assembly separato (asmdef senza UnityEngine) |
+| `Arena` | direzioni (tabella intera), posizioni, portate |
+| `Core` / `Pulse` | integrità, abilità, respingimento |
+| `Modules` / `Ring` | definizioni, slot, vicinato, calcolo dei moltiplicatori, merge |
+| `Enemies` / `Waves` | tipi, movimento radiale, spawn dal seme, anteprima |
+| `Economy` / `Shop` | Credits, interesse, offerte, rilancio, vendita |
+| `Replay` | registrazione, formato, riproduzione, verifica (hash) |
+| `Presentation` | grafica calma, numeri, effetti: legge lo stato, non lo modifica |
+| `Meta` | Blueprints, Archive, sblocchi, Grade |
+| `Save` | salvataggio locale a ogni negozio + cloud |
+| `Services` | classifiche, replay online, analytics, pubblicità, acquisti (dietro interfacce; **finti durante lo sviluppo**, D13) |
 
-- **Determinismo (D11):** valori critici in interi o virgola fissa · flussi RNG separati (mappa, ondate, scelte, Vinili, effetti) · orologio a 96 tick per battito.
-- **Dati:** gli ScriptableObject vengono convertiti in **strutture C# semplici** all'avvio della run. La simulazione non tocca mai tipi Unity e sta in un **assembly separato** (asmdef senza riferimento a UnityEngine), testabile da solo.
-- **Test:** test EditMode sulla simulazione (determinismo: stesso seme e stesse mosse danno lo stesso risultato) · validatore delle mappe · **simulatore di bilanciamento** (bot che gioca migliaia di run senza grafica).
-- **Prestazioni:** pooling degli oggetti, GPU instancing, zero allocazioni nel ciclo di gioco.
+- **RNG a flussi separati:** Waves (composizione e direzioni), Shop (offerte e rilanci), Effects. Le scelte del giocatore non cambiano le ondate.
+- **Test:** determinismo, verifica dei replay, economia, merge, vicinato, formule; **bot di bilanciamento** che gioca migliaia di run.
 
-## 20. Obiettivi (KPI)
-| Metrica | Obiettivo | Riferimento di mercato |
-|---|---|---|
-| Tutorial completato | ≥ 85% | — |
-| D1 | ≥ 35% | mediana 22%, buono 27–40% |
-| D7 | ≥ 12% | mediana <4%, buono 8–14% |
-| D30 | ≥ 5% (≥ 7% per lanciare il Pass) | mediana 0,8%, buono 3–7%, top 1% circa 13–15% |
-| Sessioni al giorno | ≥ 3 | midcore circa 4 |
-| Voto sullo store | ≥ 4,5★ | — |
-| Crash-free | ≥ 99,5% | — |
+## 17. Obiettivi (KPI)
+| Metrica | Obiettivo |
+|---|---|
+| Tutorial completato | ≥ 85% |
+| D1 / D7 / D30 | ≥ 35% / ≥ 12% / ≥ 5% |
+| Durata media della run | 10–15 min |
+| Run per giocatore al giorno | ≥ 2 |
+| Voto sullo store | ≥ 4,5★ |
 
-## 21. Domande aperte (da risolvere nel prototipo)
-- [ ] È divertente **muto**? (D1)
-- [ ] 3D ortografico o 2D? (D5)
-- [ ] La griglia 9×14 è abbastanza grande per labirinti interessanti su un telefono piccolo?
-- [ ] Il "zittire" di Silence è chiaro senza audio?
-- [ ] Il Perfect del Drop è divertente o solo stressante?
-- [ ] Durata reale di un settore (obiettivo 5–6 min, D3).
-- [ ] La preparazione senza limite di tempo rende il ritmo troppo lento? Alternativa: timer facoltativo con bonus.
-- [x] ~~Durata della run~~ → **deciso: 6 ondate + boss**, settore circa 5–6 min, run circa 17 min (D3). Da verificare la durata reale nel prototipo.
-- [x] ~~Efficienza dei potenziamenti~~ → **deciso: potenziare conviene** (resa 1,12 al L3 contro 1,00 di una torre nuova; D15). Da verificare che le torri nuove restino utili.
-- [x] ~~Muro economico~~ → **deciso: Acoustic Panel** a 10 crediti (D14). Da verificare che il labirinto non diventi troppo lungo e facile (leva: costo del pannello).
+## 18. Domande aperte (da risolvere nel prototipo)
+- [ ] Il negozio con l'anello è divertente **già con forme semplici**?
+- [ ] Le combo si capiscono senza spiegazioni (linee tra i vicini, numeri)?
+- [ ] La durata reale di ondate e negozi è 10–15 minuti per run?
+- [ ] Il Pulse è una scelta interessante o un pulsante da premere appena è pronto?
+- [ ] I numeri grandi restano leggibili e calmi?
+- [ ] Un anello di 6 slot basta per creare build diverse?
+- [ ] **Prima sonda del bot (21/09/2026, 100 semi, 1 atto):** un bot "ingenuo" (compra a caso, primo slot libero, Pulse quando i nemici sono vicini) vince il **90%**; le sconfitte sono tutte alle ondate 5–6 (Guardian). Combattimento medio circa **24 s per ondata**. → L'atto 1 va bene come ingresso; **atti 2–3 da tarare** (crescita e nuovi nemici).
 
-## 22. Piano del prototipo (2–3 settimane)
-1. `Simulation` + `BeatClock` + griglia fissa + flow field. Forme grigie.
-2. Acoustic Panel + 3 torri (Kick, Hi-Hat, Bass) con 3 livelli + 3 nemici (Static, Glitch, Distortion) + 1 settore da 6 ondate + boss.
-3. Scelta 1 su 3 con 8 carte, generatore di mappe con validatore.
-4. **Test muto** con 3–5 persone.
-5. Aggiunta di 3 strati musicali e del Drop → **test con audio**.
-6. Decisione: si va avanti, si corregge o si cambia (vedi `04`, D1).
+## 19. Piano del prototipo (2–3 settimane)
+1. **Simulazione v2** (riusa RNG, hash e comandi): arena radiale, Core, 3 nemici (Drifter, Swarmlet, Brute), 6 moduli (Emitter, Scatter, Amplifier, Lens, Bank, Bulwark), negozio con merge, Pulse, 1 atto. **Test.**
+2. **Replay:** registrazione, riproduzione e verifica dell'hash (test automatico).
+3. **Presentazione calma** con forme semplici e interfaccia provvisoria, **con l'interazione tattile** (§15.1): trascinamento con calamita e anteprima, vendita trascinando, annulla, merge animato, conteggio di fine ondata, vibrazioni, opzioni base.
+4. **Test con 3–5 persone** (prima senza audio).
+5. Decisione: avanti, correggere o cambiare.
 
-**Criteri per dire "funziona"** (misurabili durante i test):
-- almeno 3 tester su 5 chiedono **spontaneamente** di rigiocare ("ancora una");
-- i tester capiscono il labirinto e la scelta 1 su 3 **senza spiegazioni** entro il primo settore;
-- con l'audio, almeno 3 tester su 5 lo preferiscono chiaramente (altrimenti la musica non è il nostro elemento distintivo);
-- durata reale di un settore misurata (dato per decidere la questione della durata in §21);
-- nessun tester si blocca più di 10 secondi senza sapere cosa fare.
+**Criteri per dire "funziona":** almeno 3 tester su 5 chiedono di rigiocare; capiscono il vicinato senza spiegazioni entro il secondo negozio; nessuno resta bloccato più di 10 s; la durata reale è misurata.

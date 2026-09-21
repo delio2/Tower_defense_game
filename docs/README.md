@@ -1,13 +1,15 @@
-# Documentazione di design — TowerDefense (titolo provvisorio)
+# Documentazione di design — titolo da definire (cartella `TowerDefense`)
 
 | File | Contenuto |
 |---|---|
-| [00-ricerca-mercato.md](00-ricerca-mercato.md) | Dati di mercato 2026, pubblico, generi, cosa criticano/amano i giocatori TD |
-| [01-concept.md](01-concept.md) | **L'idea del gioco**: gancio originale, pilastri, cosa prendiamo e cosa correggiamo, single player |
-| [02-monetizzazione-marketing.md](02-monetizzazione-marketing.md) | Pass, pubblicità, acquisti, premi, marketing e lancio |
-| [03-grafica-audio.md](03-grafica-audio.md) | Direzione artistica minimal + colonna sonora tech/house adattiva |
-| [04-decisioni.md](04-decisioni.md) | **Registro delle decisioni** di alto livello, basate sui dati (orientamento, dispositivi, offline, lingue, FTUE…) |
-| [05-gdd.md](05-gdd.md) | **Game Design Document v0.1**: meccaniche, numeri, FTUE, schermate, architettura, KPI, piano del prototipo |
+| [00-ricerca-mercato.md](00-ricerca-mercato.md) | Dati di mercato, pubblico, concorrenti; **Ricerca v2** (Balatro, The Tower, multiplayer asincrono, diritto d'autore) |
+| [01-concept.md](01-concept.md) | **Concept v2**: nucleo + anello di moduli con combo + multiplayer asincrono |
+| [02-monetizzazione-marketing.md](02-monetizzazione-marketing.md) | Modelli A (prova + sblocco) e B (free-to-play onesto), premi, marketing |
+| [03-grafica-audio.md](03-grafica-audio.md) | "Dusk Garden": calmo, minimal, diverso da The Tower; audio come atmosfera |
+| [04-decisioni.md](04-decisioni.md) | Registro delle decisioni D1–D21 (con quelle superate marcate) |
+| [05-gdd.md](05-gdd.md) | **GDD v0.2**: meccaniche, numeri, modalità, replay, architettura, piano del prototipo |
+| [setup/SETUP-NUOVO-PC.md](setup/SETUP-NUOVO-PC.md) | **Come configurare un nuovo PC**: programmi, clone, Unity, MCP, Claude Code, Git |
+| [archivio/](archivio/) | Concept v1 e GDD v0.1 ("difesa musicale a labirinto"), abbandonati il 21/09/2026 (D17) |
 
-Stato: **pre-produzione** (settembre 2026). Tutti i numeri di bilanciamento sono ipotesi da validare col prototipo.
+Stato: **pre-produzione, prototipo v2 da iniziare** (settembre 2026). Tutti i numeri sono ipotesi da validare.
 Le stime marcate *(stima)* sono ragionamenti nostri, non dati di mercato.

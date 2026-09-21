@@ -22,6 +22,8 @@
 - Dopo modifiche importanti fai uno screenshot (Unity o Blender) e verifica il risultato.
 - Blender → Unity: esporta FBX o glTF in `Assets/Models/<categoria>/`; 1 unità = 1 m, "Apply Transform" su FBX.
 - Mobile first: low-poly, pochi materiali, texture ≤ 1024 px salvo motivo, draw call basse.
+- **Grafica calma di default** (docs/03 §A1): niente lampeggi né flash a tutto schermo, nessun effetto ripetuto più di 2 volte al secondo nello stesso punto, movimenti morbidi con dissolvenze. Minimal ma attraente, mai agitato.
+- Screenshot via MCP sempre con `output_folder` = `Temp/Screenshots` (mai dentro `Assets`).
 
 ## Convenzioni
 - Cartelle: `Assets/Scripts`, `Prefabs`, `Scenes`, `Models`, `Materials`, `Textures`, `Audio`, `UI`.
@@ -32,15 +34,17 @@
 
 ## Game design
 Documenti in `docs/` (leggili prima di lavorare su gameplay, UI, audio o monetizzazione):
-- `docs/00-ricerca-mercato.md` — dati e analisi concorrenti
-- `docs/01-concept.md` — concept: TD roguelite minimal, "la tua difesa compone una traccia tech-house"
-- `docs/02-monetizzazione-marketing.md` — "paghi per arrivare prima, mai per vincere"
-- `docs/03-grafica-audio.md` — neon minimal su fondo scuro + musica adattiva a strati
-- `docs/04-decisioni.md` — registro decisioni (verticale, minSdk 26/target 36, offline-first + PGS v2, simulazione deterministica…)
-- `docs/05-gdd.md` — **GDD v0.1**: la fonte di verità per meccaniche, numeri e architettura
+- `docs/00-ricerca-mercato.md` — dati e concorrenti (+ Ricerca v2: Balatro, The Tower, multiplayer asincrono, diritto d'autore)
+- `docs/01-concept.md` — **concept v2**: Core al centro + anello di moduli con combo + multiplayer asincrono
+- `docs/02-monetizzazione-marketing.md` — modelli A (prova + sblocco) / B (F2P onesto); mai pay-to-win
+- `docs/03-grafica-audio.md` — "Dusk Garden": calmo, minimal, **diverso da The Tower**; audio solo atmosfera
+- `docs/04-decisioni.md` — registro D1–D21 (le superate sono marcate; svolta in D17)
+- `docs/05-gdd.md` — **GDD v0.2**: la fonte di verità per meccaniche, numeri e architettura
+- `docs/archivio/` — concept v1 musicale abbandonato: **non usarlo come riferimento**
 
-Vincoli chiave: single player first (offline), modalità competitive con dotazione uguale per tutti,
-niente energia/timer/interstitial/loot box, pubblico adulto (mai stile infantile).
-**Orologio:** comanda la simulazione deterministica (passo fisso, 96 tick per battito, interi o virgola fissa, RNG a flussi separati);
-audio e grafica la seguono (l'audio è agganciato a `AudioSettings.dspTime` solo a 1x). Mai usare `dspTime` per il gameplay.
-Terminologia: vedi il glossario nel GDD §0 (Drop ≠ Peak, Vinili ≠ Royalties, Shred ≠ Exposed).
+Vincoli chiave: single player offline completo + multiplayer **solo asincrono** (replay), competitivo a dotazione fissa,
+niente energia/timer/pubblicità forzate/loot box, pubblico adulto (mai stile infantile).
+**Simulazione:** deterministica, tick fisso 60/s, interi o virgola fissa, niente `Math.Pow`/trigonometria float nello stato,
+RNG a flussi separati; grafica e audio la seguono. Ogni run è un replay verificabile (versione + seme + comandi).
+**Anti-copia (D20):** mai il nome "The Tower" (né altri giochi) in codice, asset, store o marketing; stile e UI diversi.
+Terminologia: glossario nel GDD §0 (Core, Ring, Module, Merge, Credits, Blueprints, Pulse, Act, Guardian).

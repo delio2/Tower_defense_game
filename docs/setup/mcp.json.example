@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "blender": {
+      "command": "C:\\PATH\\TO\\uvx.exe",
+      "args": ["mcp-for-blender"]
+    },
+    "unity": {
+      "type": "http",
+      "url": "http://127.0.0.1:8080/mcp"
+    }
+  }
+}

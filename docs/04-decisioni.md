@@ -3,6 +3,11 @@
 Formato: **domanda → dati → cosa fanno i migliori (pregi e errori) → decisione → sicurezza**.
 Sicurezza: 🟢 alta · 🟡 media, da confermare nel prototipo · 🔴 bassa, ipotesi.
 
+> ⚠️ **Svolta del 21/09/2026 (D17):** il concept "difesa musicale a labirinto" è stato **abbandonato**.
+> Il nuovo concept è "nucleo centrale + moduli con combo + multiplayer asincrono" (D17–D21).
+> Le decisioni superate sono marcate **[SUPERATA]**; restano qui come storico.
+> Valgono ancora: D1 (giocabile senza audio), D2, D4, D6, D7, D8, D10 (in parte), D11, D13, D16.
+
 ---
 
 ## D1 — Il gioco deve funzionare senza audio? → **Sì, prima di tutto** 🟢
@@ -10,13 +15,15 @@ Sicurezza: 🟢 alta · 🟡 media, da confermare nel prototipo · 🔴 bassa, i
 - **Decisione:** *"prima funziona muto, la musica amplifica"*. Nessuna decisione di gioco dipende dal suono: il ritmo si **vede** (pulsazioni), le minacce si **vedono**, e il Drop ha un conto alla rovescia visivo e un aiuto automatico.
   La musica è il gancio del marketing (TikTok è un canale con l'audio acceso) e il "di più" dell'esperienza.
 - **Validazione:** il prototipo va giudicato **prima muto**, poi con l'audio.
+- *Aggiornamento D17:* la musica non è più una meccanica, ma il principio resta: **nessuna informazione di gioco solo sonora**.
 
 ## D2 — Verticale o orizzontale? → **Verticale, una mano** 🟢
 - **Dati:** i tower defense mobile di successo recenti sono verticali: Rush Royale, Random Dice, The Tower (7,1M download). Marvel Snap è verticale per giocare con una mano. Bloons e Kingdom Rush sono orizzontali, ma nascono su PC o tablet.
 - **Errore da evitare:** PvZ3 è verticale **e** semplificato (niente scelta dei semi, formazioni imposte), ed è stato criticato per la **perdita di profondità**, non per l'orientamento in sé.
-- **Decisione:** verticale con griglia 9×14 **senza scorrimento** e tutti i comandi raggiungibili col pollice. La profondità resta intera.
+- **Decisione:** verticale, **senza scorrimento**, tutti i comandi raggiungibili col pollice. La profondità resta intera.
+- *Aggiornamento D17:* niente più griglia 9×14. L'arena è **circolare con il nucleo al centro**, la forma più adatta allo schermo verticale.
 
-## D3 — Quanto dura una partita? → **6 ondate + boss per settore, run di circa 17 minuti, divisibile** 🟢 *(deciso dall'utente)*
+## D3 — Quanto dura una partita? → **[SUPERATA da D18: run di 10–15 minuti, 3 atti da 5 ondate + guardiano]** ~~6 ondate + boss per settore, run di circa 17 minuti~~
 - **Dati:** la sessione media mobile dura 17 minuti, quella dei giochi di strategia 37,5 (+18% nel 2025). Si giocano 2–6 sessioni al giorno, 4 per i midcore.
 - **Calcolo:** un'ondata con preparazione e scelta 1 su 3 dura circa 60 s. Con 8 ondate un settore durerebbe 8–9 minuti e la run circa 25: troppo per l'obiettivo.
 - **Decisione:** **6 ondate + boss** per settore (circa 5–6 minuti), run di 3 settori **circa 17 minuti**, con **salvataggio automatico a fine ondata** e ripresa in qualsiasi momento. Le formule sono ricalcolate per mantenere la stessa difficoltà finale (GDD §9).
@@ -48,9 +55,9 @@ Sicurezza: 🟢 alta · 🟡 media, da confermare nel prototipo · 🔴 bassa, i
 ## D8 — Primo avvio (FTUE) → **In partita in meno di 10 secondi, "aha" entro 90 secondi** 🟢
 - **Dati:** l'app media perde il **77% degli utenti in 3 giorni**. Se il momento "è divertente" arriva dopo **90 secondi**, molti non tornano. Un onboarding ottimizzato alza la retention fino al 50%.
 - **Errori da evitare:** account, impostazioni e schermate di testo all'inizio.
-- **Decisione:** nessun menu al primo avvio: si parte da un **settore guidato "Soundcheck"** (vedi GDD §16). Unica eccezione: in UE/UK il **modulo di consenso** compare prima del tutorial (D16). Pubblicità solo dopo il tutorial.
+- **Decisione:** nessun menu al primo avvio: si parte da un **atto guidato** (vedi GDD). Unica eccezione: in UE/UK il **modulo di consenso** compare prima del tutorial (D16). Pubblicità solo dopo il tutorial.
 
-## D9 — Costruzione del labirinto → **Libera ma mai bloccante, niente vendita durante le ondate** 🟢
+## D9 — Costruzione del labirinto → **[SUPERATA: nel nuovo concept non c'è labirinto]** ~~Libera ma mai bloccante~~
 - **Dati:** in Fieldrunners e simili i nemici aggirano le torri e **non si può chiudere il percorso**. Il "juggling" (vendi e ricostruisci per far tornare indietro i nemici) divide la community: molti lo considerano un exploit.
 - **Decisione:** un piazzamento che chiuderebbe il percorso viene rifiutato, con il motivo mostrato. **Vendita e annulla sono permessi solo in preparazione**, a prezzo pieno. Durante l'ondata si può solo costruire o potenziare. Così il juggling è eliminato alla radice.
 - **Tecnica:** flow field calcolato dall'uscita (BFS), ricalcolato a ogni piazzamento (vedi Red Blob Games).
@@ -66,7 +73,7 @@ Sicurezza: 🟢 alta · 🟡 media, da confermare nel prototipo · 🔴 bassa, i
 - **Flussi RNG separati** (mappa, ondate, scelte 1 su 3, Vinili, effetti): le scelte del giocatore non devono cambiare la mappa o le ondate. È necessario perché il Daily Mix sia davvero uguale per tutti.
 - **Risoluzione dell'orologio: 96 tick per battito** (come nel MIDI). Copre 1/16 (24 tick), 1/32 (12 tick) e le terzine (8 o 16 tick), usati da Hi-Hat "Roll" e dalla carta Polyrhythm.
 
-## D12 — Accelerazione (velocità 2x/3x) in un gioco musicale → **La musica non accelera** 🟡
+## D12 — Accelerazione (velocità 2x/3x) in un gioco musicale → **[SUPERATA: la musica non è più una meccanica; la velocità 2x/3x accelera tutto normalmente]**
 - **Problema:** i giocatori si aspettano la velocità 2x e 3x, ma raddoppiare il BPM rovinerebbe la musica.
 - **Decisione:** con la velocità attiva la simulazione accelera, mentre **la musica resta al suo tempo, attenuata da un filtro** (effetto "sto saltando avanti"). I suoni dei colpi vengono diradati.
 - **Risincronizzazione:** quando si torna a 1x, gli strati musicali ripartono allineati **all'inizio della battuta di simulazione successiva**, con una breve dissolvenza (al massimo una battuta di attesa, 2 s a 120 BPM).
@@ -99,13 +106,13 @@ con implementazioni "finte" (log in console) durante lo sviluppo. **Diventano ob
 
 ---
 
-## D14 — Muri economici per il labirinto → **Acoustic Panel a 10 crediti** 🟢 *(deciso dall'utente)*
+## D14 — Muri economici per il labirinto → **[SUPERATA: niente labirinto]** ~~Acoustic Panel a 10 crediti~~
 - **Problema:** con 150 crediti iniziali e torri da 40 in su, all'inizio si costruiscono solo 3 torri e il labirinto quasi non esiste.
 - **Riferimenti:** nei tower defense a labirinto (Gnomes, Infinitode, le mappe "maze" di Warcraft 3) si usano muri o blocchi economici.
 - **Decisione:** **Acoustic Panel**, 10 crediti, nessun attacco, blocca il percorso. Si trasforma in torre pagando la differenza. Non conta per le sinergie basate sui tipi di torre. Dettagli: GDD §6.
 - **Da verificare:** che il labirinto non diventi troppo lungo e facile. La leva è il costo del pannello, ed eventualmente un tetto per settore.
 
-## D15 — Potenziare o costruire → **Potenziare conviene** 🟢 *(deciso dall'utente)*
+## D15 — Potenziare o costruire → **[SUPERATA da D18: i moduli si potenziano unendo i doppioni]** ~~Potenziare conviene~~
 - **Problema:** con +60% per il 100% del costo, potenziare rendeva meno che costruire. In un labirinto con spazio limitato questo spinge a riempire la griglia di torri deboli.
 - **Decisione:** L2 **+80% per 0,6×**, L3 **+100% per 0,9×** (più il ramo). Una torre al L3 rende 1,12 per credito, contro 1,00 di una torre nuova. Premia il labirinto compatto e le scelte dei rami; le torri nuove restano utili per coprire il percorso.
 
@@ -115,7 +122,44 @@ con implementazioni "finte" (log in console) durante lo sviluppo. **Diventano ob
 - **Costo accettato:** qualche secondo in più prima del divertimento per i giocatori europei, in cambio della massima sicurezza legale.
 - ⚠️ Da far verificare a un legale prima della pubblicazione.
 
+---
+
+## D17 — Svolta: niente musica come meccanica → **Nuovo concept "nucleo + moduli + combo"** 🟢 *(deciso dall'utente)*
+- **Perché abbandonare la musica:** con D1 (giocabile senza audio) la musica sarebbe diventata decorazione. Il gioco restava "un altro TD minimal a labirinto" in una nicchia affollata (Infinitode, Emberward, Gnomes). Anche il primo prototipo non risultava attraente.
+- **Dati della nuova direzione:**
+  - Balatro: 5M+ copie, primo tra i giochi a pagamento su mobile, circa 21M $ solo mobile. La formula è una **base familiare + combo roguelite + numeri che esplodono**.
+  - Ball x Pit: 1M+ copie, circa 10M $, su mobile con prova gratuita + sblocco.
+  - Uscite di giochi a pagamento su mobile **+77% nel 2025**.
+  - **The Tower**: circa 1M $ al mese e 7,1M download, ma è criticato per timer di laboratorio, pay-to-win, troppe valute, connessione obbligatoria e partite di ore. È un **pubblico enorme scontento**.
+- **Decisione:** tower defense con **nucleo al centro, nemici da tutti i lati, moduli che si combinano** e numeri che crescono. Partite brevi, onesto, offline. Dettagli: `01` e `05`.
+
+## D18 — Ciclo di gioco → **Negozio tra le ondate + anello di slot + abilità attiva** 🟢 *(deciso dall'utente)*
+- **Moduli:** si comprano in un **negozio tra un'ondata e l'altra**, alla Balatro: crediti, rilancio a pagamento, vendita, interesse sul risparmio. **Comprare un doppione lo unisce e lo potenzia** (fino al livello 3); il merge è il sottogenere più in crescita (+74%).
+- **Posizione:** 6 slot (espandibili a 8) su un **anello attorno al nucleo**. I moduli vicini si combinano: è un piccolo puzzle spaziale, alla Backpack Battles, e le build sono leggibili e condivisibili.
+- **Durante l'ondata:** un'**abilità attiva del nucleo** (Pulse) con ricarica. Dà un momento di scelta senza agitare.
+- **Durata:** 3 atti × (5 ondate + guardiano) = 18 ondate, **circa 10–15 minuti**.
+
+## D19 — Multiplayer → **Solo asincrono, costruito sui replay deterministici** 🟢 *(deciso dall'utente)*
+- **Dati:** Super Auto Pets, Backpack Battles e The Bazaar sono successi con il **PvP asincrono** contro partite registrate. Non servono server in tempo reale e il gioco funziona anche con pochi giocatori.
+- **Decisione:** nessun tempo reale. Modalità asincrone introdotte a fasi:
+  1. **al lancio**: sfida del giorno e della settimana (stesso seme, stessa dotazione) con classifiche + fantasmi dei migliori da sfidare;
+  2. **aggiornamento 1**: leghe settimanali (gruppi da 30) + duelli contro fantasmi con punteggio di abilità;
+  3. **aggiornamento 2**: **Siege** (i giocatori costruiscono ondate d'attacco per gli altri) + boss di comunità.
+- **Tecnica:** un **replay** (versione + seme + modalità + lista di tick e comandi) di pochi KB. I punteggi si verificano sul server **rigiocando** la partita con lo stesso motore C# (senza Unity), tramite Unity Gaming Services Cloud Code.
+- **I replay valgono solo per la stessa versione di bilanciamento:** classifiche e fantasmi sono divisi per versione o stagione.
+- **L'offline resta sempre completo.**
+
+## D20 — Regole anti-copia (The Tower e altri) 🟢
+- Le **meccaniche sono libere** (CGUE, *SAS c. World Programming*, 2012). Il **"look and feel" no** (USA, *Tetris c. Xio*, 2012) e nemmeno nomi e marchi (policy "Impersonation" di Google Play, che può chiudere l'account).
+- **Regole:** identità visiva diversa (niente neon su nero con una torre quadrata al centro), interfaccia diversa (i moduli arrivano come offerte del negozio e si montano sull'anello, non come schede di statistiche), nomi originali per tutto, **mai "The Tower" in store, annunci, parole chiave o file**.
+- Prima del lancio: **un'ora con un avvocato di proprietà intellettuale** per rivedere nome, icona e screenshot.
+
+## D21 — Backend per il multiplayer asincrono → **Unity Gaming Services** 🟡
+- **Dati:** UGS si paga a consumo con una soglia gratuita per servizio (classifiche, Cloud Save, Cloud Code in C#). **PlayFab** da marzo 2026 ha ridotto la soglia gratuita a **1.000 giocatori** (-99%). **Nakama** costa circa 10 $ al mese in autogestione, ma va mantenuto.
+- **Decisione:** UGS (integrato con Unity, Cloud Code C# per verificare i replay). Da confermare con una stima dei costi prima dell'aggiornamento 1. **Non serve per il lancio offline** (D13).
+
 ## Fonti
+- Svolta (D17–D21): vedi fonti in `00-ricerca-mercato.md` §Ricerca v2
 - Audio muto: https://blog.tapresearch.com/how-sound-preferences-impact-player-engagement · https://www.international-sound-directory.com/2025/12/07/do-people-really-play-mobile-games-without-sound-myth-or-reality/
 - TikTok e suono: https://www.socialmediatoday.com/news/tiktok-shares-new-insights-into-the-importance-of-sound-for-marketing-promo/601569/
 - Sessioni: https://gamedevreports.substack.com/p/adjust-gaming-app-insights-report · https://www.blog.udonis.co/mobile-marketing/mobile-games/mobile-gaming-statistics

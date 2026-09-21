@@ -91,3 +91,46 @@ co-op e social asincrono · salvataggio nel cloud e multipiattaforma · QoL comp
 - TD 2026 wishes: https://towersdefense.org/articles/tower-defense-2026
 - Emberward: https://store.steampowered.com/app/2459550/Emberward/ · Refactor: https://m.taptap.io/app/refactor-232307
 - Rhythm Towers: https://rhythmtowers.com/
+
+---
+
+# Ricerca v2 (21/09/2026) — base della svolta D17
+
+## La formula dei successi recenti
+| Gioco | Risultato | Formula |
+|---|---|---|
+| **Balatro** | 5M+ copie; primo tra i giochi a pagamento su iOS e Android; circa 21M $ su mobile | base familiare (poker) + jolly roguelite + numeri che esplodono; prezzo unico, niente microtransazioni |
+| **Ball x Pit** | 1M+ copie, circa 10M $; su mobile da marzo 2026 con **prova gratuita + sblocco** a 9,99 $ | base familiare (Breakout) + fusioni + progressione |
+| **Balatro-like** (CloverPit, PiN, Dice A Million…) | un genere nato in un anno | slot machine, flipper, dadi + combo |
+| **Backpack Battles** | 100k copie in 2 giorni, 92% positive | disposizione spaziale + **PvP asincrono** |
+| **Super Auto Pets** | grande successo free, non pay-to-win | unione dei doppioni + **PvP asincrono** |
+
+- Giochi a pagamento su mobile: **+77% di uscite nel 2025** (circa 750); il free-to-play resta al 96% dei download.
+- Analisi "billion-dollar roguelike": base familiare, sinergie esponenziali, "number go up", partite brevi, meta-progressione, monetizzazione non pay-to-win.
+
+## Il buco di mercato: The Tower
+- Circa 1M $ al mese (stima di terze parti), 7,1M download, voto 4,0.
+- **Critiche ricorrenti:** timer di laboratorio lunghissimi da saltare pagando, pay-to-win, troppe valute, connessione obbligatoria, "non è davvero idle", partite di ore.
+- **Tornei:** gruppi da 30 giocatori per lega, due volte a settimana, con biglietti.
+
+## Multiplayer asincrono e backend
+- PvP asincrono contro "fantasmi" (Backpack Battles, Super Auto Pets, The Bazaar): niente server in tempo reale, funziona anche con pochi giocatori.
+- **Unity Gaming Services:** a consumo con soglia gratuita per servizio. **PlayFab:** soglia gratuita tagliata a 1.000 giocatori (marzo 2026). **Nakama:** open source, circa 10 $ al mese in autogestione.
+- Verifica anti-imbroglio: rigiocare sul server il replay deterministico (seme + mosse).
+
+## Diritto d'autore (per D20)
+- Meccaniche non protette (CGUE, SAS c. World Programming, 2012); "look and feel" protetto (Tetris c. Xio, 2012; Triple Town c. Yeti Town).
+- Google Play vieta nomi, icone e descrizioni che suggeriscano un collegamento con altre app (Impersonation).
+
+## Fonti v2
+- Balatro: https://www.gematsu.com/2025/01/balatro-sales-top-five-million · https://en.wikipedia.org/wiki/Balatro · https://www.gamesradar.com/games/roguelike/balatro-creator-in-disbelief-as-the-roguelike-hit-tops-mobile-sales-charts-beating-minecraft-and-stardew-valley-despite-one-pesky-issue/
+- Premium +77%: https://gamedev.net/news/premium-mobile-games-are-back-with-releases-up-77-in-2025-r4367/
+- Ball x Pit: https://www.gematsu.com/2025/12/ball-x-pit-sales-top-one-million-three-free-content-updates-set-for-2026 · https://www.gamerbraves.com/appmagic-reveals-how-ball-x-pit-bounced-to-10m-on-steam/ · https://rogueliker.com/ball-x-pit-mobile/
+- Balatro-like: https://www.howtogeek.com/how-balatro-spawned-its-own-genre/ · https://en.wikipedia.org/wiki/CloverPit
+- Billion-dollar roguelike: https://www.robin-guo.com/p/the-billion-dollar-roguelike-game
+- Backpack Battles: https://en.wikipedia.org/wiki/Backpack_Battles · https://steamcommunity.com/app/2427700/discussions/0/3883851232929263899/
+- Auto battler / Super Auto Pets: https://en.wikipedia.org/wiki/Auto_battler
+- The Tower: https://kimola.com/reports/unlock-player-insights-for-the-tower-idle-tower-defense-google-play-en-us-157711 · https://lostscotpro.com/reviews/the-tower-idle-tower-defense-review · https://the-tower-idle-tower-defense.fandom.com/wiki/Tournaments
+- Backend: https://unity.com/products/gaming-services/pricing · https://accelbyte.io/blog/playfab-just-cut-its-free-tier-by-99.-heres-what-that-means-for-your-game · https://crux.supercraft.host/blog/nakama-open-source-vs-managed-backend/
+- Replay verification: https://bugnet.io/blog/debugging-leaderboard-anomalies
+- Diritto: https://en.wikipedia.org/wiki/SAS_Institute_Inc_v_World_Programming_Ltd · https://en.wikipedia.org/wiki/Tetris_Holding,_LLC_v._Xio_Interactive,_Inc. · https://support.google.com/googleplay/android-developer/answer/9888374?hl=en
