@@ -165,18 +165,8 @@ Simulazione deterministica (60 tick/s, interi), 7 moduli, 3 nemici + Guardian, n
 
 ---
 
-## 3. Calendario indicativo *(stima)*
-| Fase | Durata | Fine prevista |
-|---|---|---|
-| 1 Prototipo tattile | 2–3 settimane | metà ottobre 2026 |
-| 2 Contenuto MVP | 3–4 settimane | metà novembre 2026 |
-| 3 Vertical slice | 4–6 settimane | fine dicembre 2026 |
-| 4 Meta e Daily | 3–4 settimane | fine gennaio 2027 |
-| 5 Servizi e test chiuso | 4–6 settimane | metà marzo 2027 |
-| 6 Soft launch | 6–8 settimane | maggio 2027 |
-| 7 Lancio | — | giugno 2027 |
-
-Coerente con la stima di `01` §11 (soft launch a 6–9 mesi). Le durate sono per una persona con l'AI; il gate conta più della data.
+## 3. Calendario
+Il calendario operativo è in **`10-liveops-e-roadmap.md` §4** (roadmap a 6 mesi, ottobre 2026 → marzo 2027, un mese per fase con gate e piano "se fallisce"). Le fasi di questo file restano; le date di `10` valgono su queste. La compressione a 6 mesi si regge su tre scelte esplicite (`10` §4.0): bilanciamento continuo con il bot, grafica in parallelo al contenuto dal mese 2, e Pass/Leghe/Duel/Siege/iOS fuori dal rilascio. Le durate sono per una persona con l'AI; **il gate conta più della data**.
 
 ---
 
