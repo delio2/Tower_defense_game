@@ -1,6 +1,6 @@
 # Design documentation — working title "TowerDefense"
 
-**Status (2026-09-21):** pre-production. Deterministic simulation v2 and replay system are done (17 automated tests); a minimal playable presentation runs in the editor. Next: Phase 1 (tactile prototype), see [06-development-plan.md](06-development-plan.md).
+**Status (2026-09-21):** pre-production. Deterministic simulation v2, replay system and balance bots are done (20 automated tests); a minimal playable presentation runs in the editor. Phase 1 (tactile prototype) is in progress: next steps in [06-development-plan.md](06-development-plan.md) §4.
 
 ## How these documents work
 - **One source of truth per topic.** Numbers and rules live in the GDD (`05`). Direction lives in `03`. Decisions live in `04`. The briefs (`07`–`10`) add detail for a phase; when a brief changes a rule, the change goes into `05` and the reason into `04`.

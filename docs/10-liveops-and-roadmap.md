@@ -153,7 +153,7 @@ Never other games' names, never fake UI: **real gameplay only** (`02` §5), the 
 Each month = a `06` phase, a **gate** and an "if it fails" line. Work inside a month runs in parallel; the order is logical, not rigid.
 
 ### Month 1 — October 2026 · Core mechanics and tactile prototype (= Phase 1)
-- Bot runner + CSV; ScriptableObject `ContentLoader`; `BuySlot`; compact notation.
+- ✅ Bot runner + CSV (2026-09-21) · ScriptableObject `ContentLoader`; `BuySlot`; compact notation.
 - UI Toolkit instead of IMGUI; dragging with magnet and preview; Undo and Sell; animated merge; wave-end summary; basic options; haptics.
 - First Android development build on the phone.
 - **Start the Google Play account procedure** (long lead time, D13).

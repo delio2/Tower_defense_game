@@ -253,11 +253,18 @@ Reduce motion · effect intensity · damage numbers (all / big only / none) · h
 - [ ] Is the Pulse an interesting choice or a button to press as soon as it is ready? (proposals: `07` §1.7)
 - [ ] Do big numbers stay readable and calm?
 - [ ] Is a 6-slot ring enough to create different builds?
-- [x] **First bot probe (2026-09-21, 100 seeds, 1 act):** a "naive" bot (buys at random, first free slot, Pulse when enemies are close) wins **90%**; all defeats are on waves 5–6 (Guardian). Average combat about **24 s per wave**. → Act 1 works as an entry; **acts 2–3 need tuning** (growth and new enemies).
+- [x] **Bot probe (2026-09-21, balance 0.2.0, 100 seeds, 1 act, `TowerDefense/Balance/Run bots`):**
+  | Bot | Wins | s/wave | Credits left | Merges | Defeats |
+  |---|---|---|---|---|---|
+  | Naive (random buys, Pulse at first contact) | 90% | 24.2 | 8.3 | 3.6 | waves 5–6: Guardian 5, Brute 3, Swarmlet 1, Drifter 1 |
+  | MaxDps (greedy on the DPS previews) | **100%** | 23.0 | 8.1 | 3.8 | — |
+  | EconomyFirst (Bank first, 25-Credit reserve) | 29% | 24.7 | 21.5 | 1.8 | wave 5: Brute 37, Swarmlet 14 |
+  → Act 1 is an easy entry (good for the FTUE); a competent player is never challenged there, so **acts 2–3 must carry the difficulty**. Hoarding for interest does not pay in a 6-wave run: it must be re-tested on 18 waves in Phase 2. Rerolls are almost unused (4 offers from a 7-module pool).
 
 ## 19. Prototype status
-1. ✅ **Simulation v2** (reuses RNG, hash and commands): radial arena, Core, 3 enemies (Drifter, Swarmlet, Brute) + Guardian, 7 modules (Emitter, Scatter, Amplifier, Lens, Overclock, Bank, Bulwark), shop with merge and undo, previews, Pulse, 1 act. **17 tests.**
+1. ✅ **Simulation v2** (reuses RNG, hash and commands): radial arena, Core, 3 enemies (Drifter, Swarmlet, Brute) + Guardian, 7 modules (Emitter, Scatter, Amplifier, Lens, Overclock, Bank, Bulwark), shop with merge and undo, previews, Pulse, 1 act.
 2. ✅ **Replay:** recording, playback and hash verification (automated test, including tampering).
+2b. ✅ **Balance bots** (`BalanceBot`, `BalanceRunner`, editor menu `TowerDefense/Balance`): three strategies, CSV + console summary; first results in §18. **20 automated tests** in total.
 3. 🔄 **Calm presentation** with simple shapes and a provisional interface, **with tactile interaction** (§15.1). *Done:* `Prototype` scene, simple shapes, tap card → tap slot, Sell/Move, Reroll, Next wave, Pulse, speed 1x/2x/3x, pause, damage numbers, combo lines. *Missing:* magnetic drag, **Undo in the UI** (the command exists), **previews in the UI** (the `TryPreview*` functions exist but are unused), drag-to-sell, animated merge, wave-end summary, haptics, basic options.
 4. ⬜ **Test with 3–5 people** (muted first).
 5. ⬜ Decision: go on, fix, or change.

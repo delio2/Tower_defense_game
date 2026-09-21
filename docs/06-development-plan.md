@@ -53,7 +53,7 @@ Summary of `00`, `03` Part B and the reference titles. Each row says **where** w
 ## 2. The phases
 
 ### Phase 0 — Foundations ✅ (done, September 2026)
-Deterministic simulation (60 ticks/s, integers), 7 modules, 3 enemies + Guardian, shop with merge and undo, Pulse, replay `R1` with verification, 17 tests, minimal presentation in the editor.
+Deterministic simulation (60 ticks/s, integers), 7 modules, 3 enemies + Guardian, shop with merge and undo, Pulse, replay `R1` with verification, minimal presentation in the editor, balance bots (20 tests in total).
 
 ---
 
@@ -62,7 +62,7 @@ Deterministic simulation (60 ticks/s, integers), 7 modules, 3 enemies + Guardian
 
 **Simulation**
 - [ ] `BuySlot` command (extra slot for 8 Credits after the first Guardian, `05` §5) and a 7–8 slot `Ring`.
-- [ ] **Bot runner** in EditMode (menu `TowerDefense/Balance/Run bots`): N seeds × strategies (naive, "max DPS", "economy first"); prints wins per wave, average duration, defeat cause, unused Credits. Writes a CSV to `Temp/Balance/`. It is the tool of every later phase.
+- [x] **Bot runner** (`BalanceBot`, `BalanceRunner` in `Simulation`; menu `TowerDefense/Balance/Run bots`): N seeds × strategies (Naive, MaxDps, EconomyFirst); wins, defeat wave and cause, seconds per wave, unused Credits, rerolls, merges, Pulse uses. CSV in `Temp/Balance/`, summary in the console. First results in `05` §18.
 - [ ] **Content in ScriptableObjects** (`Assets/Content/`): `ModuleAsset`, `EnemyAsset`, `RunConfigAsset` in `Presentation`, with a `ContentLoader` that fills `ContentDatabase`. `CreatePrototypeDefaults()` stays for tests. Test: SOs and defaults produce the same hash on the same seed.
 - [ ] **Compact number notation** table (1.2K · 3.4M · 5.6B) in the simulation (integer, deterministic) with a test.
 
@@ -171,7 +171,7 @@ The operational calendar is in **`10` §4** (6-month roadmap, October 2026 → M
 ---
 
 ## 4. Next steps (in order)
-1. Bot runner in EditMode + CSV (unblocks all balancing).
+1. ✅ Bot runner + CSV (2026-09-21).
 2. `ContentLoader` from ScriptableObjects + equivalence test with the defaults.
 3. `BuySlot` command + test.
 4. UI Toolkit instead of IMGUI: HUD, cards, module panel.

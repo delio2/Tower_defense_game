@@ -54,6 +54,9 @@ namespace TowerDefense.Simulation
         public long TotalDamage { get; private set; }
         public int Kills { get; private set; }
 
+        /// <summary>The enemy kind whose contact ended the run, or null while the run is not lost (for balance reports).</summary>
+        public EnemyKind? DefeatedBy { get; private set; }
+
         public int TotalWaves => _config.TotalWaves;
 
         /// <summary>1-based index of the wave that is running or will run next.</summary>
@@ -525,6 +528,7 @@ namespace TowerDefense.Simulation
                 {
                     Integrity = 0;
                     Phase = GamePhase.Defeat;
+                    DefeatedBy = enemy.Kind;
                     _events.Add(new SimEvent(SimEventType.Defeat, Tick));
                 }
             }

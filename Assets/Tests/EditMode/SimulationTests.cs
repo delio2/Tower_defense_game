@@ -321,61 +321,45 @@ namespace TowerDefense.Simulation.Tests
             Assert.IsTrue(director.IsGuardianWave(6));
         }
 
-        /// <summary>
-        /// Simple deterministic bot (also a first balance probe): buys what it can afford (merging when possible),
-        /// uses Pulse when enemies are close, and plays until the run ends.
-        /// </summary>
-        private static GameSimulation PlayWithBot(ulong seed)
+        private static GameSimulation PlayWithBot(ulong seed, BotStrategy strategy = BotStrategy.Naive)
         {
             GameSimulation sim = Create(seed);
-            for (int guard = 0; guard < 200_000 && !sim.IsOver; guard++)
-            {
-                if (sim.Phase == GamePhase.Shop)
-                {
-                    for (int offer = 0; offer < sim.OfferCount; offer++)
-                    {
-                        int slot = FirstFreeSlot(sim);
-                        if (sim.Validate(Command.Buy(offer, slot)) == CommandResult.Ok)
-                        {
-                            sim.Enqueue(Command.Buy(offer, slot));
-                            sim.ApplyPendingCommandsNow();
-                        }
-                    }
-
-                    sim.Enqueue(Command.StartWave());
-                    sim.ApplyPendingCommandsNow();
-                    continue;
-                }
-
-                if (sim.IsPulseReady)
-                {
-                    foreach (Enemy e in sim.Enemies)
-                    {
-                        if (e.Radius <= sim.Config.PulseRadius / 2)
-                        {
-                            sim.Enqueue(Command.Pulse());
-                            break;
-                        }
-                    }
-                }
-
-                sim.Step();
-            }
-
+            BalanceBot.Play(sim, strategy);
             return sim;
         }
 
-        private static int FirstFreeSlot(GameSimulation sim)
+        [Test]
+        public void Bots_AreDeterministicForEveryStrategy()
         {
-            for (int i = 0; i < sim.Ring.SlotCount; i++)
+            foreach (BotStrategy strategy in System.Enum.GetValues(typeof(BotStrategy)))
             {
-                if (sim.Ring.At(i) == null)
-                {
-                    return i;
-                }
+                RunResult first = BalanceBot.Play(Config(21), ContentDatabase.CreatePrototypeDefaults(), strategy);
+                RunResult second = BalanceBot.Play(Config(21), ContentDatabase.CreatePrototypeDefaults(), strategy);
+                Assert.AreEqual(first.FinalHash, second.FinalHash, strategy.ToString());
+                Assert.IsTrue(first.Won || first.DefeatedBy.HasValue, $"{strategy}: the run must end");
             }
+        }
 
-            return 0;
+        [Test]
+        public void GreedyBot_NeverLowersRingDps()
+        {
+            // Every greedy shop action is chosen from a preview with a positive gain, so DPS is monotonic per shop.
+            GameSimulation sim = Create(5, credits: 30);
+            long before = sim.RingDps();
+            BalanceBot.Play(sim, BotStrategy.MaxDps);
+            Assert.GreaterOrEqual(sim.RingDps(), before);
+        }
+
+        [Test]
+        public void BalanceRunner_ReportsEverySeedAndStrategy()
+        {
+            BalanceReport report = BalanceRunner.Run(() => new RunConfig(), ContentDatabase.CreatePrototypeDefaults(),
+                new[] { BotStrategy.Naive, BotStrategy.MaxDps }, firstSeed: 100, seedCount: 3);
+            Assert.AreEqual(6, report.Rows.Count);
+            string csv = report.ToCsv();
+            Assert.AreEqual(7, csv.Split('\n').Length - 1, "header + 6 rows");
+            StringAssert.Contains("Naive:", report.Summary());
+            StringAssert.Contains("MaxDps:", report.Summary());
         }
     }
 }
