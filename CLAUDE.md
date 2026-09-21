@@ -20,7 +20,8 @@ Roguelite core defense for Android (Unity 6, URP, C#). Deterministic simulation 
 - **unity** (MCP for Unity, `http://127.0.0.1:8080/mcp`): requires Unity open with *Window → MCP for Unity → Start Server*. If not connected, open the session in the parent folder that holds `.mcp.json` or start the server and restart the session (`docs/setup/NEW-PC-SETUP.md` §5).
 - Instance name `TowerDefense@<hash>`; with several projects open, read `mcpforunity://instances` and call `set_active_instance`.
 - Verify Unity APIs with `unity_reflect` / `unity_docs`, not from memory.
-- Screenshots: `output_folder` = `Temp/Screenshots`, never inside `Assets`.
+- Screenshots: `output_folder` = `Temp/Screenshots`, never inside `Assets`. The Game View does not repaint while the editor is unfocused: a screenshot taken during a wave may be stale — pause or take it in the shop.
+- `read_console` shows only the first line of a multi-line log: log one line per entry (see `BalanceMenu`).
 - **blender** (MCP for Blender, port 9876): only for models; ask the user to save the `.blend` before destructive `execute_blender_code`.
 
 ## Verify before saying "done"
