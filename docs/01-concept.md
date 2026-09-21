@@ -4,7 +4,7 @@
 >
 > **In one sentence:** defend a Core at the centre of the screen from enemies coming from every side by **mounting modules on the ring around it**: neighbouring modules combine and damage grows to enormous numbers. Runs of 10–15 minutes, **no waiting, no pay-to-win**, offline. And you challenge other players' recorded runs.
 >
-> *Concept v1 ("musical maze defense") is in `archive/`; the reasons for the pivot are in `04` D17.*
+> *Concept v1 ("musical maze defense") was abandoned; the reasons are in `04` D17 (its documents live only in git history).*
 
 ---
 

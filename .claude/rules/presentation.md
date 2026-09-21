@@ -1,0 +1,18 @@
+---
+paths:
+  - "Assets/Scripts/Presentation/**"
+  - "Assets/UI/**"
+  - "Assets/Content/**"
+---
+
+# Presentation rules (visuals, UI, input, content assets)
+
+- **Read-only view of the simulation:** presentation reads `GameSimulation` state and `DrainEvents`; it changes state only by enqueueing `Command`s. Never mutate simulation objects from here.
+- **Calm by default** (`docs/03` A1, A7): no flashing, no full-screen flash, no effect repeated more than 2 times per second in one spot, every motion eased with a fade; "reduce motion" and "effect intensity" options must be respected by every effect.
+- **Palette and shapes:** colours only from `Palette` (`docs/03` A4): enemy coral/rose never on Core, modules, UI or text; round = player, angular = enemy.
+- **Mobile budget:** low-poly, ≤ 4 materials per category, SRP Batcher-friendly, no per-frame allocations in `Update`, pooling for lines and numbers, 30 fps on a 4 GB phone.
+- **Touch (`docs/07` §1.2, `docs/09`):** targets ≥ 48 dp, drag threshold 8 dp, dragged object above the finger, magnet 0.45 units, long press 250 ms, hold 1 s for irreversible actions, no confirmation dialogs (Undo is the confirmation).
+- **UI Toolkit** for HUD, cards and options (D22); tokens in `Assets/UI/Theme.uss` (`docs/09` §5); strings by key, never text in code.
+- **Content ScriptableObjects** (`Assets/Content/`) mirror `ModuleDefinition`/`EnemyDefinition`/`RunConfig` and are loaded into `ContentDatabase` by `ContentLoader`; the numbers must equal `docs/05-gdd.md` and the defaults' hash test must stay green.
+- Private fields `_camelCase`, `[SerializeField] private`, no public fields; `Application.targetFrameRate = 60`.
+- After a visual change: screenshot via MCP (`Temp/Screenshots`) and look at it before reporting.

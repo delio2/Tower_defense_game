@@ -53,6 +53,8 @@ The first GitHub access opens a login window (Git Credential Manager).
 **Check that everything works:** Window → General → **Test Runner** → EditMode → **Run All** → all tests must pass (17 as of September 2026).
 
 ## 5. Connecting Claude Code (MCP)
+The repository already contains `.mcp.json` (Unity server), `.claude/settings.json`, rules and skills: **opening Claude Code inside `TowerDefense` is enough for Unity.** The parent-folder configuration below adds the Blender server and lets one session span several game projects.
+
 1. Copy `TowerDefense/docs/setup/mcp.json.example` to `<working folder>/.mcp.json`.
 2. Find the uvx path on the new PC:
    ```powershell
@@ -66,7 +68,7 @@ The first GitHub access opens a login window (Git Credential Manager).
    uvx mcp-for-blender install-addon
    ```
    In Blender: Edit → Preferences → Add-ons → enable **"MCP for Blender"** → in the 3D view press **N** → **MCP for Blender** tab → **Start MCP Server** (port 9876). Enable **Poly Haven**.
-6. **Claude Code:** open the session **in the working folder** (not inside `TowerDefense`) and approve the `unity` and `blender` servers.
+6. **Claude Code:** open the session in the working folder (Unity + Blender) or inside `TowerDefense` (Unity only) and approve the servers when asked.
    Start Unity and Blender **first**, then Claude Code (servers are read when the session starts).
 
 ### Claude's "memory"

@@ -1,53 +1,38 @@
-# TowerDefense
+# TowerDefense — instructions for Claude Code
 
-- **Language:** chat with the user in **Italian**; **everything else in English**: documentation, code (class, method, variable, file and folder names), comments, log and error messages, commit messages.
-- Do not install software on the PC: propose what to install, the user does it by hand.
+Roguelite core defense for Android (Unity 6, URP, C#). Deterministic simulation + calm visuals. Solo developer + AI.
 
-## Project
-- **Unity:** 6000.6.2f1, Universal 3D (URP 17.6), C#.
-- **Platform:** Android first (then iOS). **Portrait**, one-handed (D2). minSdk 26, targetSdk 36 (D4).
-- **3D:** Blender 5.2 LTS. **Code editor:** VS Code + Unity extension.
-- **Unity MCP instance:** `TowerDefense@05fb0f4e1489f906` (the hash changes if the project is moved).
+## Language
+- Chat with the user in **Italian**. Everything else in **English**: docs, code, comments, logs, commit messages.
 
-## MCP (configured in `../.mcp.json`)
-- **unity** → MCP for Unity (CoplayDev), `http://127.0.0.1:8080/mcp`. Requires Unity open with the server started.
-  - If several Unity projects are open, read `mcpforunity://instances` and `set_active_instance` to TowerDefense.
-  - Verify Unity APIs with `unity_reflect` / `unity_docs` instead of relying on memory.
-- **blender** → MCP for Blender, port 9876. Requires Blender open with "Start MCP Server".
-  - Before destructive operations with `execute_blender_code`, ask the user to save the .blend.
+## Start of every session
+1. Read `docs/README.md` (index + conventions) and `docs/06-development-plan.md` §4 (next steps).
+2. Run `git log --oneline -10` and `git status` to see where the work stopped.
+3. Do not install software: propose it, the user installs by hand.
 
-## Workflow
-- C# code: write files under `Assets/Scripts/`; after every change check `read_console` until there are no compile errors, and run the EditMode tests (`run_tests`, assembly `TowerDefense.Simulation.Tests`) when the simulation changes.
-- Scenes, prefabs, components, play mode, screenshots: through MCP Unity.
-- After significant changes take a screenshot (Unity or Blender) and check the result.
-- Blender → Unity: export FBX or glTF to `Assets/Models/<category>/`; 1 unit = 1 m, "Apply Transform" on FBX.
-- Mobile first: low-poly, few materials, textures ≤ 1024 px unless justified, low draw calls.
-- **Calm visuals by default** (docs/03 A1): no flashing or full-screen flashes, no effect repeated more than 2 times per second in one spot, soft eased motion with fades. Minimal but attractive, never agitated.
-- MCP screenshots always with `output_folder` = `Temp/Screenshots` (never inside `Assets`).
-- Git: repository in this folder, Git LFS for binaries. Commit only when the user asks.
+## Project facts
+- Unity **6000.6.2f1**, Universal 3D (URP 17.6), new Input System, UI Toolkit (D22). Portrait, one-handed. minSdk 26, targetSdk 36.
+- Assemblies: `Assets/Scripts/Simulation` (pure C#, `noEngineReferences`), `Assets/Scripts/Presentation` (Unity), `Assets/Tests/EditMode` (NUnit).
+- Scene: `Assets/Scenes/Prototype.unity`. Balance data: `ContentDatabase.CreatePrototypeDefaults()` until ScriptableObjects exist (`Assets/Content/`).
+- Git: this folder is the repository; Git LFS for binaries. **Commit only when the user asks** (`/commit` skill).
 
-## Conventions
-- Folders: `Assets/Scripts`, `Prefabs`, `Scenes`, `Models`, `Materials`, `Textures`, `Audio`, `UI`, `Content` (ScriptableObjects).
-- C#: PascalCase for classes/methods, `_camelCase` for private fields, `[SerializeField] private` instead of public fields.
-- Balance data (modules, enemies, waves) in ScriptableObjects in the `Presentation` layer, loaded into the simulation's `ContentDatabase` (the `Simulation` assembly cannot use Unity types). The prototype still uses the defaults in `ContentDatabase.CreatePrototypeDefaults()`: once the SOs exist, that method is for tests only.
-- Input: the new Input System, designed for touch.
-- Documentation: see `docs/README.md` for conventions (headers, markers, cross-references, acronyms). Keep `docs/05-gdd.md` section numbers stable: code comments reference them.
+## Tools (MCP)
+- **unity** (MCP for Unity, `http://127.0.0.1:8080/mcp`): requires Unity open with *Window → MCP for Unity → Start Server*. If not connected, open the session in the parent folder that holds `.mcp.json` or start the server and restart the session (`docs/setup/NEW-PC-SETUP.md` §5).
+- Instance name `TowerDefense@<hash>`; with several projects open, read `mcpforunity://instances` and call `set_active_instance`.
+- Verify Unity APIs with `unity_reflect` / `unity_docs`, not from memory.
+- Screenshots: `output_folder` = `Temp/Screenshots`, never inside `Assets`.
+- **blender** (MCP for Blender, port 9876): only for models; ask the user to save the `.blend` before destructive `execute_blender_code`.
 
-## Game design
-Documents in `docs/` (read them before working on gameplay, UI, audio or monetization):
-- `docs/00-market-research.md` — data and reference titles (Balatro, The Tower, asynchronous PvP, copyright)
-- `docs/01-concept.md` — **concept v2**: Core at the centre + ring of modules with combos + asynchronous multiplayer
-- `docs/02-monetization-and-marketing.md` — models A (trial + unlock) / B (fair F2P); never pay-to-win
-- `docs/03-art-and-audio-direction.md` — **art bible** "Dusk Garden": calm, minimal, **different from The Tower**; catalogues of shapes and micro-animations; audio as atmosphere
-- `docs/04-decision-log.md` — D1–D21 and the **open decisions/proposals**
-- `docs/05-gdd.md` — **GDD v0.2**: the source of truth for rules, numbers and architecture
-- `docs/06-development-plan.md` — phases with gates; `docs/10` §4 has the month-by-month calendar
-- `docs/07-gameplay-brief.md`, `08-economy-brief.md`, `09-ui-ux.md`, `10-liveops-and-roadmap.md` — phase briefs (proposals marked **PROPOSAL**)
-- `docs/archive/` — abandoned v1 music concept: **do not use as a reference**
+## Verify before saying "done"
+- After any C# change: `read_console` until there are no compile errors, then `/verify` (runs the EditMode tests, assembly `TowerDefense.Simulation.Tests`). All tests must pass.
+- After visual changes: take a screenshot and look at it.
 
-Key constraints: complete offline single player + **asynchronous-only** multiplayer (replays), fixed-kit competition,
-no energy/timers/forced ads/loot boxes, adult audience (never a childish style).
-**Simulation:** deterministic, fixed 60 ticks/s, integers or fixed point, no `Math.Pow`/float trigonometry in state,
-separate RNG streams; visuals and audio follow it. Every run is a verifiable replay (version + seed + commands).
-**Anti-copy (D20):** never the name "The Tower" (or other games) in code, assets, store or marketing; different style and UI.
-Terminology: glossary in the GDD §0 (Core, Ring, Module, Merge, Credits, Blueprints, Pulse, Act, Guardian).
+## Rules that always apply
+- Simulation: deterministic, 60 ticks/s, integers only, no Unity types, every state change is a `Command` (details load from `.claude/rules/simulation.md` when you touch those files).
+- Visuals: calm by default — no flashing, ≤ 2 repeats/s in one spot, eased motion (`.claude/rules/presentation.md`).
+- Never write "The Tower" or other games' names in code, assets or store text (D20).
+- Keep `docs/05-gdd.md` section numbers stable: code comments cite them.
+
+## Where things are documented
+- `docs/05-gdd.md` — rules and numbers (source of truth) · `docs/03-art-and-audio-direction.md` — art bible · `docs/04-decision-log.md` — decisions and open proposals · `docs/06` + `docs/10` §4 — plan and calendar · `docs/07`–`09` — phase briefs.
+- Read the relevant document before working on gameplay, UI, audio or monetization; propose changes to numbers as **PROPOSAL** and record decisions in `docs/04`.

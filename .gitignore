@@ -50,3 +50,7 @@ mono_crash.*
 # OS
 .DS_Store
 Thumbs.db
+
+# Claude Code personal files (per machine)
+CLAUDE.local.md
+.claude/settings.local.json

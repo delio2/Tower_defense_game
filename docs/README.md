@@ -24,7 +24,15 @@
 | [09-ui-ux.md](09-ui-ux.md) | UI rules, navigation map, wireframes per screen, progressive disclosure, components, design tokens |
 | [10-liveops-and-roadmap.md](10-liveops-and-roadmap.md) | Daily challenge, leaderboards and anti-cheat, secondary modes, multiplayer gates, launch marketing and store listing, **6-month roadmap** |
 | [setup/NEW-PC-SETUP.md](setup/NEW-PC-SETUP.md) | How to set up a new PC: software, clone, Unity, MCP, Claude Code, Git |
-| [archive/](archive/) | Concept v1 and GDD v0.1 ("musical maze defense"), abandoned on 2026-09-21 (D17). Kept in Italian as history; **not a reference** |
+
+## Working with Claude Code
+The repository carries its own Claude configuration, so a fresh session on any PC knows how to move:
+- `CLAUDE.md` — always-on instructions (< 60 lines): session start checklist, project facts, tools, verification, pointers.
+- `.claude/rules/` — path-scoped rules loaded only when the matching files are touched: `simulation.md`, `presentation.md`, `docs.md`.
+- `.claude/skills/` — `/verify` (console + EditMode tests through MCP) and `/commit` (user-only).
+- `.claude/settings.json` — enables the `unity` MCP server from `.mcp.json` and pre-approves read-only tools.
+- Personal, per-machine notes go in `CLAUDE.local.md` (gitignored). Claude's auto-memory lives outside the repository and is not a substitute for these files.
+History of the abandoned v1 concept ("musical maze defense") is in git history before commit `b136844`; it is not kept in the tree.
 
 ## Acronyms
 | Acronym | Meaning |

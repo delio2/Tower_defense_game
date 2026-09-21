@@ -10,7 +10,7 @@ Roguelite core defense for mobile (Android, then iOS): the Core at the centre, e
 ## Documentation
 - [docs/README.md](docs/README.md) — index and conventions: market research, concept, monetization, art bible, decisions, **GDD**, development plan, briefs, **roadmap**
 - [docs/setup/NEW-PC-SETUP.md](docs/setup/NEW-PC-SETUP.md) — **how to set up a new PC** to develop the game
-- [CLAUDE.md](CLAUDE.md) — rules for developing with Claude Code
+- [CLAUDE.md](CLAUDE.md) + `.claude/` (rules, skills, settings) — how Claude Code works in this repository (see docs/README.md §Working with Claude Code)
 
 ## Code structure
 | Folder | Content |
@@ -18,7 +18,7 @@ Roguelite core defense for mobile (Android, then iOS): the Core at the centre, e
 | `Assets/Scripts/Simulation` | Pure C# deterministic simulation (no Unity): arena, ring, modules, shop, waves, replay |
 | `Assets/Scripts/Presentation` | Visuals and input of the prototype |
 | `Assets/Tests/EditMode` | Automated simulation tests (Test Runner → EditMode) |
-| `Assets/Scenes/Prototype.unity` | Prototype scene (`SampleScene.unity` is the empty template scene) |
+| `Assets/Scenes/Prototype.unity` | Prototype scene (the only scene in Build Settings) |
 
 ## Quick start
 1. Follow [docs/setup/NEW-PC-SETUP.md](docs/setup/NEW-PC-SETUP.md).
