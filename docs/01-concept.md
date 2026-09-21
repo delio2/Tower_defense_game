@@ -1,102 +1,102 @@
-# 01 — Concept del gioco (v2)
+# 01 — Concept (v2)
 
-> **In una frase:** difendi un nucleo al centro dello schermo da nemici che arrivano da ogni lato,
-> **montando moduli sull'anello che lo circonda**: i moduli vicini si combinano e i danni crescono fino a numeri enormi.
-> Partite da 10–15 minuti, **niente attese, niente pay-to-win**, offline. E sfidi le partite registrate degli altri giocatori.
+> Version 2 · 2026-09-21 · Status: decided (D17–D21). Working title; the game name is open decision D25.
 >
-> *Titolo da definire. Il concept v1 ("difesa musicale a labirinto") è in `archivio/`, e le ragioni della svolta sono in `04` D17.*
+> **In one sentence:** defend a Core at the centre of the screen from enemies coming from every side by **mounting modules on the ring around it**: neighbouring modules combine and damage grows to enormous numbers. Runs of 10–15 minutes, **no waiting, no pay-to-win**, offline. And you challenge other players' recorded runs.
+>
+> *Concept v1 ("musical maze defense") is in `archive/`; the reasons for the pivot are in `04` D17.*
 
 ---
 
-## 1. Perché questa idea (il buco di mercato)
-- **Pubblico enorme e scontento:** il genere "difesa del nucleo con numeri che salgono" (The Tower: circa 1M $ al mese, 7,1M download) piace moltissimo, ma i giocatori odiano timer, pay-to-win, troppe valute, connessione obbligatoria e partite di ore. **Nessuno offre la stessa soddisfazione in modo onesto.**
-- **La formula dei successi 2024–2026** (Balatro, Ball x Pit, Backpack Battles): base semplice e familiare + **combo che esplodono** + partite brevi + modello onesto.
-- **Il multiplayer asincrono** (Super Auto Pets, Backpack Battles) tiene vivi i giochi senza server costosi: perfetto per uno sviluppatore da solo.
+## 1. Why this idea (the market gap)
+- **A huge, unhappy audience:** the "defend the core, numbers go up" genre (The Tower: about $1 M/month, 7.1 M downloads) is loved, but players hate timers, pay-to-win, too many currencies, mandatory connection and hours-long runs. **Nobody offers the same satisfaction honestly.** (`00` B2)
+- **The 2024–2026 hit formula** (Balatro, Ball x Pit, Backpack Battles): simple familiar base + **exploding combos** + short runs + honest model. (`00` B1)
+- **Asynchronous multiplayer** (Super Auto Pets, Backpack Battles) keeps games alive without expensive servers: ideal for a solo developer. (`00` B3)
 
-## 2. Il ciclo di gioco
-1. **Ondata** (circa 30 s): i nemici arrivano da tutti i lati; i moduli sull'anello sparano da soli; tu decidi **quando** usare l'abilità del nucleo (**Pulse**).
-2. **Negozio** (senza limite di tempo): con i crediti guadagnati compri moduli, **unisci i doppioni** per potenziarli, **li disponi sull'anello** per creare combo, vendi e rilanci il negozio. Se risparmi, prendi un piccolo interesse.
-3. Dopo 5 ondate arriva il **Guardiano** dell'atto; **3 atti** formano una run (circa 10–15 minuti).
-4. Tra una run e l'altra **sblocchi nuovi moduli e nuovi nuclei**: più varietà, non statistiche da grindare.
+## 2. The loop
+1. **Wave** (about 25–30 s): enemies come from all sides; the modules on the ring fire by themselves; you decide **when** to use the Core's ability (**Pulse**).
+2. **Shop** (no time limit): with the Credits earned you buy modules, **merge duplicates** to level them up, **arrange them on the ring** to create combos, sell and reroll. Saving pays a small interest.
+3. After 5 waves the act's **Guardian** arrives; **3 acts** make a run (about 10–15 minutes).
+4. Between runs you **unlock new modules and new Cores**: more variety, never stats to grind.
 
-## 3. Gli elementi distintivi
-1. **L'anello delle combo**: 6 slot (fino a 8) attorno al nucleo. Un Amplifier potenzia i suoi due vicini, un Echo fa ripetere i loro colpi, un Prism raddoppia i booster accanto… **La posizione conta**: è un puzzle spaziale che si legge a colpo d'occhio e si condivide con uno screenshot.
-2. **Numeri che esplodono**: danno = (base + bonus) × moltiplicatori, in stile Balatro. Da 10 danni all'ondata 1 a milioni nelle build migliori, mostrati con numeri **morbidi e calmi** (docs/03).
-3. **Unione dei doppioni**: due moduli uguali ne fanno uno più forte. È la meccanica merge, la più in crescita (+74%), ed è soddisfacente e immediata.
-4. **Nuclei diversi come "mazzi"**: ogni nucleo cambia le regole (economia, resistenza, danni), come i mazzi di Balatro. Varietà enorme senza grind.
-5. **Partite brevi e oneste**: 10–15 minuti, zero timer e zero energia, funziona offline.
-6. **Sfidi i fantasmi degli altri**: la tua partita diventa una sfida per gli altri (§6).
+## 3. Distinctive elements
+1. **The combo ring:** 6 slots (up to 8) around the Core. An Amplifier boosts its two neighbours, an Echo repeats their shots, a Prism doubles the boosters next to it… **Position matters**: a spatial puzzle readable at a glance and shareable as a screenshot.
+2. **Exploding numbers:** damage = (base + flat bonuses) × multipliers, Balatro style. From 10 damage on wave 1 to millions in the best builds, shown with **soft, calm** numbers (`03`).
+3. **Merging duplicates:** two equal modules make a stronger one. Merge is the fastest-growing mechanic (+74%) and is immediately satisfying.
+4. **Cores as "decks":** each Core changes the rules (economy, resistance, damage), like Balatro's decks. Huge variety without grind.
+5. **Short, honest runs:** 10–15 minutes, zero timers, zero energy, works offline.
+6. **Challenge other players' ghosts:** your run becomes a challenge for others (§6).
 
-## 4. Cosa prendiamo dai migliori (senza copiare)
-| Da | Cosa piace | La nostra versione |
+## 4. What we take from the best (without copying)
+| From | What players like | Our version |
 |---|---|---|
-| **The Tower** | Nucleo centrale, numeri che salgono, minimal | Stesso piacere, ma **partite brevi, niente timer né pay-to-win** e identità visiva diversa (D20) |
-| **Balatro** | Negozio, economia, interesse, jolly, mazzi, escalation | Negozio tra le ondate, moduli come jolly, **nuclei come mazzi** |
-| **Backpack Battles** | Disposizione spaziale, PvP asincrono | L'**anello** con combo di vicinanza, duelli contro fantasmi |
-| **Super Auto Pets** | Unire i doppioni, asincrono onesto | Merge dei moduli fino al livello 3 |
-| **Slay the Spire** | Atti, guardiani, Ascension | 3 atti + Guardiani + Livelli di difficoltà |
-| **Vampire Survivors** | Si spara da soli, un solo tocco | I moduli sparano da soli; tu gestisci la build e il Pulse |
-| **Arknights** | Conta l'abilità, non i soldi | Modalità competitive con dotazione uguale per tutti |
-| **Ball x Pit / Balatro mobile** | Modello onesto (prova + sblocco, o prezzo unico) | Monetizzazione onesta (§7 e `02`) |
+| **The Tower** | Central core, rising numbers, minimal | Same pleasure, but **short runs, no timers, no pay-to-win**, and a different visual identity (D20) |
+| **Balatro** | Shop, economy, interest, jokers, decks, escalation | Shop between waves, modules as jokers, **Cores as decks** |
+| **Backpack Battles** | Spatial arrangement, asynchronous PvP | The **ring** with adjacency combos, duels against ghosts |
+| **Super Auto Pets** | Merging duplicates, honest asynchronous play | Module merge up to level 3 |
+| **Slay the Spire** | Acts, bosses, Ascension | 3 acts + Guardians + Grades |
+| **Vampire Survivors** | Auto-fire, one touch | Modules fire by themselves; you manage the build and the Pulse |
+| **Arknights** | Skill counts, not money | Competitive modes with the same kit for everyone |
+| **Ball x Pit / Balatro mobile** | Honest model (trial + unlock, or single price) | Honest monetization (§7 and `02`) |
 
-## 5. Cosa correggiamo (le critiche agli altri)
-| Critica | Nostra risposta |
+## 5. What we fix (the criticism of others)
+| Criticism | Our answer |
 |---|---|
-| Timer di laboratorio da saltare pagando (The Tower) | **Zero timer**: si avanza solo giocando |
-| Tornei pay-to-win (The Tower, Rush Royale) | **Competitivo a dotazione fissa**: vince l'abilità |
-| Troppe valute | **Due valute in tutto**: crediti (dentro la partita) e Blueprints (sblocchi) |
-| Connessione obbligatoria | **Offline completo**; online solo per classifiche e fantasmi |
-| Partite di ore | **10–15 minuti**, salvataggio automatico a ogni negozio |
-| Grind infinito di statistiche (Infinitode, The Tower) | Si sbloccano **varietà e opzioni**, non numeri |
-| Passività ("guardo e aspetto") | Negozio pieno di scelte, disposizione sull'anello, **Pulse attivo** |
-| Casualità ingiusta | Rilancio del negozio, anteprima delle ondate, semi condivisibili |
-| Pubblicità invasive | Nessuna pubblicità forzata, mai |
+| Lab timers skipped by paying (The Tower) | **Zero timers**: you progress only by playing |
+| Pay-to-win tournaments (The Tower, Rush Royale) | **Fixed-kit competition**: skill wins |
+| Too many currencies | **Two currencies in total**: Credits (inside the run) and Blueprints (unlocks) |
+| Mandatory connection | **Complete offline play**; online only for leaderboards and ghosts |
+| Hours-long runs | **10–15 minutes**, autosave at every shop |
+| Endless stat grind (Infinitode, The Tower) | You unlock **variety and options**, not numbers |
+| Passivity ("watch and wait") | A shop full of choices, ring arrangement, **active Pulse** |
+| Unfair randomness | Shop reroll, wave preview, shareable seeds |
+| Intrusive ads | No forced ads, ever |
 
-## 6. Multiplayer asincrono (D19)
-Nessun tempo reale, e **l'offline resta sempre completo**.
+## 6. Asynchronous multiplayer (D19)
+No real time, and **offline always stays complete**.
 
-| Fase | Modalità |
+| Phase | Modes |
 |---|---|
-| **Lancio** | **Daily Run** e **Weekly Run**: stesso seme e stesso nucleo per tutti, classifica. Puoi **scaricare il fantasma** di chi è in cima e giocare vedendo il suo andamento |
-| **Aggiornamento 1** | **Leghe settimanali** (gruppi da 30, promozioni e retrocessioni) + **Duelli**: stesso seme di un avversario reale e un punteggio di abilità |
-| **Aggiornamento 2** | **Siege**: costruisci un'ondata d'attacco che gli altri devono superare, e vieni premiato se cadono + **boss di comunità** con vita condivisa |
+| **Launch** | **Daily Run** and **Weekly Run**: same seed and same Core for everyone, leaderboard. You can **download the ghost** of a top player and play watching their progress |
+| **Update 1** | **Weekly leagues** (groups of 30, promotion and relegation) + **Duels**: same seed as a real opponent, with a skill rating |
+| **Update 2** | **Siege**: build an attack wave others must survive, rewarded if they fall + **Community Guardian** with shared health |
 
-**Come funziona:** ogni partita è un **replay** di pochi KB (seme + mosse). Grazie alla simulazione deterministica (D11) il server lo rigioca per verificare il punteggio, e gli altri possono rivederlo come fantasma.
+**How it works:** every run is a **replay** of a few KB (seed + moves). Thanks to the deterministic simulation (D11) the server re-plays it to verify the score, and others can watch it as a ghost. Updates 1 and 2 are built **only if** the gates in `10` §2.4 open.
 
-## 7. Monetizzazione (sintesi, dettagli in `02`)
-- Principi fermi: **mai pay-to-win**, niente energia, niente timer, niente pubblicità forzate, niente casse casuali a pagamento.
-- **Modello da decidere prima del soft launch** con i dati: (a) **prova gratuita + sblocco del gioco completo** una tantum (il modello di Ball x Pit), oppure (b) **free-to-play onesto** (pubblicità facoltative + pass per accelerare gli sblocchi + VIP senza pubblicità).
-- In entrambi i casi le modalità competitive restano **a dotazione fissa**.
+## 7. Monetization (summary; details in `02` and `08`)
+- Fixed principles: **never pay-to-win**, no energy, no timers, no forced ads, no paid loot boxes.
+- **Model decided before soft launch, with data:** (a) **free trial + one-time unlock** of the full game (the Ball x Pit model), or (b) **fair free-to-play** (optional ads + a pass that speeds up unlocks + ad-free VIP).
+- In both cases competitive modes stay **fixed-kit**.
 
-## 8. Regole anti-copia (D20)
-Le meccaniche sono libere, l'aspetto e i nomi no. **Identità visiva diversa** da The Tower, **interfaccia diversa** (negozio + anello, non schede di statistiche), **nomi originali**, **mai il loro nome** nello store o negli annunci. Revisione di un legale prima del lancio.
+## 8. Anti-copy rules (D20)
+Mechanics are free, look and names are not. **Different visual identity** from The Tower, **different interface** (shop + ring, not stat sheets), **original names**, **never their name** in the store or in ads. Legal review before launch.
 
-## 9. Punti di forza
-1. **Domanda dimostrata** (The Tower) **+ critiche chiare** da risolvere = posizionamento netto: "il bello del genere, senza le parti odiose".
-2. **Formula moderna** (negozio + combo + merge + numeri) che funziona su mobile.
-3. **Leggibile in verticale**: nucleo al centro, anello, nemici tutto attorno.
-4. **Fattibile da soli**: forme semplici, niente livelli fatti a mano, multiplayer senza server in tempo reale.
-5. **Rigiocabile**: nuclei × moduli × disposizioni × semi.
-6. **Marketing naturale**: "guarda questa build", "batti il mio fantasma", screenshot dell'anello.
+## 9. Strengths
+1. **Proven demand** (The Tower) **+ clear criticism** to solve = a sharp position: "the good part of the genre, without the hated parts".
+2. **Modern formula** (shop + combos + merge + numbers) that works on mobile.
+3. **Readable in portrait:** Core in the centre, ring, enemies all around.
+4. **Feasible solo:** simple shapes, no hand-made levels, multiplayer without real-time servers.
+5. **Replayable:** Cores × modules × arrangements × seeds.
+6. **Natural marketing:** "look at this build", "beat my ghost", ring screenshots.
 
-## 10. Rischi e mitigazioni
-| Rischio | Mitigazione |
+## 10. Risks and mitigations
+| Risk | Mitigation |
 |---|---|
-| Sembrare una copia di The Tower | D20 + meccaniche diverse (negozio, anello, merge, partite brevi) + stile diverso |
-| Troppa complessità per il mobile | Pochi moduli all'inizio, sblocco graduale, interfaccia a icone, un tutorial giocato |
-| Numeri enormi illeggibili | Notazione compatta (1,2K · 3,4M · 5,6B), numeri solo per i colpi importanti, stile calmo |
-| Build "rotte" che banalizzano il gioco | Simulatore automatico di bilanciamento (bot) + Livelli di difficoltà + nuove versioni per stagione |
-| Imbrogli nelle classifiche | Verifica dei replay sul server (D19) |
-| Pochi giocatori per il multiplayer | L'asincrono funziona anche con pochi giocatori; all'inizio anche fantasmi generati da bot |
+| Looking like a copy of The Tower | D20 + different mechanics (shop, ring, merge, short runs) + different style |
+| Too complex for mobile | Few modules at first, gradual unlocks, icon-based UI, a played tutorial |
+| Unreadable huge numbers | Compact notation (1.2K · 3.4M · 5.6B), numbers only for important hits, calm style |
+| "Broken" builds that trivialize the game | Automatic balance simulator (bot) + Grades + per-season versions |
+| Leaderboard cheating | Server-side replay verification (D19, `10` §1.3) |
+| Too few players for multiplayer | Asynchronous play works with few players; bot-generated ghosts at first |
 
-## 11. Prima versione giocabile (MVP) *(stima)*
-- 1 nucleo, 1 atto (5 ondate + Guardiano), i 14 moduli dell'MVP (armi, booster, economia; GDD §6), negozio con merge, Pulse, i 6 nemici + Guardian (GDD §8). *Il prototipo attuale ne ha 7 moduli e 3 nemici + Guardian.*
-- Registrazione e verifica locale dei replay; Daily Run con seme del giorno (classifica solo locale per ora).
-- **Tempi con l'aiuto dell'AI** *(stima)*:
-  | Fase | Tempo |
+## 11. First playable version (MVP) `(estimate)`
+- 1 Core, 1 act (5 waves + Guardian), the 14 MVP modules (weapons, boosters, economy; `05` §6), shop with merge, Pulse, the 6 enemies + Guardian (`05` §8). *The current prototype has 7 modules and 3 enemies + Guardian.*
+- Local replay recording and verification; Daily Run with the day's seed (local leaderboard for now).
+- **Timeline with AI assistance** `(estimate)`, detailed month by month in `10` §4:
+  | Milestone | Time |
   |---|---|
-  | Prototipo con forme semplici | 2–3 settimane |
-  | Vertical slice con grafica e audio finali | circa 3 mesi |
-  | Soft launch | 6–9 mesi |
+  | Simple-shape prototype | 2–3 weeks |
+  | Vertical slice with final art and audio | about 3 months |
+  | Soft launch | about 6 months |
 
-**Regola d'oro:** se il negozio con l'anello non è divertente con forme semplici, non si va avanti con la grafica.
+**Golden rule:** if the shop with the ring is not fun with simple shapes, we do not move on to art.

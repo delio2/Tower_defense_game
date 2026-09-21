@@ -1,25 +1,25 @@
-# Tower Defense Game (titolo provvisorio)
+# Tower Defense Game (working title)
 
-Difesa del nucleo roguelite per mobile (Android, poi iOS): il nucleo al centro, nemici da ogni lato,
-**moduli sull'anello che si combinano**, negozio tra le ondate, partite da 10–15 minuti,
-**offline** e con multiplayer **asincrono** basato su replay deterministici. Mai pay-to-win.
+Roguelite core defense for mobile (Android, then iOS): the Core at the centre, enemies from every side,
+**modules on a ring that combine**, a shop between waves, 10–15 minute runs,
+**offline** and with **asynchronous** multiplayer built on deterministic replays. Never pay-to-win.
 
-- **Motore:** Unity 6 (6000.6.2f1), URP, C#
-- **Stato:** pre-produzione, prototipo v2 giocabile nell'editor (settembre 2026)
+- **Engine:** Unity 6 (6000.6.2f1), URP, C#
+- **Status:** pre-production; simulation v2 and replays done, minimal playable prototype in the editor (September 2026)
 
-## Documentazione
-- [docs/README.md](docs/README.md) — indice: ricerca di mercato, concept, monetizzazione, grafica e UX, decisioni, **GDD**, **piano a fasi**
-- [docs/setup/SETUP-NUOVO-PC.md](docs/setup/SETUP-NUOVO-PC.md) — **come configurare un nuovo PC** per sviluppare il gioco
-- [CLAUDE.md](CLAUDE.md) — regole per lo sviluppo con Claude Code
+## Documentation
+- [docs/README.md](docs/README.md) — index and conventions: market research, concept, monetization, art bible, decisions, **GDD**, development plan, briefs, **roadmap**
+- [docs/setup/NEW-PC-SETUP.md](docs/setup/NEW-PC-SETUP.md) — **how to set up a new PC** to develop the game
+- [CLAUDE.md](CLAUDE.md) — rules for developing with Claude Code
 
-## Struttura del codice
-| Cartella | Contenuto |
+## Code structure
+| Folder | Content |
 |---|---|
-| `Assets/Scripts/Simulation` | Simulazione deterministica pura in C# (senza Unity): arena, anello, moduli, negozio, ondate, replay |
-| `Assets/Scripts/Presentation` | Parte visiva e input del prototipo |
-| `Assets/Tests/EditMode` | Test automatici della simulazione (Test Runner → EditMode) |
-| `Assets/Scenes/Prototype.unity` | Scena del prototipo |
+| `Assets/Scripts/Simulation` | Pure C# deterministic simulation (no Unity): arena, ring, modules, shop, waves, replay |
+| `Assets/Scripts/Presentation` | Visuals and input of the prototype |
+| `Assets/Tests/EditMode` | Automated simulation tests (Test Runner → EditMode) |
+| `Assets/Scenes/Prototype.unity` | Prototype scene (`SampleScene.unity` is the empty template scene) |
 
-## Avvio rapido
-1. Segui [docs/setup/SETUP-NUOVO-PC.md](docs/setup/SETUP-NUOVO-PC.md).
-2. Apri `Assets/Scenes/Prototype.unity` e premi **Play** (Game View verticale 1080×1920).
+## Quick start
+1. Follow [docs/setup/NEW-PC-SETUP.md](docs/setup/NEW-PC-SETUP.md).
+2. Open `Assets/Scenes/Prototype.unity` and press **Play** (portrait Game View, 1080×1920).

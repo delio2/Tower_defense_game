@@ -1,51 +1,53 @@
 # TowerDefense
 
-- Lingua: **chat con l'utente in italiano**; **tutto il codice in inglese**: nomi (classi, metodi, variabili, file, cartelle), commenti, messaggi di log/errore e messaggi di commit.
-- Non installare software sul PC: proponi cosa installare, l'utente lo fa a mano.
+- **Language:** chat with the user in **Italian**; **everything else in English**: documentation, code (class, method, variable, file and folder names), comments, log and error messages, commit messages.
+- Do not install software on the PC: propose what to install, the user does it by hand.
 
-## Progetto
+## Project
 - **Unity:** 6000.6.2f1, Universal 3D (URP 17.6), C#.
-- **Piattaforma:** mobile Android (poi iOS). **Orientamento verticale**, una mano (D2). minSdk 26, targetSdk 36 (D4).
-- **3D:** Blender 5.2 LTS. **Editor codice:** VS Code + estensione Unity.
-- **Istanza MCP Unity:** `TowerDefense@05fb0f4e1489f906` (l'hash cambia se il progetto viene spostato).
+- **Platform:** Android first (then iOS). **Portrait**, one-handed (D2). minSdk 26, targetSdk 36 (D4).
+- **3D:** Blender 5.2 LTS. **Code editor:** VS Code + Unity extension.
+- **Unity MCP instance:** `TowerDefense@05fb0f4e1489f906` (the hash changes if the project is moved).
 
-## MCP (configurati in `../.mcp.json`)
-- **unity** → MCP for Unity (CoplayDev), `http://127.0.0.1:8080/mcp`. Richiede Unity aperto con il server avviato.
-  - Se sono aperti più progetti Unity, leggi `mcpforunity://instances` e usa `set_active_instance` su TowerDefense.
-  - Per le API Unity verifica con `unity_reflect` / `unity_docs` invece di andare a memoria.
-- **blender** → MCP for Blender, porta 9876. Richiede Blender aperto con "Start MCP Server".
-  - Prima di operazioni distruttive con `execute_blender_code`, chiedi all'utente di salvare il .blend.
+## MCP (configured in `../.mcp.json`)
+- **unity** → MCP for Unity (CoplayDev), `http://127.0.0.1:8080/mcp`. Requires Unity open with the server started.
+  - If several Unity projects are open, read `mcpforunity://instances` and `set_active_instance` to TowerDefense.
+  - Verify Unity APIs with `unity_reflect` / `unity_docs` instead of relying on memory.
+- **blender** → MCP for Blender, port 9876. Requires Blender open with "Start MCP Server".
+  - Before destructive operations with `execute_blender_code`, ask the user to save the .blend.
 
-## Flusso di lavoro
-- Codice C#: scrivi i file in `Assets/Scripts/`; dopo ogni modifica controlla `read_console` finché non ci sono errori di compilazione.
-- Scene, prefab, componenti, play mode, screenshot: via MCP Unity.
-- Dopo modifiche importanti fai uno screenshot (Unity o Blender) e verifica il risultato.
-- Blender → Unity: esporta FBX o glTF in `Assets/Models/<categoria>/`; 1 unità = 1 m, "Apply Transform" su FBX.
-- Mobile first: low-poly, pochi materiali, texture ≤ 1024 px salvo motivo, draw call basse.
-- **Grafica calma di default** (docs/03 §A1): niente lampeggi né flash a tutto schermo, nessun effetto ripetuto più di 2 volte al secondo nello stesso punto, movimenti morbidi con dissolvenze. Minimal ma attraente, mai agitato.
-- Screenshot via MCP sempre con `output_folder` = `Temp/Screenshots` (mai dentro `Assets`).
+## Workflow
+- C# code: write files under `Assets/Scripts/`; after every change check `read_console` until there are no compile errors, and run the EditMode tests (`run_tests`, assembly `TowerDefense.Simulation.Tests`) when the simulation changes.
+- Scenes, prefabs, components, play mode, screenshots: through MCP Unity.
+- After significant changes take a screenshot (Unity or Blender) and check the result.
+- Blender → Unity: export FBX or glTF to `Assets/Models/<category>/`; 1 unit = 1 m, "Apply Transform" on FBX.
+- Mobile first: low-poly, few materials, textures ≤ 1024 px unless justified, low draw calls.
+- **Calm visuals by default** (docs/03 A1): no flashing or full-screen flashes, no effect repeated more than 2 times per second in one spot, soft eased motion with fades. Minimal but attractive, never agitated.
+- MCP screenshots always with `output_folder` = `Temp/Screenshots` (never inside `Assets`).
+- Git: repository in this folder, Git LFS for binaries. Commit only when the user asks.
 
-## Convenzioni
-- Cartelle: `Assets/Scripts`, `Prefabs`, `Scenes`, `Models`, `Materials`, `Textures`, `Audio`, `UI`.
-- C#: PascalCase per classi/metodi, `_camelCase` per campi privati, `[SerializeField] private` invece di campi pubblici.
-- Dati di bilanciamento (moduli, nemici, ondate) in ScriptableObject nel layer `Presentation`, che li carica nel `ContentDatabase` della simulazione (l'assembly `Simulation` non può usare tipi Unity). Il prototipo usa ancora i default in `ContentDatabase.CreatePrototypeDefaults()`: quando arrivano gli SO, quel metodo resta solo per i test.
-- Input: nuovo Input System, pensato per il touch.
-- Git: repo in questa cartella, Git LFS per i binari. Commit solo quando l'utente lo chiede.
+## Conventions
+- Folders: `Assets/Scripts`, `Prefabs`, `Scenes`, `Models`, `Materials`, `Textures`, `Audio`, `UI`, `Content` (ScriptableObjects).
+- C#: PascalCase for classes/methods, `_camelCase` for private fields, `[SerializeField] private` instead of public fields.
+- Balance data (modules, enemies, waves) in ScriptableObjects in the `Presentation` layer, loaded into the simulation's `ContentDatabase` (the `Simulation` assembly cannot use Unity types). The prototype still uses the defaults in `ContentDatabase.CreatePrototypeDefaults()`: once the SOs exist, that method is for tests only.
+- Input: the new Input System, designed for touch.
+- Documentation: see `docs/README.md` for conventions (headers, markers, cross-references, acronyms). Keep `docs/05-gdd.md` section numbers stable: code comments reference them.
 
 ## Game design
-Documenti in `docs/` (leggili prima di lavorare su gameplay, UI, audio o monetizzazione):
-- `docs/00-ricerca-mercato.md` — dati e concorrenti (+ Ricerca v2: Balatro, The Tower, multiplayer asincrono, diritto d'autore)
-- `docs/01-concept.md` — **concept v2**: Core al centro + anello di moduli con combo + multiplayer asincrono
-- `docs/02-monetizzazione-marketing.md` — modelli A (prova + sblocco) / B (F2P onesto); mai pay-to-win
-- `docs/03-grafica-audio.md` — "Dusk Garden": calmo, minimal, **diverso da The Tower**; audio solo atmosfera
-- `docs/04-decisioni.md` — registro D1–D21 (le superate sono marcate; svolta in D17)
-- `docs/05-gdd.md` — **GDD v0.2**: la fonte di verità per meccaniche, numeri e architettura
-- `docs/06-piano-sviluppo.md` — **piano a fasi** con gate: dice cosa fare adesso (§4) e cosa aspetta la fase dopo
-- `docs/archivio/` — concept v1 musicale abbandonato: **non usarlo come riferimento**
+Documents in `docs/` (read them before working on gameplay, UI, audio or monetization):
+- `docs/00-market-research.md` — data and reference titles (Balatro, The Tower, asynchronous PvP, copyright)
+- `docs/01-concept.md` — **concept v2**: Core at the centre + ring of modules with combos + asynchronous multiplayer
+- `docs/02-monetization-and-marketing.md` — models A (trial + unlock) / B (fair F2P); never pay-to-win
+- `docs/03-art-and-audio-direction.md` — **art bible** "Dusk Garden": calm, minimal, **different from The Tower**; catalogues of shapes and micro-animations; audio as atmosphere
+- `docs/04-decision-log.md` — D1–D21 and the **open decisions/proposals**
+- `docs/05-gdd.md` — **GDD v0.2**: the source of truth for rules, numbers and architecture
+- `docs/06-development-plan.md` — phases with gates; `docs/10` §4 has the month-by-month calendar
+- `docs/07-gameplay-brief.md`, `08-economy-brief.md`, `09-ui-ux.md`, `10-liveops-and-roadmap.md` — phase briefs (proposals marked **PROPOSAL**)
+- `docs/archive/` — abandoned v1 music concept: **do not use as a reference**
 
-Vincoli chiave: single player offline completo + multiplayer **solo asincrono** (replay), competitivo a dotazione fissa,
-niente energia/timer/pubblicità forzate/loot box, pubblico adulto (mai stile infantile).
-**Simulazione:** deterministica, tick fisso 60/s, interi o virgola fissa, niente `Math.Pow`/trigonometria float nello stato,
-RNG a flussi separati; grafica e audio la seguono. Ogni run è un replay verificabile (versione + seme + comandi).
-**Anti-copia (D20):** mai il nome "The Tower" (né altri giochi) in codice, asset, store o marketing; stile e UI diversi.
-Terminologia: glossario nel GDD §0 (Core, Ring, Module, Merge, Credits, Blueprints, Pulse, Act, Guardian).
+Key constraints: complete offline single player + **asynchronous-only** multiplayer (replays), fixed-kit competition,
+no energy/timers/forced ads/loot boxes, adult audience (never a childish style).
+**Simulation:** deterministic, fixed 60 ticks/s, integers or fixed point, no `Math.Pow`/float trigonometry in state,
+separate RNG streams; visuals and audio follow it. Every run is a verifiable replay (version + seed + commands).
+**Anti-copy (D20):** never the name "The Tower" (or other games) in code, assets, store or marketing; different style and UI.
+Terminology: glossary in the GDD §0 (Core, Ring, Module, Merge, Credits, Blueprints, Pulse, Act, Guardian).

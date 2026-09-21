@@ -1,4 +1,4 @@
-> ⚠️ **ARCHIVIATO il 21/09/2026 (D17):** concept v1 "difesa musicale a labirinto", abbandonato. **Non usare come riferimento.** Il concept attuale è in `../01-concept.md` e `../05-gdd.md`.
+> ⚠️ **ARCHIVED on 2026-09-21 (D17):** concept v1 "musical maze defense", abandoned. **Not a reference.** Kept in its original Italian as project history; the current concept is in `../01-concept.md` and `../05-gdd.md`.
 
 # 05 — Game Design Document (v0.1)
 

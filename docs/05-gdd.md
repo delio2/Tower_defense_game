@@ -1,258 +1,265 @@
-# 05 — Game Design Document (v0.2)
+# 05 — Game Design Document (GDD v0.2)
 
-> **Titolo:** da definire · **Genere:** difesa del nucleo roguelite con negozio e combo · **Piattaforma:** Android, poi iOS
-> **Orientamento:** verticale · **Pubblico:** adulti 18–45 · **Modello:** onesto, *"mai pay-to-win"* (vedi `02`)
->
-> Tutti i numeri sono **valori di partenza v0**, da tarare con il prototipo e con il simulatore automatico (D11).
-> Motivazioni: `00`–`04` (in particolare D17–D21). I nomi nel gioco sono in inglese, come nel codice.
+> Version 0.2 · 2026-09-21 · Status: **source of truth** for rules, numbers and architecture. Balance values are **v0 starting values**, to be tuned with the prototype and the balance bot (D11, `06` Phase 2). Section numbers are referenced from code comments: **do not renumber**.
+> **Working title:** open (D25) · **Genre:** roguelite core defense with a shop and combos · **Platform:** Android, then iOS · **Orientation:** portrait · **Audience:** adults 18–45 · **Model:** honest, *"never pay-to-win"* (`02`).
+> Rationale: `00`–`04` (especially D17–D21). In-game names are English, like the code.
 
 ---
 
-## 0. Glossario
-| Termine | Significato |
+## 0. Glossary (in-game terms)
+| Term | Meaning |
 |---|---|
-| **Core** | il nucleo al centro, da difendere. Se la sua integrità arriva a 0, la run finisce |
-| **Ring** | l'anello di slot attorno al Core (6 all'inizio, fino a 8) |
-| **Module** | ciò che si monta su uno slot: arma, booster o economia |
-| **Neighbours** | i due slot adiacenti sull'anello (l'anello è circolare: il primo e l'ultimo sono vicini) |
-| **Merge** | comprare un modulo già posseduto lo unisce a quello esistente e ne alza il livello (massimo 3) |
-| **Credits** | la valuta **dentro** la run, per il negozio |
-| **Blueprints** | la valuta **permanente**, per sbloccare nuovi moduli e Core. Non compra potenza |
-| **Pulse** | l'abilità attiva del Core, con ricarica |
-| **Act** | 5 ondate + 1 Guardian. Una run è fatta di 3 atti |
-| **Guardian** | il boss di fine atto |
-| **Core type** | la variante di Core scelta a inizio run, che cambia le regole (come i mazzi di Balatro) |
-| **Grade** | livello di difficoltà aggiuntivo a sblocco (come l'Ascension) |
-| **Replay** | versione + seme + modalità + Core + lista di (tick, comando): basta a riprodurre la run |
+| **Core** | the nucleus at the centre, to defend. When its integrity reaches 0 the run ends |
+| **Integrity** | the Core's hit points (100 at start) |
+| **Ring** | the ring of slots around the Core (6 at start, up to 8) |
+| **Slot** | a position on the Ring that holds one Module |
+| **Module** | what is mounted on a slot: weapon, booster or economy |
+| **Neighbours** | the two adjacent slots on the ring (the ring is circular: first and last are neighbours) |
+| **Merge** | buying a module you already own fuses it with the existing one and raises its level (max 3) |
+| **Credits** | the currency **inside** the run, for the shop |
+| **Blueprints** | the **permanent** currency, to unlock new modules and Cores. It never buys power |
+| **Archive** | the unlock tree where Blueprints are spent (`08` §1.3) |
+| **Pulse** | the Core's active ability, with a cooldown |
+| **Wave** | one attack; time advances only during waves |
+| **Act** | 5 waves + 1 Guardian. A run has 3 acts |
+| **Guardian** | the end-of-act boss |
+| **Core type** | the Core variant chosen at run start, which changes the rules (like Balatro's decks) |
+| **Grade** | an unlockable extra difficulty level (like Ascension) |
+| **Replay** | version + seed + mode + Core + list of (tick, command): enough to reproduce the run |
+| **Ghost** | another player's replay played alongside your run on the same seed |
+| **Seed** | the number that fixes every random draw of a run |
+| **Tick** | one simulation step (60 per second) |
 
-## 1. Pilastri
-1. **Scelte che contano:** negozio, merge e disposizione sull'anello. Ogni ondata cambia la build.
-2. **Numeri che esplodono, con calma:** crescita esponenziale leggibile, grafica calma (docs/03).
-3. **Rispetto del tempo:** run di 10–15 minuti, niente timer, niente energia, offline.
-4. **Onesto:** mai pay-to-win; il competitivo è a dotazione fissa.
-5. **Condivisibile:** ogni run è un replay, sfidabile e verificabile.
+## 1. Pillars
+1. **Choices that matter:** shop, merge and arrangement on the ring. Every wave changes the build.
+2. **Numbers that explode, calmly:** readable exponential growth, calm visuals (`03`).
+3. **Respect for time:** 10–15 minute runs, no timers, no energy, offline.
+4. **Honest:** never pay-to-win; competition is fixed-kit.
+5. **Shareable:** every run is a replay, challengeable and verifiable.
 
-## 2. Ciclo e durata
-| Livello | Durata | Contenuto |
+## 2. Loop and duration
+| Level | Duration | Content |
 |---|---|---|
-| Ondata | circa 25–30 s | Nemici da tutti i lati, i moduli sparano da soli, tu usi il Pulse |
-| Negozio | libero (circa 10–20 s) | Compra, unisci, disponi, vendi, rilancia → "Next wave" |
-| Atto | circa 4–5 min | 5 ondate + Guardian |
-| Run | circa 10–15 min | 3 atti (18 ondate). Se vinci puoi continuare in modalità infinita |
-| Meta | settimane | Sblocchi di moduli e Core con i Blueprints, Grade, modalità online |
+| Wave | about 25–30 s | Enemies from all sides, modules fire by themselves, you use the Pulse |
+| Shop | free (about 10–20 s) | Buy, merge, arrange, sell, reroll → "Next wave" |
+| Act | about 4–5 min | 5 waves + Guardian |
+| Run | about 10–15 min | 3 acts (18 waves). After a win you can continue in Endless |
+| Meta | weeks | Unlock modules and Cores with Blueprints, Grades, online modes |
 
-Salvataggio automatico **a ogni negozio**, con ripresa in qualsiasi momento.
+Automatic save **at every shop**, resumable at any time.
 
-## 3. Arena e unità (deterministico)
-- **Tick fisso: 60 al secondo.** Nessun float nello stato di gioco (D11).
-- **Unità:** i dati di bilanciamento sono in **milli-unità** (1000 = 1 unità); lo stato della simulazione usa le **micro-unità** (1.000.000 = 1 unità) per non perdere precisione. Il Core sta in (0,0) con raggio 0,7. Gli slot dell'anello sono a raggio 1,5. I nemici nascono a raggio 9,0.
-- **Direzioni:** **192** direzioni fisse (tabella intera del coseno ×10.000; il seno si ricava spostando di un quarto di giro). 192 è divisibile per 6 e per 8, le dimensioni possibili dell'anello.
-- **Movimento dei nemici:** **radiale** verso il Core. Ogni nemico ha una direzione e una distanza, e ogni tick la distanza diminuisce della sua velocità. Il respingimento la aumenta.
-- **Contatto:** a distanza ≤ 0,7 il nemico colpisce il Core (danno da contatto) e scompare.
+## 3. Arena and units (deterministic)
+- **Fixed tick: 60 per second.** No floats in game state (D11).
+- **Units:** balance data is in **milli-units** (1000 = 1 unit); simulation state uses **micro-units** (1,000,000 = 1 unit) to avoid precision loss. The Core is at (0,0) with radius 0.7. Ring slots are at radius 1.5. Enemies spawn at radius 9.0.
+- **Directions:** **192** fixed directions (integer cosine table ×10,000; sine is the cosine shifted by a quarter turn). 192 is divisible by 6 and 8, the possible ring sizes.
+- **Enemy movement:** **radial** towards the Core. Each enemy has a direction and a distance; every tick the distance decreases by its speed. Knockback increases it.
+- **Contact:** at distance ≤ 0.7 the enemy hits the Core (contact damage) and disappears.
 
-## 4. Il Core
-- **Integrità:** 100.
-- **Pulse:** 20 danni + **respingimento di 1,5 unità** a tutti i nemici entro 3,0 dal Core. Ricarica di 20 s (1.200 tick); è pronto all'inizio di ogni ondata. I moduli possono modificarlo.
-- **Core type** (varianti; il prototipo usa Standard):
-  | Core type | Regola | Inizio |
+## 4. The Core
+- **Integrity:** 100.
+- **Pulse:** 20 damage + **1.5-unit knockback** to every enemy within 3.0 of the Core. Cooldown 20 s (1,200 ticks); ready at the start of every wave. Modules can modify it. *(Proposals to make it a richer choice: `07` §1.7.)*
+- **Core types** (variants; the prototype uses Standard):
+  | Core type | Rule | Start |
   |---|---|---|
-  | **Standard** | — | Emitter nello slot 0, 6 Credits |
-  | **Merchant** | +1 al tetto dell'interesse, 5 slot | 10 Credits, nessun modulo |
-  | **Bastion** | integrità 150, ricarica del Pulse −25% | Bulwark, 4 Credits |
-  | **Glass** | tutti i danni ×1,5, integrità 50 | Emitter + Amplifier, 2 Credits |
+  | **Standard** | — | Emitter in slot 0, 6 Credits |
+  | **Merchant** | +1 interest cap, 5 slots | 10 Credits, no module |
+  | **Bastion** | integrity 150, Pulse cooldown −25% | Bulwark, 4 Credits |
+  | **Glass** | all damage ×1.5, integrity 50 | Emitter + Amplifier, 2 Credits |
 
-## 5. Il Ring (anello)
-- **6 slot** all'inizio, disposti a esagono. Lo **slot extra** (fino a 8) si compra nel negozio dopo il primo Guardian, a 8 Credits *(non ancora nel prototipo, che ha un solo atto)*.
-- **Vicinato:** ogni slot ha 2 vicini; l'anello è circolare.
-- Nel negozio i moduli si **spostano liberamente** (trascinamento o scambio); durante l'ondata sono bloccati.
+## 5. The Ring
+- **6 slots** at start, arranged as a hexagon. The **extra slot** (up to 8) is bought in the shop after the first Guardian, for 8 Credits *(not in the prototype yet, which has one act)*.
+- **Neighbourhood:** every slot has 2 neighbours; the ring is circular.
+- In the shop modules **move freely** (drag or swap); during a wave they are locked.
 
-## 6. Moduli (v0: 14 per l'MVP; nel prototipo ne esistono 7 — Emitter, Scatter, Amplifier, Lens, Overclock, Bank, Bulwark)
-Costo in Credits. Portata in unità, misurata dalla posizione del modulo sull'anello. Ricarica in tick (60 = 1 s).
+## 6. Modules (v0: 14 for the MVP; the prototype has 7 — Emitter, Scatter, Amplifier, Lens, Overclock, Bank, Bulwark)
+Cost in Credits. Range in units, measured from the module's position on the ring. Cooldown in ticks (60 = 1 s). Rarity: C common · U uncommon · R rare.
 
-**Armi**
-| Module | Rarità | Costo | Danno | Ricarica | Portata | Comportamento |
+**Weapons**
+| Module | Rarity | Cost | Damage | Cooldown | Range | Behaviour |
 |---|---|---|---|---|---|---|
-| **Emitter** | C | 3 | 8 | 30 | 4,0 | colpisce il nemico più vicino al Core |
-| **Scatter** | C | 4 | 5 ×3 | 45 | 3,5 | colpisce i 3 nemici più vicini al Core |
-| **Arc** | U | 5 | 6 | 40 | 4,0 | catena su 4 nemici (salto 1,5), −10% a ogni salto |
-| **Lance** | U | 5 | 18 | 90 | 6,0 | trapassa tutti i nemici su una linea verso il bersaglio |
-| **Mortar** | R | 7 | 16 | 90 | 7,0 | esplosione di raggio 1,2 sul nemico più lontano in portata (minimo 2,0) |
+| **Emitter** | C | 3 | 8 | 30 | 4.0 | hits the enemy closest to the Core |
+| **Scatter** | C | 4 | 5 ×3 | 45 | 3.5 | hits the 3 enemies closest to the Core |
+| **Arc** | U | 5 | 6 | 40 | 4.0 | chains over 4 enemies (1.5 jump), −10% per jump |
+| **Lance** | U | 5 | 18 | 90 | 6.0 | pierces every enemy on a line towards the target |
+| **Mortar** | R | 7 | 16 | 90 | 7.0 | 1.2-radius explosion on the farthest enemy in range (minimum 2.0) |
 
-**Booster** (agiscono sui **due vicini**)
-| Module | Rarità | Costo | Effetto (livello 1) |
+**Boosters** (affect the **two neighbours**)
+| Module | Rarity | Cost | Effect (level 1) |
 |---|---|---|---|
-| **Amplifier** | C | 3 | danno dei vicini ×1,5 |
-| **Lens** | C | 3 | vicini: +1,5 portata e +2 danno fisso |
-| **Overclock** | U | 4 | vicini: ricarica −25% |
-| **Echo** | R | 6 | ogni colpo dei vicini ne genera un secondo al 50% |
+| **Amplifier** | C | 3 | neighbours' damage ×1.5 |
+| **Lens** | C | 3 | neighbours: +1.5 range and +2 flat damage |
+| **Overclock** | U | 4 | neighbours: cooldown −25% |
+| **Echo** | R | 6 | every neighbour shot fires a second one at 50% |
 
-**Economia e utilità**
-| Module | Rarità | Costo | Effetto (livello 1) |
+**Economy and utility**
+| Module | Rarity | Cost | Effect (level 1) |
 |---|---|---|---|
-| **Bank** | U | 4 | +1 al tetto dell'interesse e +1 Credit per ondata |
-| **Salvage** | C | 3 | +1 Credit ogni 10 uccisioni nell'ondata |
-| **Bulwark** | C | 3 | +25 integrità massima; ripara 5 a ogni ondata |
-| **Frost** | U | 4 | i nemici entro 3,0 dal Core sono rallentati del 25% |
-| **Capacitor** | U | 4 | ricarica del Pulse −20%; il Pulse fa +50% danno |
+| **Bank** | U | 4 | +1 interest cap and +1 Credit per wave |
+| **Salvage** | C | 3 | +1 Credit per 10 kills in the wave |
+| **Bulwark** | C | 3 | +25 max integrity; repairs 5 every wave |
+| **Frost** | U | 4 | enemies within 3.0 of the Core are slowed by 25% |
+| **Capacitor** | U | 4 | Pulse cooldown −20%; Pulse damage +50% |
 
-**Merge (livelli):** comprare un modulo già posseduto (sotto il livello 3) lo **unisce automaticamente**, senza occupare un altro slot.
-| Livello | Armi (danno) | Booster ed economia (effetto) |
+**Merge (levels):** buying an owned module (below level 3) **merges automatically**, without taking another slot.
+| Level | Weapons (damage) | Boosters and economy (effect) |
 |---|---|---|
-| 1 | ×1,0 | ×1,0 |
-| 2 | ×1,8 | ×1,6 (per esempio Amplifier ×1,8 invece di ×1,5) |
-| 3 | ×3,0 | ×2,2 |
+| 1 | ×1.0 | ×1.0 |
+| 2 | ×1.8 | ×1.6 (e.g. Amplifier ×1.8 instead of ×1.5) |
+| 3 | ×3.0 | ×2.2 (Amplifier ×2.1) |
 
-**Vendita:** metà dei Credits spesi (arrotondata per difetto, minimo 1).
-*(Dopo l'MVP: Prism, Singularity, Harvester e altri moduli leggendari; obiettivo circa 40 moduli al lancio.)*
+**Selling:** half of the Credits invested (rounded down, minimum 1). Yield analysis: `08` §1.1.
+*(After the MVP: Prism, Singularity, Harvester and other legendary modules; target about 40 modules at launch.)*
 
-## 7. Formula del danno ("numeri che esplodono")
-**Danno del colpo = (danno base × livello + bonus fissi) × prodotto dei moltiplicatori**
+## 7. Damage formula ("numbers that explode")
+**Hit damage = (base damage × level + flat bonuses) × product of multipliers**
 
-- **Bonus fissi:** Lens e simili. **Moltiplicatori:** Amplifier, Core Glass, Echo (50% sul secondo colpo)…
-- Gli effetti **si moltiplicano tra loro** (due Amplifier vicini a un'arma = ×2,25): è la fonte della crescita esponenziale.
-- **Corazza:** riduzione fissa per colpo, con un danno minimo di 1.
-- **Mostrare i numeri:** notazione compatta (1,2K · 3,4M · 5,6B). Numeri piccoli e tenui per i colpi normali, più grandi (senza flash) per i colpi oltre il 25% della vita del bersaglio. Un'opzione permette di nasconderli.
+- **Flat bonuses:** Lens and similar. **Multipliers:** Amplifier, Glass Core, Echo (50% on the second shot)…
+- Effects **multiply each other** (two Amplifiers next to a weapon = ×2.25): the source of exponential growth.
+- **Armor:** flat reduction per hit, with a minimum damage of 1.
+- **Showing numbers:** compact notation (1.2K · 3.4M · 5.6B). Small, faint numbers for normal hits; larger (no flash) for hits above 25% of the target's health. An option hides them.
 
-## 8. Nemici (v0)
-HP in unità di gioco, alla prima ondata. Velocità in unità al secondo.
-| Enemy | HP | Corazza | Velocità | Contatto | Punti | Speciale | Da |
+## 8. Enemies (v0)
+HP in game units at wave 1. Speed in units per second.
+| Enemy | HP | Armor | Speed | Contact | Points | Special | From |
 |---|---|---|---|---|---|---|---|
-| **Drifter** | 20 | 0 | 0,9 | 5 | 1,0 | — | atto 1 |
-| **Swarmlet** | 6 | 0 | 1,3 | 2 | 0,3 | arriva in gruppi da 5 vicini | atto 1 |
-| **Brute** | 70 | 3 | 0,55 | 15 | 3,0 | corazzato | atto 1 (ondata 3+) |
-| **Dasher** | 14 | 0 | 0,8 | 5 | 1,5 | ogni 3 s scatta ×3 per 0,5 s | atto 2 |
-| **Splitter** | 30 | 0 | 0,85 | 6 | 2,0 | alla morte si divide in 2 Swarmlet | atto 2 |
-| **Warden** | 40 | 1 | 0,7 | 8 | 3,0 | scudo: −50% danno ai nemici entro 1,5 | atto 3 |
-| **Guardian** | 400 | 5 | 0,4 | 40 | — | boss di fine atto; ogni 25% di vita perso chiama 5 Swarmlet | ondata 6 di ogni atto |
+| **Drifter** | 20 | 0 | 0.9 | 5 | 1.0 | — | act 1 |
+| **Swarmlet** | 6 | 0 | 1.3 | 2 | 0.3 | arrives in groups of 5, close together | act 1 (wave 2+) |
+| **Brute** | 70 | 3 | 0.55 | 15 | 3.0 | armored | act 1 (wave 3+) |
+| **Dasher** | 14 | 0 | 0.8 | 5 | 1.5 | every 3 s dashes ×3 for 0.5 s | act 2 |
+| **Splitter** | 30 | 0 | 0.85 | 6 | 2.0 | on death splits into 2 Swarmlets | act 2 |
+| **Warden** | 40 | 1 | 0.7 | 8 | 3.0 | shield: −50% damage to enemies within 1.5 | act 3 |
+| **Guardian** | 400 | 5 | 0.4 | 40 | — | end-of-act boss; every 25% of health lost it calls 5 Swarmlets | wave 6 of every act |
 
-- **Élite** (dall'atto 2): HP ×3, corazza +1, alone doppio. Una o due per ondata.
-- **Forme:** senza facce e mai infantili; la lingua visiva è in docs/03.
+- **Elites** (from act 2): HP ×3, armor +1, double halo. One or two per wave.
+- **Shapes:** faceless and never childish; the visual language is in `03` A5. Which enemy counters which build: `07` §1.4.
 
-## 9. Ondate e difficoltà
-- Indice globale **g = 1…18** (atto a, ondata w: g = 6(a−1) + w; w = 6 è il Guardian).
-- **HP:** `hp(g) = 1.20^(g−1)` (ondata 18 ≈ 22×). **Budget:** `budget(g) = 8 × 1.10^(g−1)` punti (ondata 18 ≈ 40).
-- I nemici entrano in **20 s**, a intervalli regolari, da **direzioni casuali ma dal seme**. Regole: un nuovo tipo entra prima **da solo** (poi 2 s di pausa); massimo 3 tipi per ondata; l'ondata 3 di ogni atto è "a tema".
-- **Ondata del Guardian:** il Guardian entra per primo; dopo 3 s arriva una scorta con **metà del budget** dell'ondata.
-- Gli Swarmlet contano 0,3 punti **ciascuno**, quindi un gruppo da 5 vale 1,5.
-- **Anteprima:** nel negozio si vede la composizione dell'ondata successiva (icone e quantità).
-- Calcoli interi o a virgola fissa, senza `Math.Pow` (non è deterministico tra piattaforme): la crescita si calcola per moltiplicazioni successive.
-- **Grade** (Ascension): dopo la prima vittoria si sbloccano i Grade 1–10 (nemici +10% HP, meno Credits, Guardian con scudo, un'élite in più…).
-- **Modalità infinita** dopo la vittoria: la crescita continua, per le classifiche e per le build folli.
+## 9. Waves and difficulty
+- Global index **g = 1…18** (act a, wave w: g = 6(a−1) + w; w = 6 is the Guardian).
+- **HP:** `hp(g) = 1.20^(g−1)` (wave 18 ≈ 22×). **Budget:** `budget(g) = 8 × 1.10^(g−1)` points (wave 18 ≈ 40).
+- Enemies enter over **20 s**, at regular intervals, from **random but seeded directions**. Rules: a new type first enters **alone** (then a 2 s pause); at most 3 types per wave; wave 3 of every act is "themed" (one type).
+- **Guardian wave:** the Guardian enters first; after 3 s an escort arrives with **half the wave budget**.
+- Swarmlets cost 0.3 points **each**, so a group of 5 costs 1.5.
+- **Preview:** the shop shows the next wave's composition (icons and quantities).
+- Integer or fixed-point maths, no `Math.Pow` (not deterministic across platforms): growth is computed by repeated multiplication.
+- **Grade** (Ascension): after the first win, Grades 1–10 unlock (a proposed list of rules is in `07` §2.2).
+- **Endless** after the win: growth continues, for leaderboards and wild builds.
 
-## 10. Economia e negozio
-- **Credits iniziali:** secondo il Core type (Standard: 6).
-- **A fine ondata:** 4 Credits + **interesse** (1 ogni 5 posseduti, massimo 5) + 3 dopo un Guardian.
-- **Negozio:** **4 offerte**. Probabilità: C 60% · U 30% · R 10% (le R solo dall'atto 2). Solo moduli sbloccati.
-- **Rilancio:** 1 Credit, +1 per ogni altro rilancio nello stesso negozio.
-- **Comprare:** serve uno slot libero, oppure un merge. Con l'anello pieno bisogna prima vendere.
-- **Slot extra:** offerta fissa dopo il primo Guardian (8 Credits, fino a 8 slot).
-- **Anteprima dell'ondata** sempre visibile nel negozio.
+## 10. Economy and shop
+- **Starting Credits:** by Core type (Standard: 6).
+- **At wave end:** 4 Credits + **interest** (1 per 5 held, max 5) + 3 after a Guardian.
+- **Shop:** **4 offers**. Probabilities: C 60% · U 30% · R 10% (R only from act 2). Unlocked modules only.
+- **Reroll:** 1 Credit, +1 for every further reroll in the same shop.
+- **Buying:** requires a free slot, or a merge. With a full ring you must sell first.
+- **Extra slot:** fixed offer after the first Guardian (8 Credits, up to 8 slots).
+- **Wave preview** always visible in the shop.
+- Expected Credit flow over a run and tuning levers: `08` §1.2.
 
-## 11. Progressione permanente (senza grind di potenza)
-- **Blueprints:** 1 per ondata superata, 3 per Guardian, +bonus Grade.
-- **Archive** (lo sblocco): spendi i Blueprints per aggiungere **nuovi moduli al pool** e **nuovi Core type**. **Nessun potenziamento di statistiche.**
-- Obiettivo: sblocco completo in circa 60–80 run *(stima)*. Tempi e accelerazione onesta in `02`.
-- Nelle **modalità competitive** si usa un pool e un Core **fissi e uguali per tutti**: lo stato degli sblocchi non conta.
+## 11. Permanent progression (no power grind)
+- **Blueprints:** 1 per wave cleared, 3 per Guardian, + Grade bonus.
+- **Archive** (unlocks): spend Blueprints to add **new modules to the pool** and **new Core types**. **No stat upgrades.** Tree structure and costs: `08` §1.3–1.4.
+- Goal: full unlock in about 60–80 runs `(estimate)`. Timing and honest acceleration in `02` and `08`.
+- **Competitive modes** use a **fixed pool and Core, identical for everyone**: unlock state does not count.
 
-## 12. Modalità
-| Modalità | Fase | Regole |
+## 12. Modes
+| Mode | Phase | Rules |
 |---|---|---|
-| **Run** | lancio | Scegli Core e Grade; offline |
-| **Daily Run** | lancio | Seme del giorno, Core e pool fissi; classifica; fantasmi dei migliori |
-| **Weekly Run** | lancio | Come sopra, settimanale, con regole speciali (per esempio "solo booster rari") |
-| **Endless** | lancio | Dopo la vittoria: crescita infinita |
-| **Leagues** | aggiornamento 1 | Gruppi da 30, settimanali, promozioni e retrocessioni; seme e dotazione uguali per il gruppo |
-| **Duel** | aggiornamento 1 | Stesso seme di un avversario reale (il suo replay); si vede il suo andamento; rating di abilità |
-| **Siege** | aggiornamento 2 | Componi un'ondata d'attacco con un budget; gli altri la affrontano; premi se cadono |
-| **Community Guardian** | aggiornamento 2 | Boss settimanale con vita condivisa da tutti |
+| **Run** | launch | Choose Core and Grade; offline |
+| **Daily Run** | launch | Seed of the day, fixed Core and pool; leaderboard; ghosts of the best (`10` §1) |
+| **Weekly Run** | launch | As above, weekly, with special rules (mutators, `10` §2.2) |
+| **Endless** | launch | After the win: infinite growth |
+| **Leagues** | update 1 (gated) | Groups of 30, weekly, promotion and relegation; same seed and kit for the group |
+| **Duel** | update 1 (gated) | Same seed as a real opponent (their replay); you see their progress; skill rating |
+| **Siege** | update 2 (gated) | Build an attack wave with a budget; others face it; rewards if they fall |
+| **Community Guardian** | update 2 (gated) | Weekly boss with health shared by everyone |
 
-**Punteggio competitivo:** ondate superate (prima) → danno totale (seconda chiave) → meno tick impiegati (terza).
-**Giorno e settimana:** il seme del Daily cambia a mezzanotte **UTC**; il Weekly tra domenica e lunedì UTC. Il confine lo decide il nostro backend (UGS, D21), non Play Games Services.
+Proposed secondary modes (Guardian Gauntlet, Surge): `10` §2.1. Gates for updates 1 and 2: `10` §2.4.
+**Competitive score:** waves cleared (first) → total damage (second key) → fewer ticks (third).
+**Day and week:** the Daily seed changes at midnight **UTC**; the Weekly between Sunday and Monday UTC. Our backend (UGS, D21) decides the boundary, not Play Games Services.
 
-## 13. Replay e verifica (D19)
-- **Formato (obiettivo):** versione del gioco + versione del bilanciamento + modalità + seme + Core type + Grade + lista di (tick, comando).
-- **Formato attuale del prototipo (`R1`):** versione del bilanciamento + seme + hash finale + ondate + danno totale + tick + comandi. **Mancano** versione del gioco, modalità, Core type e Grade: vanno aggiunti (formato `R2`) quando arrivano Core type e modalità.
-- **Comandi:** `Buy(offerIndex, slot)` · `Sell(slot)` · `Move(from, to)` · `Undo` · `Reroll` · `StartWave` · `Pulse`. La pausa e la velocità **non** sono comandi: non cambiano il risultato.
-- **`Undo`** ripristina lo stato del negozio prima dell'ultimo `Buy`, `Sell` o `Move` della visita corrente (a più livelli). `Reroll` e `StartWave` svuotano la pila: il rilancio non si può annullare, perché si vedrebbero le offerte future gratis. `Undo` non usa il generatore casuale, quindi resta deterministico e registrato nel replay.
-- **Verifica:** rigiocando il replay si deve ottenere lo stesso hash finale e lo stesso punteggio. In locale subito (test); sul server con Cloud Code C# dall'aggiornamento 1.
-- I replay valgono **solo per la stessa versione di bilanciamento**: classifiche e fantasmi sono divisi per versione o stagione.
+## 13. Replay and verification (D19)
+- **Target format:** game version + balance version + mode + seed + Core type + Grade + list of (tick, command).
+- **Current prototype format (`R1`):** balance version + seed + final hash + waves + total damage + ticks + commands. **Missing:** game version, mode, Core type and Grade: to be added (format `R2`) when Core types and modes arrive.
+- **Commands:** `Buy(offerIndex, slot)` · `Sell(slot)` · `Move(from, to)` · `Undo` · `Reroll` · `StartWave` · `Pulse`. Pause and game speed are **not** commands: they do not change the outcome.
+- **`Undo`** restores the shop state before the last `Buy`, `Sell` or `Move` of the current visit (multi-level). `Reroll` and `StartWave` clear the stack: a reroll cannot be undone, otherwise future offers could be peeked for free. `Undo` does not use the RNG, so it stays deterministic and is recorded in the replay.
+- **Verification:** re-playing the replay must give the same final hash and score. Locally now (tests); on the server with Cloud Code C# (D23).
+- Replays are valid **only for the same balance version**: leaderboards and ghosts are split by version or season.
 
-## 14. Primo avvio (FTUE)
-| Tempo | Evento |
+## 14. First run (FTUE)
+| Time | Event |
 |---|---|
-| 0 s | (solo UE/UK) consenso → atto guidato, effetti ridotti, nessun menu |
-| circa 5 s | Il Core ha già un Emitter: "Tocca Next wave". 5 Drifter arrivano e l'Emitter li abbatte |
-| circa 30 s | **Primo negozio (guidato):** "Compra l'Amplifier e mettilo **accanto** all'Emitter" → nell'ondata successiva i numeri salgono di ×1,5 (**primo "aha"**) |
-| circa 60 s | Arriva uno sciame: "Tocca il Core per il **Pulse**" → onda che respinge i nemici (**secondo "aha"**) |
-| circa 90 s | Secondo negozio: "Compra un altro Emitter" → **merge** a livello 2 |
-| poi | Il resto si scopre giocando; Archive e Daily si sbloccano uno alla volta nelle prime 3 run |
+| 0 s | (EU/UK only) consent → guided act, reduced effects, no menu |
+| about 5 s | The Core already has an Emitter: "Tap ▶". 5 Drifters arrive and the Emitter takes them down |
+| about 30 s | **First shop (guided):** "Buy the Amplifier and put it **next to** the Emitter" → next wave the numbers rise ×1.5 (**first "aha"**) |
+| about 60 s | A swarm arrives: "Tap the Core for the **Pulse**" → a wave that pushes enemies back (**second "aha"**) |
+| about 90 s | Second shop: "Buy another Emitter" → **merge** to level 2 (**third "aha"**) |
+| later | The rest is discovered by playing; Archive and Daily unlock one at a time in the first 3 runs |
 
-Al massimo **una riga di testo** per suggerimento.
+At most **one line of text** per hint. Second-by-second script: `07` §1.5. Progressive disclosure of the UI: `09` §3.2.
 
-## 15. Interfaccia (verticale, una mano)
-- **In alto:** integrità del Core · ondata X/18 · Credits.
-- **Al centro:** l'arena circolare con il Core e l'anello.
-- **In basso, durante l'ondata:** grande pulsante **Pulse** con la ricarica visibile · velocità 1x/2x/3x · pausa.
-- **In basso, nel negozio:** 4 **carte offerta** (icona, nome, costo, effetto breve) · Rilancio · **Annulla** · **Next wave**. Le combo attive si vedono come **linee morbide** tra i vicini.
-- Pulsanti di almeno 48 dp, pochissimo testo, icone.
+## 15. Interface (portrait, one hand)
+- **Top:** Core integrity · wave X/18 · Credits.
+- **Centre:** the circular arena with the Core and the ring.
+- **Bottom, during a wave:** a large **Pulse** button with visible cooldown · speed 1x/2x/3x · pause.
+- **Bottom, in the shop:** 4 **offer cards** (icon, name, cost, short effect) · Reroll · **Undo** · **Next wave**. Active combos are shown as **soft lines** between neighbours.
+- Buttons of at least 48 dp, very little text, icons. Screens and components: `09`.
 
-### 15.1 Interazione nel negozio: trascinare (dettagli in docs/03 parte C)
-| Gesto | Risultato |
+### 15.1 Shop interaction: dragging (details in `03` Part B)
+| Gesture | Result |
 |---|---|
-| Trascina una **carta** su uno slot libero | Compra e piazza il modulo |
-| Trascina una carta su un **modulo uguale** | **Merge**, con la sua animazione |
-| Trascina un **modulo** su un altro slot | Lo sposta (scambio se lo slot è occupato) |
-| Trascina un modulo sulla **zona Vendi** | Lo vende (ricavo mostrato prima di lasciare) |
-| Tocca una carta e poi uno slot | Alternativa senza trascinamento |
-| **Annulla** | Annulla l'ultimo acquisto, vendita o spostamento del negozio (non il rilancio) |
+| Drag a **card** onto a free slot | Buys and places the module |
+| Drag a card onto an **equal module** | **Merge**, with its animation |
+| Drag a **module** onto another slot | Moves it (swap if the slot is occupied) |
+| Drag a module onto the **Sell zone** | Sells it (refund shown before release) |
+| Tap a card, then a slot | No-drag alternative |
+| **Undo** | Reverts the last shop purchase, sale or move (not the reroll) |
 
-- **Durante il trascinamento:** l'oggetto sta **sopra il dito**; gli slot validi si illuminano; la **calamita** aggancia lo slot vicino; in alto compare l'**anteprima** dell'effetto (per esempio "danni al secondo: 16 → 24 (+50%)", "Livello 2 → ×1,8", "Vendi: +2").
-- **Anteprima calcolata dalla simulazione** (funzione di sola lettura su una copia dell'anello): quello che vedi è esattamente quello che succede.
+- **While dragging:** the object stays **above the finger**; valid slots light up; the **magnet** snaps to the nearby slot; the **effect preview** appears at the top (e.g. "DPS 16 → 24 (+50%)", "Level 2 → ×1.8", "Sell: +2").
+- **Preview computed by the simulation** (read-only function on a copy of the ring): what you see is exactly what happens.
 
-### 15.2 Opzioni (dal prototipo)
-Riduci movimento · intensità degli effetti · numeri dei danni (tutti / solo grandi / nessuno) · vibrazioni · velocità 1x/2x/3x. In seguito: dimensione del testo, daltonismo, alto contrasto (docs/03 parte C §7).
+### 15.2 Options (from the prototype)
+Reduce motion · effect intensity · damage numbers (all / big only / none) · haptics · speed 1x/2x/3x. Later: text size, colour-blind modes, high contrast (`03` B7).
 
-## 16. Architettura tecnica (aggiornata)
-| Modulo | Responsabilità |
+## 16. Technical architecture
+| Module | Responsibility |
 |---|---|
-| `Simulation` | ciclo a tick fisso (60/s), deterministico, interi; nessun tipo Unity; assembly separato (asmdef senza UnityEngine) |
-| `Arena` | direzioni (tabella intera), posizioni, portate |
-| `Core` / `Pulse` | integrità, abilità, respingimento |
-| `Modules` / `Ring` | definizioni, slot, vicinato, calcolo dei moltiplicatori, merge |
-| `Enemies` / `Waves` | tipi, movimento radiale, spawn dal seme, anteprima |
-| `Economy` / `Shop` | Credits, interesse, offerte, rilancio, vendita |
-| `Replay` | registrazione, formato, riproduzione, verifica (hash) |
-| `Presentation` | grafica calma, numeri, effetti: legge lo stato, non lo modifica |
-| `Meta` | Blueprints, Archive, sblocchi, Grade |
-| `Save` | salvataggio locale a ogni negozio + cloud |
-| `Services` | classifiche, replay online, analytics, pubblicità, acquisti (dietro interfacce; **finti durante lo sviluppo**, D13) |
+| `Simulation` | fixed-tick loop (60/s), deterministic, integers; no Unity types; separate assembly (asmdef without UnityEngine) |
+| `Arena` | directions (integer table), positions, ranges |
+| `Core` / `Pulse` | integrity, ability, knockback |
+| `Modules` / `Ring` | definitions, slots, neighbourhood, multiplier calculation, merge |
+| `Enemies` / `Waves` | types, radial movement, seeded spawn, preview |
+| `Economy` / `Shop` | Credits, interest, offers, reroll, selling |
+| `Replay` | recording, format, playback, verification (hash) |
+| `Presentation` | calm visuals, numbers, effects, UI: reads the state, never modifies it; owns the ScriptableObject content that fills the simulation's `ContentDatabase` |
+| `Meta` | Blueprints, Archive, unlocks, Grades |
+| `Save` | local save at every shop (the replay itself: seed + commands + version) + cloud |
+| `Services` | leaderboards, online replays, analytics, ads, purchases (behind interfaces; **fake during development**, D13) |
 
-- **RNG a flussi separati:** Waves (composizione e direzioni), Shop (offerte e rilanci), Effects. Le scelte del giocatore non cambiano le ondate.
-- **Test:** determinismo, verifica dei replay, economia, merge, vicinato, formule; **bot di bilanciamento** che gioca migliaia di run.
+- **Separate RNG streams:** Waves (composition and directions), Shop (offers and rerolls), Effects. Player choices do not change the waves.
+- **Tests:** determinism, replay verification, economy, merge, neighbourhood, formulas; **balance bot** that plays thousands of runs (`06` Phase 1).
 
-## 17. Obiettivi (KPI)
-| Metrica | Obiettivo |
+## 17. Targets (KPI)
+| Metric | Target |
 |---|---|
-| Tutorial completato | ≥ 85% |
+| Tutorial completed | ≥ 85% |
 | D1 / D7 / D30 | ≥ 35% / ≥ 12% / ≥ 5% |
-| Durata media della run | 10–15 min |
-| Run per giocatore al giorno | ≥ 2 |
-| Voto sullo store | ≥ 4,5★ |
+| Average run length | 10–15 min |
+| Runs per player per day | ≥ 2 |
+| Store rating | ≥ 4.5★ |
 
-## 18. Domande aperte (da risolvere nel prototipo)
-- [ ] Il negozio con l'anello è divertente **già con forme semplici**?
-- [ ] Le combo si capiscono senza spiegazioni (linee tra i vicini, numeri)?
-- [ ] La durata reale di ondate e negozi è 10–15 minuti per run?
-- [ ] Il Pulse è una scelta interessante o un pulsante da premere appena è pronto?
-- [ ] I numeri grandi restano leggibili e calmi?
-- [ ] Un anello di 6 slot basta per creare build diverse?
-- [ ] **Prima sonda del bot (21/09/2026, 100 semi, 1 atto):** un bot "ingenuo" (compra a caso, primo slot libero, Pulse quando i nemici sono vicini) vince il **90%**; le sconfitte sono tutte alle ondate 5–6 (Guardian). Combattimento medio circa **24 s per ondata**. → L'atto 1 va bene come ingresso; **atti 2–3 da tarare** (crescita e nuovi nemici).
+## 18. Open questions (to answer in the prototype)
+- [ ] Is the shop with the ring fun **already with simple shapes**?
+- [ ] Are combos understood without explanations (lines between neighbours, numbers)?
+- [ ] Is the real duration of waves and shops 10–15 minutes per run?
+- [ ] Is the Pulse an interesting choice or a button to press as soon as it is ready? (proposals: `07` §1.7)
+- [ ] Do big numbers stay readable and calm?
+- [ ] Is a 6-slot ring enough to create different builds?
+- [x] **First bot probe (2026-09-21, 100 seeds, 1 act):** a "naive" bot (buys at random, first free slot, Pulse when enemies are close) wins **90%**; all defeats are on waves 5–6 (Guardian). Average combat about **24 s per wave**. → Act 1 works as an entry; **acts 2–3 need tuning** (growth and new enemies).
 
-## 19. Piano del prototipo (2–3 settimane)
-1. ✅ **Simulazione v2** (riusa RNG, hash e comandi): arena radiale, Core, 3 nemici (Drifter, Swarmlet, Brute) + Guardian, 7 moduli (Emitter, Scatter, Amplifier, Lens, Overclock, Bank, Bulwark), negozio con merge e annulla, anteprime, Pulse, 1 atto. **17 test.**
-2. ✅ **Replay:** registrazione, riproduzione e verifica dell'hash (test automatico, anche contro la manomissione).
-3. 🔄 **Presentazione calma** con forme semplici e interfaccia provvisoria, **con l'interazione tattile** (§15.1). *Fatto:* scena `Prototype`, forme semplici, tocca carta → tocca slot, Sell/Move, Reroll, Next wave, Pulse, velocità 1x/2x/3x, pausa, numeri dei danni, linee delle combo. *Manca:* trascinamento con calamita, **Annulla nella UI** (il comando esiste), **anteprime nella UI** (le funzioni `TryPreview*` esistono ma non sono usate), vendita trascinando, merge animato, conteggio di fine ondata, vibrazioni, opzioni base.
-4. **Test con 3–5 persone** (prima senza audio).
-5. Decisione: avanti, correggere o cambiare.
+## 19. Prototype status
+1. ✅ **Simulation v2** (reuses RNG, hash and commands): radial arena, Core, 3 enemies (Drifter, Swarmlet, Brute) + Guardian, 7 modules (Emitter, Scatter, Amplifier, Lens, Overclock, Bank, Bulwark), shop with merge and undo, previews, Pulse, 1 act. **17 tests.**
+2. ✅ **Replay:** recording, playback and hash verification (automated test, including tampering).
+3. 🔄 **Calm presentation** with simple shapes and a provisional interface, **with tactile interaction** (§15.1). *Done:* `Prototype` scene, simple shapes, tap card → tap slot, Sell/Move, Reroll, Next wave, Pulse, speed 1x/2x/3x, pause, damage numbers, combo lines. *Missing:* magnetic drag, **Undo in the UI** (the command exists), **previews in the UI** (the `TryPreview*` functions exist but are unused), drag-to-sell, animated merge, wave-end summary, haptics, basic options.
+4. ⬜ **Test with 3–5 people** (muted first).
+5. ⬜ Decision: go on, fix, or change.
 
-**Criteri per dire "funziona":** almeno 3 tester su 5 chiedono di rigiocare; capiscono il vicinato senza spiegazioni entro il secondo negozio; nessuno resta bloccato più di 10 s; la durata reale è misurata.
+**Exit criteria ("it works"):** at least 3 testers out of 5 ask to play again; they understand the neighbourhood without explanations by the second shop; nobody is stuck for more than 10 s; real duration is measured. The full phase plan is in `06`.
