@@ -6,7 +6,7 @@ Sicurezza: 🟢 alta · 🟡 media, da confermare nel prototipo · 🔴 bassa, i
 > ⚠️ **Svolta del 21/09/2026 (D17):** il concept "difesa musicale a labirinto" è stato **abbandonato**.
 > Il nuovo concept è "nucleo centrale + moduli con combo + multiplayer asincrono" (D17–D21).
 > Le decisioni superate sono marcate **[SUPERATA]**; restano qui come storico.
-> Valgono ancora: D1 (giocabile senza audio), D2, D4, D6, D7, D8, D10 (in parte), D11, D13, D16.
+> Valgono ancora: D1 (giocabile senza audio), D2, D4, D5 (aggiornata), D6 (in parte, vedi D21), D7, D8, D10 (solo l'interesse), D11 (aggiornata), D13, D16.
 
 ---
 
@@ -39,10 +39,12 @@ Sicurezza: 🟢 alta · 🟡 media, da confermare nel prototipo · 🔴 bassa, i
 - **Motivo:** emissione e bloom (il neon) con URP, profondità nei video (volumi, rotazioni), pipeline Blender/MCP già pronta, e resta leggibile come un 2D. I materiali sono unlit: il vantaggio non è l'illuminazione.
 - **Rischio:** prestazioni del bloom sui telefoni economici. Mitigazione: livelli di qualità con bloom disattivabile.
 - **Validazione:** confronto veloce nel prototipo (stessa scena in 3D ortografico e in 2D).
+- *Aggiornamento D17 (docs/03 v2):* la direzione "Dusk Garden" usa materiali **con illuminazione morbida** (luce calda + ambiente freddo, ombre morbide) e camera ortografica **inclinata di circa 35°**. Il prototipo usa ancora materiali unlit e la vista dall'alto.
 
-## D6 — Online o offline? → **Offline-first + Play Games Services v2** 🟢
+## D6 — Online o offline? → **Offline-first; backend Unity Gaming Services (D21), Play Games Services v2 facoltativo** 🟢
 - **Dati:** giocare offline è una richiesta ricorrente dei giocatori ed è un pregio di Mini TD 2 e Thronefall. Il plugin ufficiale PGS v2 per Unity supporta classifiche, obiettivi e salvataggi nel cloud. Le **API vecchie sono state rimosse da maggio 2026**: si usa solo la v2.
 - **Decisione:** il salvataggio locale fa fede, la sincronizzazione cloud avviene quando c'è rete. Nessun server nostro, nessun account obbligatorio.
+- *Aggiornamento D21:* con il multiplayer asincrono, **classifiche, replay, verifica e salvataggio cloud passano da Unity Gaming Services** (serve verificare i replay sul server, cosa che Play Games Services non può fare). Play Games Services resta **facoltativo** (accesso con Google, obiettivi). L'offline completo non cambia.
 
 ## D7 — Quali lingue? → **Poco testo + 6 lingue al lancio** 🟡
 - **Dati:** i giochi localizzati incassano il **50–80% in più** fuori dal Paese d'origine. Oltre il 50% del fatturato mobile viene da Cina, Giappone e Corea. Il Brasile e l'America Latina hanno CPI bassi e molti download.
@@ -62,7 +64,7 @@ Sicurezza: 🟢 alta · 🟡 media, da confermare nel prototipo · 🔴 bassa, i
 - **Decisione:** un piazzamento che chiuderebbe il percorso viene rifiutato, con il motivo mostrato. **Vendita e annulla sono permessi solo in preparazione**, a prezzo pieno. Durante l'ondata si può solo costruire o potenziare. Così il juggling è eliminato alla radice.
 - **Tecnica:** flow field calcolato dall'uscita (BFS), ricalcolato a ogni piazzamento (vedi Red Blob Games).
 
-## D10 — Economia della partita → **I nemici che passano non danno ricompensa, e risparmiare paga poco** 🟡
+## D10 — Economia della partita → **[SUPERATA IN PARTE da D18: resta solo l'interesse sul risparmio; nel nuovo concept i Credits arrivano a fine ondata e i nemici che toccano il Core danneggiano l'integrità]** ~~I nemici che passano non danno ricompensa~~
 - **Dati:** se un nemico che sfugge costa solo vite, a volte conviene lasciarlo passare. La correzione è che **perda anche la ricompensa**.
 - **Decisione:** un nemico che passa costa vite e **nessuna ricompensa**. Piccolo **interesse** a fine ondata (5%, con un tetto) per premiare chi pianifica. "Chiama l'ondata prima" dà un bonus di crediti (una scelta attiva).
 
@@ -72,6 +74,7 @@ Sicurezza: 🟢 alta · 🟡 media, da confermare nel prototipo · 🔴 bassa, i
 - **Matematica intera o a virgola fissa** per i valori critici (HP, danni, posizioni, tempi): i float possono dare risultati diversi tra processori diversi (ARM e x86), e questo romperebbe la verifica dei replay e il confronto tra dispositivi.
 - **Flussi RNG separati** (mappa, ondate, scelte 1 su 3, Vinili, effetti): le scelte del giocatore non devono cambiare la mappa o le ondate. È necessario perché il Daily Mix sia davvero uguale per tutti.
 - **Risoluzione dell'orologio: 96 tick per battito** (come nel MIDI). Copre 1/16 (24 tick), 1/32 (12 tick) e le terzine (8 o 16 tick), usati da Hi-Hat "Roll" e dalla carta Polyrhythm.
+- *Aggiornamento D17 (implementato):* senza musica l'orologio è **60 tick al secondo**; i flussi RNG sono **Waves, Shop, Effects**; posizioni in micro-unità con una tabella intera di 192 direzioni. Il tempo avanza **solo durante le ondate** (il negozio è senza tempo). Il principio della decisione non cambia.
 
 ## D12 — Accelerazione (velocità 2x/3x) in un gioco musicale → **[SUPERATA: la musica non è più una meccanica; la velocità 2x/3x accelera tutto normalmente]**
 - **Problema:** i giocatori si aspettano la velocità 2x e 3x, ma raddoppiare il BPM rovinerebbe la musica.
@@ -81,14 +84,14 @@ Sicurezza: 🟢 alta · 🟡 media, da confermare nel prototipo · 🔴 bassa, i
 ---
 
 ## D13 — Servizi esterni: quando? → **Non servono per sviluppare e testare da soli** 🟢
-Il 90% del gioco si sviluppa e si prova **da soli, senza servizi esterni**. I servizi stanno dietro interfacce (`Services`, GDD §19),
+Il 90% del gioco si sviluppa e si prova **da soli, senza servizi esterni**. I servizi stanno dietro interfacce (`Services`, GDD §16),
 con implementazioni "finte" (log in console) durante lo sviluppo. **Diventano obbligatori appena il gioco esce dalle mani dello sviluppatore.**
 
 ### TODO — prima di far provare il gioco ad altre persone (test chiuso)
 - [ ] **Account Google Play**: scegliere tra personale e aziendale, verificare l'identità, riservare il nome del pacchetto
       *(il personale richiede 12 tester × 14 giorni + circa 7 giorni di revisione; l'aziendale richiede D-U-N-S e può richiedere settimane → avviare con anticipo)*
 - [ ] **Analytics + crash report** (Firebase o GameAnalytics → da ricercare)
-- [ ] Eventi analytics: tutorial, inizio/fine run, settore raggiunto, sconfitta (ondata e causa), scelte 1 su 3, uso del Drop
+- [ ] Eventi analytics: tutorial, inizio/fine run, atto e ondata raggiunti, sconfitta (ondata e causa), acquisti/vendite/merge/annulla nel negozio, uso del Pulse, durata di ondate e negozi
 - [ ] Privacy policy minima (serve già per il test chiuso se si raccolgono dati)
 - [ ] ⚖️ **Consenso al primo avvio (D16)**: integrare Google UMP **prima** del tutorial (solo dove è obbligatorio) e far partire analytics e crash report **dopo** la risposta. Da far verificare a un legale prima della pubblicazione
 - [ ] Discord / gruppo di tester (almeno 12 per l'account personale)
@@ -100,7 +103,7 @@ con implementazioni "finte" (log in console) durante lo sviluppo. **Diventano ob
 - [ ] Classificazione per età **IARC** e questionario sui contenuti di Google Play
 - [ ] Dichiarazione dei contenuti generati con AI (policy di Google Play)
 - [ ] **Nome del gioco** + scheda dello store (icona, screenshot, video, ASO) + pre-registrazione
-- [ ] Google Play Games Services v2 (classifiche, obiettivi, cloud) configurato sulla console
+- [ ] Unity Gaming Services (classifiche, Cloud Save, Cloud Code per la verifica dei replay) configurato — D21; Play Games Services v2 facoltativo (accesso Google, obiettivi)
 - [ ] Aspetti fiscali (partita IVA / regime) → commercialista
 - [ ] Diritti della musica definitivi (vedi `03`)
 

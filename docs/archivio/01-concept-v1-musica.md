@@ -1,3 +1,5 @@
+> ⚠️ **ARCHIVIATO il 21/09/2026 (D17):** concept v1 "difesa musicale a labirinto", abbandonato. **Non usare come riferimento.** Il concept attuale è in `../01-concept.md` e `../05-gdd.md`.
+
 # 01 — Concept del gioco
 
 > **In una frase:** un tower defense roguelite minimal in cui **la tua difesa compone una traccia tech-house**.

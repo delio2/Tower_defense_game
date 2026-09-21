@@ -1,5 +1,7 @@
 # 00 — Ricerca di mercato (settembre 2026)
 
+> La prima parte (v1) è stata fatta per il concept musicale a labirinto, poi abbandonato (D17): i dati di mercato, di pubblico e sul tower defense restano validi, mentre la sezione "Concorrenti diretti sull'originalità" riguarda solo il vecchio concept. La base del concept attuale è la **Ricerca v2**, in fondo al file.
+
 ## Mercato mobile 2026
 - Fatturato globale stabile, circa **40 mld $ nel primo semestre 2026** (-0,8%). **Download -12%**, ma **ricavo per download +11%**.
 - In crescita: **Puzzle +20%** (Merge-2 +74% di ricavi, Sort puzzle ×3), **Hybrid-casual +23%**, Party +29%.

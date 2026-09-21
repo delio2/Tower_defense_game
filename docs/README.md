@@ -11,5 +11,5 @@
 | [setup/SETUP-NUOVO-PC.md](setup/SETUP-NUOVO-PC.md) | **Come configurare un nuovo PC**: programmi, clone, Unity, MCP, Claude Code, Git |
 | [archivio/](archivio/) | Concept v1 e GDD v0.1 ("difesa musicale a labirinto"), abbandonati il 21/09/2026 (D17) |
 
-Stato: **pre-produzione, prototipo v2 da iniziare** (settembre 2026). Tutti i numeri sono ipotesi da validare.
+Stato (21/09/2026): **pre-produzione**. Simulazione v2 e replay **fatti** (17 test automatici); presentazione minima giocabile nell'editor; prossimo passo: interazione tattile (GDD §19). Tutti i numeri sono ipotesi da validare.
 Le stime marcate *(stima)* sono ragionamenti nostri, non dati di mercato.

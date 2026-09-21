@@ -28,7 +28,7 @@
 ## Convenzioni
 - Cartelle: `Assets/Scripts`, `Prefabs`, `Scenes`, `Models`, `Materials`, `Textures`, `Audio`, `UI`.
 - C#: PascalCase per classi/metodi, `_camelCase` per campi privati, `[SerializeField] private` invece di campi pubblici.
-- Dati di bilanciamento (torri, nemici, ondate) in ScriptableObject, non hardcodati.
+- Dati di bilanciamento (moduli, nemici, ondate) in ScriptableObject nel layer `Presentation`, che li carica nel `ContentDatabase` della simulazione (l'assembly `Simulation` non può usare tipi Unity). Il prototipo usa ancora i default in `ContentDatabase.CreatePrototypeDefaults()`: quando arrivano gli SO, quel metodo resta solo per i test.
 - Input: nuovo Input System, pensato per il touch.
 - Git: repo in questa cartella, Git LFS per i binari. Commit solo quando l'utente lo chiede.
 

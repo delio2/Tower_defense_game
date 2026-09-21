@@ -45,8 +45,8 @@ Salvataggio automatico **a ogni negozio**, con ripresa in qualsiasi momento.
 
 ## 3. Arena e unità (deterministico)
 - **Tick fisso: 60 al secondo.** Nessun float nello stato di gioco (D11).
-- **Unità:** 1 unità = 1000 milli. Il Core sta in (0,0) con raggio 0,7. Gli slot dell'anello sono a raggio 1,5. I nemici nascono a raggio 9,0.
-- **Direzioni:** 128 direzioni fisse (tabella intera di coseno e seno ×10.000, uguale su ogni piattaforma).
+- **Unità:** i dati di bilanciamento sono in **milli-unità** (1000 = 1 unità); lo stato della simulazione usa le **micro-unità** (1.000.000 = 1 unità) per non perdere precisione. Il Core sta in (0,0) con raggio 0,7. Gli slot dell'anello sono a raggio 1,5. I nemici nascono a raggio 9,0.
+- **Direzioni:** **192** direzioni fisse (tabella intera del coseno ×10.000; il seno si ricava spostando di un quarto di giro). 192 è divisibile per 6 e per 8, le dimensioni possibili dell'anello.
 - **Movimento dei nemici:** **radiale** verso il Core. Ogni nemico ha una direzione e una distanza, e ogni tick la distanza diminuisce della sua velocità. Il respingimento la aumenta.
 - **Contatto:** a distanza ≤ 0,7 il nemico colpisce il Core (danno da contatto) e scompare.
 
@@ -62,11 +62,11 @@ Salvataggio automatico **a ogni negozio**, con ripresa in qualsiasi momento.
   | **Glass** | tutti i danni ×1,5, integrità 50 | Emitter + Amplifier, 2 Credits |
 
 ## 5. Il Ring (anello)
-- **6 slot** all'inizio, disposti a esagono. Lo **slot extra** (fino a 8) si compra nel negozio dopo il primo Guardian, a 8 Credits.
+- **6 slot** all'inizio, disposti a esagono. Lo **slot extra** (fino a 8) si compra nel negozio dopo il primo Guardian, a 8 Credits *(non ancora nel prototipo, che ha un solo atto)*.
 - **Vicinato:** ogni slot ha 2 vicini; l'anello è circolare.
 - Nel negozio i moduli si **spostano liberamente** (trascinamento o scambio); durante l'ondata sono bloccati.
 
-## 6. Moduli (v0, 14 per il prototipo e l'MVP)
+## 6. Moduli (v0: 14 per l'MVP; nel prototipo ne esistono 7 — Emitter, Scatter, Amplifier, Lens, Overclock, Bank, Bulwark)
 Costo in Credits. Portata in unità, misurata dalla posizione del modulo sull'anello. Ricarica in tick (60 = 1 s).
 
 **Armi**
@@ -131,7 +131,9 @@ HP in unità di gioco, alla prima ondata. Velocità in unità al secondo.
 ## 9. Ondate e difficoltà
 - Indice globale **g = 1…18** (atto a, ondata w: g = 6(a−1) + w; w = 6 è il Guardian).
 - **HP:** `hp(g) = 1.20^(g−1)` (ondata 18 ≈ 22×). **Budget:** `budget(g) = 8 × 1.10^(g−1)` punti (ondata 18 ≈ 40).
-- I nemici entrano in **20 s**, a intervalli regolari, da **direzioni casuali ma dal seme**. Regole: un nuovo tipo entra prima **da solo**; massimo 3 tipi per ondata; l'ondata 3 di ogni atto è "a tema".
+- I nemici entrano in **20 s**, a intervalli regolari, da **direzioni casuali ma dal seme**. Regole: un nuovo tipo entra prima **da solo** (poi 2 s di pausa); massimo 3 tipi per ondata; l'ondata 3 di ogni atto è "a tema".
+- **Ondata del Guardian:** il Guardian entra per primo; dopo 3 s arriva una scorta con **metà del budget** dell'ondata.
+- Gli Swarmlet contano 0,3 punti **ciascuno**, quindi un gruppo da 5 vale 1,5.
 - **Anteprima:** nel negozio si vede la composizione dell'ondata successiva (icone e quantità).
 - Calcoli interi o a virgola fissa, senza `Math.Pow` (non è deterministico tra piattaforme): la crescita si calcola per moltiplicazioni successive.
 - **Grade** (Ascension): dopo la prima vittoria si sbloccano i Grade 1–10 (nemici +10% HP, meno Credits, Guardian con scudo, un'élite in più…).
@@ -165,9 +167,11 @@ HP in unità di gioco, alla prima ondata. Velocità in unità al secondo.
 | **Community Guardian** | aggiornamento 2 | Boss settimanale con vita condivisa da tutti |
 
 **Punteggio competitivo:** ondate superate (prima) → danno totale (seconda chiave) → meno tick impiegati (terza).
+**Giorno e settimana:** il seme del Daily cambia a mezzanotte **UTC**; il Weekly tra domenica e lunedì UTC. Il confine lo decide il nostro backend (UGS, D21), non Play Games Services.
 
 ## 13. Replay e verifica (D19)
-- **Formato:** versione del gioco + versione del bilanciamento + modalità + seme + Core type + Grade + lista di (tick, comando).
+- **Formato (obiettivo):** versione del gioco + versione del bilanciamento + modalità + seme + Core type + Grade + lista di (tick, comando).
+- **Formato attuale del prototipo (`R1`):** versione del bilanciamento + seme + hash finale + ondate + danno totale + tick + comandi. **Mancano** versione del gioco, modalità, Core type e Grade: vanno aggiunti (formato `R2`) quando arrivano Core type e modalità.
 - **Comandi:** `Buy(offerIndex, slot)` · `Sell(slot)` · `Move(from, to)` · `Undo` · `Reroll` · `StartWave` · `Pulse`. La pausa e la velocità **non** sono comandi: non cambiano il risultato.
 - **`Undo`** ripristina lo stato del negozio prima dell'ultimo `Buy`, `Sell` o `Move` della visita corrente (a più livelli). `Reroll` e `StartWave` svuotano la pila: il rilancio non si può annullare, perché si vedrebbero le offerte future gratis. `Undo` non usa il generatore casuale, quindi resta deterministico e registrato nel replay.
 - **Verifica:** rigiocando il replay si deve ottenere lo stesso hash finale e lo stesso punteggio. In locale subito (test); sul server con Cloud Code C# dall'aggiornamento 1.
@@ -245,9 +249,9 @@ Riduci movimento · intensità degli effetti · numeri dei danni (tutti / solo g
 - [ ] **Prima sonda del bot (21/09/2026, 100 semi, 1 atto):** un bot "ingenuo" (compra a caso, primo slot libero, Pulse quando i nemici sono vicini) vince il **90%**; le sconfitte sono tutte alle ondate 5–6 (Guardian). Combattimento medio circa **24 s per ondata**. → L'atto 1 va bene come ingresso; **atti 2–3 da tarare** (crescita e nuovi nemici).
 
 ## 19. Piano del prototipo (2–3 settimane)
-1. **Simulazione v2** (riusa RNG, hash e comandi): arena radiale, Core, 3 nemici (Drifter, Swarmlet, Brute), 6 moduli (Emitter, Scatter, Amplifier, Lens, Bank, Bulwark), negozio con merge, Pulse, 1 atto. **Test.**
-2. **Replay:** registrazione, riproduzione e verifica dell'hash (test automatico).
-3. **Presentazione calma** con forme semplici e interfaccia provvisoria, **con l'interazione tattile** (§15.1): trascinamento con calamita e anteprima, vendita trascinando, annulla, merge animato, conteggio di fine ondata, vibrazioni, opzioni base.
+1. ✅ **Simulazione v2** (riusa RNG, hash e comandi): arena radiale, Core, 3 nemici (Drifter, Swarmlet, Brute) + Guardian, 7 moduli (Emitter, Scatter, Amplifier, Lens, Overclock, Bank, Bulwark), negozio con merge e annulla, anteprime, Pulse, 1 atto. **17 test.**
+2. ✅ **Replay:** registrazione, riproduzione e verifica dell'hash (test automatico, anche contro la manomissione).
+3. 🔄 **Presentazione calma** con forme semplici e interfaccia provvisoria, **con l'interazione tattile** (§15.1). *Fatto:* scena `Prototype`, forme semplici, tocca carta → tocca slot, Sell/Move, Reroll, Next wave, Pulse, velocità 1x/2x/3x, pausa, numeri dei danni, linee delle combo. *Manca:* trascinamento con calamita, **Annulla nella UI** (il comando esiste), **anteprime nella UI** (le funzioni `TryPreview*` esistono ma non sono usate), vendita trascinando, merge animato, conteggio di fine ondata, vibrazioni, opzioni base.
 4. **Test con 3–5 persone** (prima senza audio).
 5. Decisione: avanti, correggere o cambiare.
 

@@ -20,7 +20,7 @@
 | Elemento | Scelta | Diversa da The Tower perché |
 |---|---|---|
 | Sfondo | **Gradiente blu-viola crepuscolare** con vignettatura morbida e anelli concentrici appena visibili | loro: nero pieno |
-| Core | **Seme o fiore geometrico**: una sfera morbida con **6 petali**, che sono gli slot dell'anello | loro: torre quadrata |
+| Core | **Seme o fiore geometrico**: una sfera morbida con **6 petali (fino a 8)**, che sono gli slot dell'anello | loro: torre quadrata |
 | Moduli | Piccoli oggetti arrotondati appoggiati sui petali, ognuno con una **silhouette propria** (Emitter = gemma, Amplifier = anello, Bank = moneta…) | loro: statistiche in un pannello, non oggetti |
 | Nemici | **Frammenti angolari** (schegge, prismi) color corallo e rosa, con un movimento fluttuante lento | loro: quadrati e forme piatte |
 | Camera | 3D ortografica **inclinata di circa 35°**: dà volume e ombre morbide | loro: 2D dall'alto |

@@ -1,3 +1,5 @@
+> ⚠️ **ARCHIVIATO il 21/09/2026 (D17):** concept v1 "difesa musicale a labirinto", abbandonato. **Non usare come riferimento.** Il concept attuale è in `../01-concept.md` e `../05-gdd.md`.
+
 # 05 — Game Design Document (v0.1)
 
 > **Titolo provvisorio:** TowerDefense · **Genere:** tower defense roguelite minimal con musica adattiva

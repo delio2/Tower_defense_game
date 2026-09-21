@@ -46,7 +46,7 @@
 | Tornei pay-to-win (The Tower, Rush Royale) | **Competitivo a dotazione fissa**: vince l'abilità |
 | Troppe valute | **Due valute in tutto**: crediti (dentro la partita) e Blueprints (sblocchi) |
 | Connessione obbligatoria | **Offline completo**; online solo per classifiche e fantasmi |
-| Partite di ore | **10–15 minuti**, salvataggio a ogni ondata |
+| Partite di ore | **10–15 minuti**, salvataggio automatico a ogni negozio |
 | Grind infinito di statistiche (Infinitode, The Tower) | Si sbloccano **varietà e opzioni**, non numeri |
 | Passività ("guardo e aspetto") | Negozio pieno di scelte, disposizione sull'anello, **Pulse attivo** |
 | Casualità ingiusta | Rilancio del negozio, anteprima delle ondate, semi condivisibili |
@@ -90,7 +90,7 @@ Le meccaniche sono libere, l'aspetto e i nomi no. **Identità visiva diversa** d
 | Pochi giocatori per il multiplayer | L'asincrono funziona anche con pochi giocatori; all'inizio anche fantasmi generati da bot |
 
 ## 11. Prima versione giocabile (MVP) *(stima)*
-- 1 nucleo, 1 atto (5 ondate + Guardiano), 12 moduli (armi, booster, economia), negozio con merge, Pulse, 5 tipi di nemici.
+- 1 nucleo, 1 atto (5 ondate + Guardiano), i 14 moduli dell'MVP (armi, booster, economia; GDD §6), negozio con merge, Pulse, i 6 nemici + Guardian (GDD §8). *Il prototipo attuale ne ha 7 moduli e 3 nemici + Guardian.*
 - Registrazione e verifica locale dei replay; Daily Run con seme del giorno (classifica solo locale per ora).
 - **Tempi con l'aiuto dell'AI** *(stima)*:
   | Fase | Tempo |
