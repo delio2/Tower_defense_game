@@ -8,7 +8,7 @@ Difesa del nucleo roguelite per mobile (Android, poi iOS): il nucleo al centro, 
 - **Stato:** pre-produzione, prototipo v2 giocabile nell'editor (settembre 2026)
 
 ## Documentazione
-- [docs/README.md](docs/README.md) — indice: ricerca di mercato, concept, monetizzazione, grafica e UX, decisioni, **GDD**
+- [docs/README.md](docs/README.md) — indice: ricerca di mercato, concept, monetizzazione, grafica e UX, decisioni, **GDD**, **piano a fasi**
 - [docs/setup/SETUP-NUOVO-PC.md](docs/setup/SETUP-NUOVO-PC.md) — **come configurare un nuovo PC** per sviluppare il gioco
 - [CLAUDE.md](CLAUDE.md) — regole per lo sviluppo con Claude Code
 

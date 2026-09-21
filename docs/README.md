@@ -8,6 +8,7 @@
 | [03-grafica-audio.md](03-grafica-audio.md) | "Dusk Garden": calmo, minimal, diverso da The Tower; audio come atmosfera |
 | [04-decisioni.md](04-decisioni.md) | Registro delle decisioni D1–D21 (con quelle superate marcate) |
 | [05-gdd.md](05-gdd.md) | **GDD v0.2**: meccaniche, numeri, modalità, replay, architettura, piano del prototipo |
+| [06-piano-sviluppo.md](06-piano-sviluppo.md) | **Piano a fasi** (1–7) con gate, cosa la community ama/odia e dove lo risolviamo, prossimi passi, decisioni aperte D22–D25 |
 | [setup/SETUP-NUOVO-PC.md](setup/SETUP-NUOVO-PC.md) | **Come configurare un nuovo PC**: programmi, clone, Unity, MCP, Claude Code, Git |
 | [archivio/](archivio/) | Concept v1 e GDD v0.1 ("difesa musicale a labirinto"), abbandonati il 21/09/2026 (D17) |
 

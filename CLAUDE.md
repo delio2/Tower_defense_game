@@ -40,6 +40,7 @@ Documenti in `docs/` (leggili prima di lavorare su gameplay, UI, audio o monetiz
 - `docs/03-grafica-audio.md` — "Dusk Garden": calmo, minimal, **diverso da The Tower**; audio solo atmosfera
 - `docs/04-decisioni.md` — registro D1–D21 (le superate sono marcate; svolta in D17)
 - `docs/05-gdd.md` — **GDD v0.2**: la fonte di verità per meccaniche, numeri e architettura
+- `docs/06-piano-sviluppo.md` — **piano a fasi** con gate: dice cosa fare adesso (§4) e cosa aspetta la fase dopo
 - `docs/archivio/` — concept v1 musicale abbandonato: **non usarlo come riferimento**
 
 Vincoli chiave: single player offline completo + multiplayer **solo asincrono** (replay), competitivo a dotazione fissa,
