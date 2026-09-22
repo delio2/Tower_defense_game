@@ -75,7 +75,7 @@ Deterministic simulation (60 ticks/s, integers), 7 modules, 3 enemies + Guardian
 - [ ] Haptics at 3 levels (Android `VibrationEffect`), can be disabled.
 - [ ] Basic options: reduce motion, effect intensity, damage numbers, haptics, speed. Stored in `PlayerPrefs` for now.
 - [ ] Cap on simultaneous effects and automatic attenuation with many enemies.
-- [ ] Replace IMGUI with **UI Toolkit** (D22) for cards, HUD and options: needed now for dragging and for the 48 dp targets.
+- [x] Replace IMGUI with **UI Toolkit** (D22): `HudView` + `Hud.uxml` + `Theme.uss` (tokens of `09` §5) loaded from `Assets/UI/Resources`, `PanelSettings` 1080×1920; top bar, offer cards with rarity/merge badge, module panel, Undo/Reroll/Next/Slot +1, Pulse with cooldown fill, speed/pause, run-end overlay, toasts and floating numbers. Options screen still to do.
 
 **Gate 1 (`05` §19):** 3–5 testers, muted, on the phone (Android development build). At least 3 out of 5 ask to play again; they understand the neighbourhood without explanations by the second shop; nobody is stuck more than 10 s; real wave and shop durations measured (targets 25–30 s and 10–20 s). The naive bot stays below 95% wins in act 1 (above that, act 1 is too easy).
 
@@ -174,7 +174,7 @@ The operational calendar is in **`10` §4** (6-month roadmap, October 2026 → M
 1. ✅ Bot runner + CSV (2026-09-21).
 2. ✅ `ContentLoader` from ScriptableObjects + equivalence tests (2026-09-22).
 3. ✅ `BuySlot` command + tests (2026-09-22).
-4. UI Toolkit instead of IMGUI: HUD, cards, module panel.
+4. ✅ UI Toolkit instead of IMGUI (2026-09-22).
 5. Dragging with magnet and preview.
 6. Undo and Sell in the UI; animated merge; wave-end summary.
 7. Basic options + haptics.

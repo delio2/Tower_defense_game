@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using TowerDefense.Presentation.Content;
+using TowerDefense.Presentation.UI;
 using TowerDefense.Simulation;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
+using UnityEngine.UIElements;
 
 namespace TowerDefense.Presentation
 {
@@ -16,7 +18,6 @@ namespace TowerDefense.Presentation
     {
         private const float TopBarFraction = 0.1f;
         private const float BottomBarFraction = 0.26f;
-        private const float ReferenceHeight = 1600f;
         /// <summary>Wave view: the whole arena. Shop view: close-up on the ring so slots are comfortable to tap (48dp+).</summary>
         private const float ArenaViewRadius = 9.4f;
         private const float ShopViewRadius = 3.4f;
@@ -55,17 +56,10 @@ namespace TowerDefense.Presentation
         private bool _moveMode;
         private float _coreWarning;
         private float _viewRadius = ShopViewRadius;
-        private string _message;
-        private float _messageUntil;
         private string _replayStatus;
 
-        private GUIStyle _labelStyle;
-        private GUIStyle _smallStyle;
-        private GUIStyle _bigStyle;
-        private GUIStyle _buttonStyle;
-        private GUIStyle _cardStyle;
-        private GUIStyle _numberStyle;
-        private GUISkin _stylesSkin;
+        private HudView _hud;
+        private readonly List<FloatingLabel> _floatingLabels = new List<FloatingLabel>();
 
         // ------------------------------------------------------------------ lifecycle
 
@@ -88,6 +82,7 @@ namespace TowerDefense.Presentation
             _unlit = new Material(unlitShader) { name = "PrototypeUnlit" };
             _lineMaterial = new Material(Shader.Find("Sprites/Default")) { name = "PrototypeLines" };
             SetupCamera();
+            SetupHud();
             for (int i = transform.childCount - 1; i >= 0; i--)
             {
                 Destroy(transform.GetChild(i).gameObject);
@@ -145,6 +140,83 @@ namespace TowerDefense.Presentation
             UpdateEffects();
             UpdateCore();
             CheckGameOver();
+            SyncHud();
+        }
+
+        // ------------------------------------------------------------------ HUD (UI Toolkit, docs/09)
+
+        private void SetupHud()
+        {
+            var document = GetComponent<UIDocument>() ?? gameObject.AddComponent<UIDocument>();
+            document.panelSettings = Resources.Load<PanelSettings>("PanelSettings");
+            document.visualTreeAsset = Resources.Load<VisualTreeAsset>("Hud");
+            if (document.panelSettings == null || document.visualTreeAsset == null)
+            {
+                Debug.LogError("HUD assets missing in Assets/UI/Resources (PanelSettings, Hud.uxml).");
+                return;
+            }
+
+            _hud = new HudView(document.rootVisualElement);
+            _hud.OfferTapped += OnOfferTapped;
+            _hud.RerollTapped += () => { _sim.Enqueue(Command.Reroll()); _selectedOffer = -1; };
+            _hud.NextWaveTapped += () => { _sim.Enqueue(Command.StartWave()); ClearSelection(); };
+            _hud.UndoTapped += () => { _sim.Enqueue(Command.Undo()); ClearSelection(); };
+            _hud.BuySlotTapped += () => _sim.Enqueue(Command.BuySlot(_sim.Ring.SlotCount));
+            _hud.SellTapped += () =>
+            {
+                ModuleInstance module = _sim.Ring.At(_selectedSlot);
+                if (module != null)
+                {
+                    _sim.Enqueue(Command.Sell(module.Slot));
+                }
+
+                ClearSelection();
+            };
+            _hud.MoveTapped += () => _moveMode = !_moveMode;
+            _hud.CloseTapped += ClearSelection;
+            _hud.PulseTapped += TryPulse;
+            _hud.SpeedTapped += () => _speed = _speed % 3 + 1;
+            _hud.PauseTapped += () => _paused = !_paused;
+            _hud.PlayAgainTapped += () => { _seed++; StartRun(); };
+        }
+
+        private void ClearSelection()
+        {
+            _selectedOffer = -1;
+            _selectedSlot = -1;
+            _moveMode = false;
+        }
+
+        private void SyncHud()
+        {
+            if (_hud == null)
+            {
+                return;
+            }
+
+            _floatingLabels.Clear();
+            foreach (FloatingNumber number in _numbers)
+            {
+                _floatingLabels.Add(new FloatingLabel
+                {
+                    PanelPosition = _hud.WorldToPanel(_camera, number.Position + Vector3.forward * (number.Age * 0.6f)),
+                    Text = number.Text,
+                    Alpha = (1f - number.Age / 0.9f) * 0.8f,
+                    Big = number.Big,
+                });
+            }
+
+            _hud.SetNumbers(_floatingLabels);
+            _hud.Refresh(_sim, new HudState
+            {
+                SelectedOffer = _selectedOffer,
+                SelectedSlot = _selectedSlot,
+                MoveMode = _moveMode,
+                Speed = _speed,
+                Paused = _paused,
+                ReplayStatus = _replayStatus,
+                Seed = _seed,
+            }, Describe);
         }
 
         // ------------------------------------------------------------------ simulation
@@ -181,7 +253,7 @@ namespace TowerDefense.Presentation
                     case SimEventType.EnemyKilled:
                         if (_enemyViews.TryGetValue(e.EntityId, out EnemyView killed))
                         {
-                            _numbers.Add(new FloatingNumber(killed.Body.transform.position, FormatDamage(e.Value)));
+                            _numbers.Add(new FloatingNumber(killed.Body.transform.position, FormatDamage(e.Value), e.Extra == 0));
                         }
 
                         break;
@@ -305,10 +377,7 @@ namespace TowerDefense.Presentation
             }
         }
 
-        private bool IsOverUi(Vector2 screen)
-        {
-            return screen.y < Screen.height * BottomBarFraction || screen.y > Screen.height * (1f - TopBarFraction);
-        }
+        private bool IsOverUi(Vector2 screen) => _hud != null && _hud.IsPointerOver(screen);
 
         private Vector3 ScreenToWorld(Vector2 screen)
         {
@@ -640,140 +709,17 @@ namespace TowerDefense.Presentation
             }
         }
 
-        // ------------------------------------------------------------------ HUD (IMGUI, prototype only)
+        // ------------------------------------------------------------------ shop intents
 
-        private void OnGUI()
+        private void OnOfferTapped(int index)
         {
-            if (_sim == null || _camera == null)
+            ModuleKind? offer = _sim.OfferAt(index);
+            if (offer == null)
             {
                 return;
             }
 
-            EnsureStyles();
-            float scale = Screen.height / ReferenceHeight;
-            GUI.matrix = Matrix4x4.Scale(new Vector3(scale, scale, 1f));
-            float width = Screen.width / scale;
-            float height = ReferenceHeight;
-
-            DrawNumbers(scale);
-            DrawTopBar(width);
-            if (_sim.Phase == GamePhase.Shop)
-            {
-                DrawShop(width, height);
-            }
-            else if (_sim.Phase == GamePhase.Wave)
-            {
-                DrawWaveControls(width, height);
-            }
-
-            if (Time.time < _messageUntil && !string.IsNullOrEmpty(_message))
-            {
-                GUI.Label(new Rect(0f, height * TopBarFraction + 10f, width, 50f), _message, _smallStyle);
-            }
-
-            if (_sim.IsOver)
-            {
-                DrawGameOver(width, height);
-            }
-        }
-
-        private void DrawNumbers(float scale)
-        {
-            foreach (FloatingNumber number in _numbers)
-            {
-                Vector3 screen = _camera.WorldToScreenPoint(number.Position);
-                float alpha = 1f - number.Age / 0.9f;
-                var rect = new Rect(screen.x / scale - 100f, (Screen.height - screen.y) / scale - 40f - number.Age * 40f, 200f, 40f);
-                Color previous = GUI.color;
-                GUI.color = new Color(1f, 1f, 1f, alpha * 0.8f);
-                GUI.Label(rect, number.Text, _numberStyle);
-                GUI.color = previous;
-            }
-        }
-
-        private void DrawTopBar(float width)
-        {
-            string guardian = _sim.IsGuardianWave ? "  GUARDIAN" : string.Empty;
-            GUI.Label(new Rect(20f, 14f, width - 40f, 50f),
-                $"Core {_sim.Integrity / SimConstants.HpScale}/{_sim.MaxIntegrity / SimConstants.HpScale}    Wave {_sim.CurrentWave}/{_sim.TotalWaves}{guardian}    Credits {_sim.Credits}",
-                _labelStyle);
-            GUI.Label(new Rect(20f, 70f, width - 40f, 40f),
-                $"Damage {FormatDamage(_sim.TotalDamage)}    Kills {_sim.Kills}    seed {_seed}", _smallStyle);
-        }
-
-        private void DrawShop(float width, float height)
-        {
-            float top = height * (1f - BottomBarFraction) + 8f;
-            float gap = 12f;
-            GUI.Label(new Rect(gap, top, width - 2f * gap, 40f), $"Next: {DescribeWave(_sim.NextWavePreview)}", _smallStyle);
-            top += 46f;
-
-            ModuleInstance selected = _sim.Ring.At(_selectedSlot);
-            float rowHeight = 190f;
-            if (selected != null)
-            {
-                DrawModulePanel(selected, width, top, rowHeight, gap);
-            }
-            else
-            {
-                float cardWidth = (width - gap * (_sim.OfferCount + 1)) / _sim.OfferCount;
-                for (int i = 0; i < _sim.OfferCount; i++)
-                {
-                    var rect = new Rect(gap + i * (cardWidth + gap), top, cardWidth, rowHeight);
-                    ModuleKind? offer = _sim.OfferAt(i);
-                    if (offer == null)
-                    {
-                        GUI.Label(rect, "sold", _smallStyle);
-                        continue;
-                    }
-
-                    ModuleDefinition definition = _sim.Content.Module(offer.Value);
-                    bool merges = _sim.Ring.FindMergeTarget(offer.Value) != null;
-                    string tag = merges ? "MERGE" : definition.Category.ToString().ToUpperInvariant();
-                    string label = $"{offer.Value}\n{definition.Cost} cr\n{Describe(offer.Value)}\n<{tag}>";
-                    GUI.enabled = _sim.Credits >= definition.Cost;
-                    Color previous = GUI.backgroundColor;
-                    GUI.backgroundColor = i == _selectedOffer ? Palette.Weapon : previous;
-                    if (GUI.Button(rect, label, _cardStyle))
-                    {
-                        OnOfferTapped(i, merges);
-                    }
-
-                    GUI.backgroundColor = previous;
-                    GUI.enabled = true;
-                }
-            }
-
-            float second = top + rowHeight + gap;
-            float buttonWidth = (width - gap * 3f) / 2f;
-            if (_sim.CanBuyExtraSlot)
-            {
-                GUI.enabled = _sim.Credits >= _sim.ExtraSlotCost;
-                if (GUI.Button(new Rect(gap, second - 100f, buttonWidth, 90f), $"Slot +1 ({_sim.ExtraSlotCost})", _buttonStyle))
-                {
-                    _sim.Enqueue(Command.BuySlot(_sim.Ring.SlotCount));
-                }
-            }
-
-            GUI.enabled = _sim.Credits >= _sim.RerollCost;
-            if (GUI.Button(new Rect(gap, second, buttonWidth, 90f), $"Reroll ({_sim.RerollCost})", _buttonStyle))
-            {
-                _sim.Enqueue(Command.Reroll());
-                _selectedOffer = -1;
-            }
-
-            GUI.enabled = true;
-            if (GUI.Button(new Rect(gap * 2f + buttonWidth, second, buttonWidth, 90f), "Next wave", _buttonStyle))
-            {
-                _sim.Enqueue(Command.StartWave());
-                _selectedOffer = -1;
-                _selectedSlot = -1;
-                _moveMode = false;
-            }
-        }
-
-        private void OnOfferTapped(int index, bool merges)
-        {
+            bool merges = _sim.Ring.FindMergeTarget(offer.Value) != null;
             if (merges)
             {
                 _sim.Enqueue(Command.Buy(index, 0));
@@ -793,92 +739,6 @@ namespace TowerDefense.Presentation
             {
                 ShowMessage("Tap a free slot on the ring");
             }
-        }
-
-        private void DrawModulePanel(ModuleInstance module, float width, float top, float rowHeight, float gap)
-        {
-            string stats = module.Category == ModuleCategory.Weapon
-                ? $"dmg {FormatDamage(module.EffectiveDamage)}  x{module.DamageMultiplierPermille / 1000f:0.##}\nrange {module.EffectiveRange / (float)SimConstants.Micro:0.#}  every {module.EffectiveCooldown / (float)SimConstants.TicksPerSecond:0.##}s"
-                : Describe(module.Kind);
-            float infoWidth = width * 0.5f;
-            GUI.Label(new Rect(gap, top, infoWidth, rowHeight), $"{module.Kind}  L{module.Level}\n{stats}", _smallStyle);
-
-            float buttonWidth = (width - infoWidth - gap * 4f) / 3f;
-            float x = gap * 2f + infoWidth;
-            if (GUI.Button(new Rect(x, top, buttonWidth, rowHeight), $"Sell\n+{ModuleRules.SellValue(module.Invested)}", _buttonStyle))
-            {
-                _sim.Enqueue(Command.Sell(module.Slot));
-                _selectedSlot = -1;
-            }
-
-            if (GUI.Button(new Rect(x + buttonWidth + gap, top, buttonWidth, rowHeight), _moveMode ? "Tap\nslot" : "Move", _buttonStyle))
-            {
-                _moveMode = !_moveMode;
-            }
-
-            if (GUI.Button(new Rect(x + (buttonWidth + gap) * 2f, top, buttonWidth, rowHeight), "Close", _buttonStyle))
-            {
-                _selectedSlot = -1;
-                _moveMode = false;
-            }
-        }
-
-        private void DrawWaveControls(float width, float height)
-        {
-            float top = height * (1f - BottomBarFraction) + 20f;
-            float gap = 12f;
-            float pulseWidth = width * 0.5f;
-            float cooldown = _sim.PulseCooldownRemaining / (float)_sim.Config.PulseCooldownTicks;
-            string pulseLabel = _sim.IsPulseReady ? "PULSE\n(or tap the core)" : $"Pulse\n{Mathf.CeilToInt(cooldown * 100f)}%";
-            GUI.enabled = _sim.IsPulseReady;
-            if (GUI.Button(new Rect(gap, top, pulseWidth - gap, 200f), pulseLabel, _buttonStyle))
-            {
-                TryPulse();
-            }
-
-            GUI.enabled = true;
-            float side = (width - pulseWidth - gap * 2f);
-            if (GUI.Button(new Rect(pulseWidth + gap, top, side, 94f), $"Speed {_speed}x", _buttonStyle))
-            {
-                _speed = _speed % 3 + 1;
-            }
-
-            if (GUI.Button(new Rect(pulseWidth + gap, top + 106f, side, 94f), _paused ? "Resume" : "Pause", _buttonStyle))
-            {
-                _paused = !_paused;
-            }
-        }
-
-        private void DrawGameOver(float width, float height)
-        {
-            string title = _sim.Phase == GamePhase.Victory ? "VICTORY" : "DEFEAT";
-            GUI.Label(new Rect(0f, height * 0.3f, width, 120f), title, _bigStyle);
-            GUI.Label(new Rect(0f, height * 0.3f + 130f, width, 120f),
-                $"Waves {_sim.WavesCleared}/{_sim.TotalWaves}   Damage {FormatDamage(_sim.TotalDamage)}   Kills {_sim.Kills}\n{_replayStatus}",
-                _smallStyle);
-            if (GUI.Button(new Rect(width * 0.5f - 170f, height * 0.3f + 280f, 340f, 100f), "Play again", _buttonStyle))
-            {
-                _seed++;
-                StartRun();
-            }
-        }
-
-        private void EnsureStyles()
-        {
-            if (_labelStyle != null && _stylesSkin == GUI.skin)
-            {
-                return;
-            }
-
-            _stylesSkin = GUI.skin;
-            _labelStyle = new GUIStyle(GUI.skin.label) { fontSize = 32, alignment = TextAnchor.MiddleCenter, wordWrap = true };
-            _labelStyle.normal.textColor = Palette.Text;
-            _smallStyle = new GUIStyle(_labelStyle) { fontSize = 26 };
-            _smallStyle.normal.textColor = Palette.TextDim;
-            _bigStyle = new GUIStyle(_labelStyle) { fontSize = 90, fontStyle = FontStyle.Bold };
-            _numberStyle = new GUIStyle(_labelStyle) { fontSize = 26 };
-            _buttonStyle = new GUIStyle(GUI.skin.button) { fontSize = 30, wordWrap = true };
-            _cardStyle = new GUIStyle(GUI.skin.button) { fontSize = 22, wordWrap = true, alignment = TextAnchor.MiddleCenter };
         }
 
         // ------------------------------------------------------------------ helpers
@@ -956,11 +816,7 @@ namespace TowerDefense.Presentation
             return null;
         }
 
-        private void ShowMessage(string text)
-        {
-            _message = text;
-            _messageUntil = Time.time + 2f;
-        }
+        private void ShowMessage(string text) => _hud?.ShowToast(text);
 
         private static string FormatDamage(long hundredths) => NumberFormat.CompactHundredths(hundredths);
 
@@ -977,24 +833,6 @@ namespace TowerDefense.Presentation
                 ModuleKind.Bulwark => "+25 integrity, repairs 5 per wave",
                 _ => kind.ToString(),
             };
-        }
-
-        private static string DescribeWave(IReadOnlyList<SpawnEntry> spawns)
-        {
-            var counts = new SortedDictionary<EnemyKind, int>();
-            foreach (SpawnEntry spawn in spawns)
-            {
-                counts.TryGetValue(spawn.Kind, out int count);
-                counts[spawn.Kind] = count + 1;
-            }
-
-            var parts = new List<string>();
-            foreach (KeyValuePair<EnemyKind, int> pair in counts)
-            {
-                parts.Add($"{pair.Key} x{pair.Value}");
-            }
-
-            return string.Join("   ", parts);
         }
 
         private static string DescribeRejection(CommandResult result)
@@ -1065,12 +903,14 @@ namespace TowerDefense.Presentation
         {
             public readonly Vector3 Position;
             public readonly string Text;
+            public readonly bool Big;
             public float Age;
 
-            public FloatingNumber(Vector3 position, string text)
+            public FloatingNumber(Vector3 position, string text, bool big)
             {
                 Position = position;
                 Text = text;
+                Big = big;
             }
         }
     }

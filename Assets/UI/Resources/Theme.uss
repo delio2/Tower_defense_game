@@ -1,0 +1,374 @@
+/* Design tokens (docs/09 §5). Reference resolution 1080 x 1920: 1 dp = 3 px. */
+:root {
+    --ivory: #F3E9D7;
+    --ivory-60: rgba(243, 233, 215, 0.6);
+    --ivory-40: rgba(243, 233, 215, 0.4);
+    --teal: #5CC8C0;
+    --gold: #E9B872;
+    --mint: #9AD9A1;
+    --coral: #F07A6A;
+    --rose: #C8507A;
+    --night: #141630;
+    --glass: rgba(243, 233, 215, 0.06);
+    --glass-border: rgba(243, 233, 215, 0.12);
+    --radius-card: 48px;
+    --radius-button: 72px;
+    --gutter: 48px;
+    --font-display: 96px;
+    --font-title: 72px;
+    --font-number: 60px;
+    --font-body: 48px;
+    --font-caption: 36px;
+}
+
+.root {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    color: var(--ivory);
+    -unity-font-style: normal;
+}
+
+.numbers {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.floating-number {
+    position: absolute;
+    font-size: var(--font-caption);
+    color: var(--ivory);
+    -unity-text-align: middle-center;
+    width: 300px;
+    height: 60px;
+}
+
+.floating-number--big {
+    font-size: var(--font-number);
+    color: var(--gold);
+}
+
+/* Top bar: three numbers, nothing else (docs/09 §2.2) */
+.top-bar {
+    position: absolute;
+    left: var(--gutter);
+    right: var(--gutter);
+    top: 60px;
+    height: 120px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.top-number {
+    font-size: var(--font-number);
+    color: var(--ivory);
+}
+
+.top-number--warning {
+    color: var(--coral);
+}
+
+.toast {
+    position: absolute;
+    left: var(--gutter);
+    right: var(--gutter);
+    top: 200px;
+    font-size: var(--font-body);
+    color: var(--ivory-60);
+    -unity-text-align: middle-center;
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.25s;
+}
+
+.toast--visible {
+    opacity: 1;
+}
+
+/* Bottom third (docs/09 §0 rule 1) */
+.bottom-panel {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 700px;
+    padding-left: var(--gutter);
+    padding-right: var(--gutter);
+    padding-bottom: 36px;
+    justify-content: flex-end;
+}
+
+.row {
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.column {
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.caption {
+    font-size: var(--font-caption);
+    color: var(--ivory-60);
+    -unity-text-align: middle-center;
+    margin-bottom: 18px;
+}
+
+.glass {
+    background-color: var(--glass);
+    border-color: var(--glass-border);
+    border-width: 3px;
+    border-radius: var(--radius-card);
+}
+
+/* Buttons: primary solid ivory, secondary outline (docs/09 §4.1). No hover/active flashing. */
+.btn {
+    height: 168px;
+    border-radius: var(--radius-button);
+    font-size: var(--font-body);
+    -unity-text-align: middle-center;
+    margin: 0;
+    padding: 0 24px;
+    border-width: 3px;
+    transition-property: scale, opacity;
+    transition-duration: 0.15s;
+}
+
+.btn:active {
+    scale: 0.96 0.96;
+}
+
+.btn:disabled {
+    opacity: 0.4;
+}
+
+.btn-primary {
+    background-color: var(--ivory);
+    color: var(--night);
+    border-color: var(--ivory);
+}
+
+.btn-secondary {
+    background-color: rgba(0, 0, 0, 0);
+    color: var(--ivory);
+    border-color: var(--ivory-40);
+}
+
+.btn-secondary:active {
+    background-color: rgba(243, 233, 215, 0.1);
+}
+
+.btn--breathing {
+    /* "Breathing" replaces red dots: one element per screen (docs/09 §4.2). Driven from code (scale). */
+}
+
+/* Offer cards (docs/09 §2.3) */
+.cards {
+    height: 372px;
+    margin-bottom: 24px;
+    margin-right: -24px;
+}
+
+.card {
+    flex-grow: 1;
+    flex-basis: 0;
+    margin-right: 24px;
+    padding: 18px;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: var(--radius-card);
+    background-color: var(--glass);
+    border-color: var(--glass-border);
+    border-width: 3px;
+    transition-property: translate, scale, opacity;
+    transition-duration: 0.12s;
+}
+
+.card--selected {
+    border-color: var(--teal);
+    translate: 0 -36px;
+    scale: 1.05 1.05;
+}
+
+.card--disabled {
+    opacity: 0.6;
+}
+
+.card--sold {
+    opacity: 0;
+}
+
+.card--uncommon {
+    border-color: rgba(200, 205, 220, 0.6);
+}
+
+.card--rare {
+    border-color: var(--gold);
+}
+
+.card__icon {
+    width: 84px;
+    height: 84px;
+    border-radius: 42px;
+    margin-top: 6px;
+}
+
+.card__icon--weapon { background-color: var(--teal); }
+.card__icon--booster { background-color: var(--gold); }
+.card__icon--economy { background-color: var(--mint); }
+
+.card__name {
+    font-size: var(--font-body);
+    color: var(--ivory);
+    -unity-text-align: middle-center;
+}
+
+.card__effect {
+    font-size: 28px;
+    color: var(--ivory-60);
+    -unity-text-align: middle-center;
+    white-space: normal;
+}
+
+.card__cost {
+    font-size: var(--font-number);
+    color: var(--ivory);
+}
+
+.card__cost--unaffordable {
+    color: var(--coral);
+}
+
+.card__badge {
+    position: absolute;
+    top: 12px;
+    right: 18px;
+    font-size: 30px;
+    color: var(--gold);
+}
+
+.actions {
+    height: 168px;
+    margin-right: -24px;
+}
+
+.actions > .btn {
+    flex-grow: 1;
+    flex-basis: 0;
+    margin-right: 24px;
+}
+
+.module-panel {
+    height: 372px;
+    margin-bottom: 24px;
+}
+
+.module-info {
+    flex-grow: 2;
+    flex-basis: 0;
+    font-size: var(--font-caption);
+    color: var(--ivory);
+    white-space: normal;
+    -unity-text-align: middle-left;
+    padding: 18px;
+}
+
+.module-panel > .btn {
+    flex-grow: 1;
+    flex-basis: 0;
+    margin-left: 24px;
+    height: auto;
+}
+
+/* Wave controls: Pulse 60% width x 360 px, speed and pause beside it */
+.wave-controls {
+    height: 360px;
+}
+
+.pulse {
+    width: 60%;
+    height: 360px;
+    border-radius: var(--radius-button);
+    background-color: rgba(243, 233, 215, 0.12);
+    border-color: var(--ivory-40);
+    border-width: 3px;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.pulse--ready {
+    background-color: var(--ivory);
+    border-color: var(--ivory);
+}
+
+.pulse__fill {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    height: 0;
+    background-color: rgba(243, 233, 215, 0.18);
+}
+
+.pulse__label {
+    font-size: var(--font-title);
+    color: var(--ivory);
+    -unity-text-align: middle-center;
+}
+
+.pulse--ready > .pulse__label {
+    color: var(--night);
+}
+
+.side-buttons {
+    width: 36%;
+    height: 360px;
+}
+
+.side-buttons > .btn {
+    height: 168px;
+}
+
+/* Run end overlay (docs/09 §2.4) */
+.overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: rgba(20, 22, 48, 0.6);
+    justify-content: center;
+    align-items: center;
+    padding: var(--gutter);
+}
+
+.overlay__title {
+    font-size: var(--font-display);
+    color: var(--ivory);
+    -unity-text-align: middle-center;
+    margin-bottom: 36px;
+}
+
+.overlay__stats {
+    font-size: var(--font-body);
+    color: var(--ivory-60);
+    -unity-text-align: middle-center;
+    white-space: normal;
+    margin-bottom: 72px;
+}
+
+.overlay > .btn {
+    width: 60%;
+}
+
+.hidden {
+    display: none;
+}

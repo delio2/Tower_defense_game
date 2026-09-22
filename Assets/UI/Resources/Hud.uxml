@@ -1,0 +1,48 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+    <Style src="Theme.uss" />
+    <ui:VisualElement name="root" class="root" picking-mode="Ignore">
+        <ui:VisualElement name="numbers" class="numbers" picking-mode="Ignore" />
+
+        <ui:VisualElement name="top-bar" class="top-bar" picking-mode="Ignore">
+            <ui:Label name="integrity" class="top-number" text="♥ 100" />
+            <ui:Label name="wave" class="top-number" text="Wave 1/6" />
+            <ui:Label name="credits" class="top-number" text="◈ 6" />
+        </ui:VisualElement>
+
+        <ui:Label name="toast" class="toast" picking-mode="Ignore" text="" />
+
+        <ui:VisualElement name="shop" class="bottom-panel" picking-mode="Ignore">
+            <ui:Label name="preview" class="caption" text="Next: —" />
+            <ui:VisualElement name="module-panel" class="module-panel row glass hidden">
+                <ui:Label name="module-info" class="module-info" text="" />
+                <ui:Button name="sell" class="btn btn-secondary" text="Sell" />
+                <ui:Button name="move" class="btn btn-secondary" text="Move" />
+                <ui:Button name="close" class="btn btn-secondary" text="Close" />
+            </ui:VisualElement>
+            <ui:VisualElement name="cards" class="cards row" />
+            <ui:VisualElement name="actions" class="actions row">
+                <ui:Button name="undo" class="btn btn-secondary" text="↶ Undo" />
+                <ui:Button name="reroll" class="btn btn-secondary" text="Reroll 1" />
+                <ui:Button name="buy-slot" class="btn btn-secondary hidden" text="Slot +1 · 8" />
+                <ui:Button name="next" class="btn btn-primary" text="▶ Next" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="wave-controls" class="bottom-panel wave-controls row hidden" picking-mode="Ignore">
+            <ui:VisualElement name="pulse" class="pulse">
+                <ui:VisualElement name="pulse-fill" class="pulse__fill" picking-mode="Ignore" />
+                <ui:Label name="pulse-label" class="pulse__label" text="Pulse" picking-mode="Ignore" />
+            </ui:VisualElement>
+            <ui:VisualElement name="side-buttons" class="side-buttons column" picking-mode="Ignore">
+                <ui:Button name="speed" class="btn btn-secondary" text="1x" />
+                <ui:Button name="pause" class="btn btn-secondary" text="Pause" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="game-over" class="overlay hidden">
+            <ui:Label name="game-over-title" class="overlay__title" text="Victory" />
+            <ui:Label name="game-over-stats" class="overlay__stats" text="" />
+            <ui:Button name="play-again" class="btn btn-primary" text="▶ Play again" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

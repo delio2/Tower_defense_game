@@ -1,0 +1,356 @@
+using System;
+using System.Collections.Generic;
+using TowerDefense.Simulation;
+using UnityEngine;
+using UnityEngine.UIElements;
+
+namespace TowerDefense.Presentation.UI
+{
+    /// <summary>What the HUD needs from the runner besides the simulation (selection, speed, pause, run status).</summary>
+    public struct HudState
+    {
+        public int SelectedOffer;
+        public int SelectedSlot;
+        public bool MoveMode;
+        public int Speed;
+        public bool Paused;
+        public string ReplayStatus;
+        public int Seed;
+    }
+
+    /// <summary>A damage number to draw this frame, in panel coordinates.</summary>
+    public struct FloatingLabel
+    {
+        public Vector2 PanelPosition;
+        public string Text;
+        public float Alpha;
+        public bool Big;
+    }
+
+    /// <summary>
+    /// UI Toolkit HUD (docs/09): reads the simulation and raises intents; never changes game state itself.
+    /// Structure comes from Hud.uxml, tokens from Theme.uss. Only user intents are exposed, as events.
+    /// </summary>
+    public sealed class HudView
+    {
+        public event Action<int> OfferTapped;
+        public event Action RerollTapped;
+        public event Action NextWaveTapped;
+        public event Action UndoTapped;
+        public event Action BuySlotTapped;
+        public event Action SellTapped;
+        public event Action MoveTapped;
+        public event Action CloseTapped;
+        public event Action PulseTapped;
+        public event Action SpeedTapped;
+        public event Action PauseTapped;
+        public event Action PlayAgainTapped;
+
+        private const float ToastSeconds = 2f;
+
+        private readonly VisualElement _root;
+        private readonly VisualElement _numbers;
+        private readonly Label _integrity;
+        private readonly Label _wave;
+        private readonly Label _credits;
+        private readonly Label _toast;
+        private readonly VisualElement _shop;
+        private readonly Label _preview;
+        private readonly VisualElement _modulePanel;
+        private readonly Label _moduleInfo;
+        private readonly Button _sell;
+        private readonly Button _move;
+        private readonly VisualElement _cards;
+        private readonly Button _undo;
+        private readonly Button _reroll;
+        private readonly Button _buySlot;
+        private readonly Button _next;
+        private readonly VisualElement _waveControls;
+        private readonly VisualElement _pulse;
+        private readonly VisualElement _pulseFill;
+        private readonly Label _pulseLabel;
+        private readonly Button _speed;
+        private readonly Button _pause;
+        private readonly VisualElement _gameOver;
+        private readonly Label _gameOverTitle;
+        private readonly Label _gameOverStats;
+
+        private readonly List<VisualElement> _cardViews = new List<VisualElement>();
+        private readonly List<Label> _numberPool = new List<Label>();
+        private float _toastUntil;
+
+        public HudView(VisualElement root)
+        {
+            _root = root;
+            _numbers = root.Q<VisualElement>("numbers");
+            _integrity = root.Q<Label>("integrity");
+            _wave = root.Q<Label>("wave");
+            _credits = root.Q<Label>("credits");
+            _toast = root.Q<Label>("toast");
+            _shop = root.Q<VisualElement>("shop");
+            _preview = root.Q<Label>("preview");
+            _modulePanel = root.Q<VisualElement>("module-panel");
+            _moduleInfo = root.Q<Label>("module-info");
+            _sell = root.Q<Button>("sell");
+            _move = root.Q<Button>("move");
+            _cards = root.Q<VisualElement>("cards");
+            _undo = root.Q<Button>("undo");
+            _reroll = root.Q<Button>("reroll");
+            _buySlot = root.Q<Button>("buy-slot");
+            _next = root.Q<Button>("next");
+            _waveControls = root.Q<VisualElement>("wave-controls");
+            _pulse = root.Q<VisualElement>("pulse");
+            _pulseFill = root.Q<VisualElement>("pulse-fill");
+            _pulseLabel = root.Q<Label>("pulse-label");
+            _speed = root.Q<Button>("speed");
+            _pause = root.Q<Button>("pause");
+            _gameOver = root.Q<VisualElement>("game-over");
+            _gameOverTitle = root.Q<Label>("game-over-title");
+            _gameOverStats = root.Q<Label>("game-over-stats");
+
+            _sell.clicked += () => SellTapped?.Invoke();
+            _move.clicked += () => MoveTapped?.Invoke();
+            root.Q<Button>("close").clicked += () => CloseTapped?.Invoke();
+            _undo.clicked += () => UndoTapped?.Invoke();
+            _reroll.clicked += () => RerollTapped?.Invoke();
+            _buySlot.clicked += () => BuySlotTapped?.Invoke();
+            _next.clicked += () => NextWaveTapped?.Invoke();
+            _pulse.RegisterCallback<ClickEvent>(_ => PulseTapped?.Invoke());
+            _speed.clicked += () => SpeedTapped?.Invoke();
+            _pause.clicked += () => PauseTapped?.Invoke();
+            root.Q<Button>("play-again").clicked += () => PlayAgainTapped?.Invoke();
+        }
+
+        /// <summary>True when a screen point (bottom-left origin) is over an interactive element of the HUD.</summary>
+        public bool IsPointerOver(Vector2 screenPosition)
+        {
+            IPanel panel = _root.panel;
+            if (panel == null)
+            {
+                return false;
+            }
+
+            Vector2 panelPosition = RuntimePanelUtils.ScreenToPanel(panel, new Vector2(screenPosition.x, Screen.height - screenPosition.y));
+            VisualElement picked = panel.Pick(panelPosition);
+            return picked != null && picked != _root;
+        }
+
+        public void ShowToast(string text)
+        {
+            _toast.text = text;
+            _toastUntil = Time.time + ToastSeconds;
+            _toast.AddToClassList("toast--visible");
+        }
+
+        /// <summary>Converts a world point to panel coordinates for floating labels.</summary>
+        public Vector2 WorldToPanel(Camera camera, Vector3 world)
+        {
+            Vector3 screen = camera.WorldToScreenPoint(world);
+            return RuntimePanelUtils.ScreenToPanel(_root.panel, new Vector2(screen.x, Screen.height - screen.y));
+        }
+
+        public void SetNumbers(List<FloatingLabel> labels)
+        {
+            while (_numberPool.Count < labels.Count)
+            {
+                var label = new Label { pickingMode = PickingMode.Ignore };
+                label.AddToClassList("floating-number");
+                _numbers.Add(label);
+                _numberPool.Add(label);
+            }
+
+            for (int i = 0; i < _numberPool.Count; i++)
+            {
+                Label label = _numberPool[i];
+                if (i >= labels.Count)
+                {
+                    label.style.display = DisplayStyle.None;
+                    continue;
+                }
+
+                FloatingLabel item = labels[i];
+                label.style.display = DisplayStyle.Flex;
+                label.text = item.Text;
+                label.style.left = item.PanelPosition.x - 150f;
+                label.style.top = item.PanelPosition.y - 30f;
+                label.style.opacity = item.Alpha;
+                label.EnableInClassList("floating-number--big", item.Big);
+            }
+        }
+
+        public void Refresh(GameSimulation sim, HudState state, Func<ModuleKind, string> describe)
+        {
+            RefreshTopBar(sim);
+            if (Time.time >= _toastUntil)
+            {
+                _toast.RemoveFromClassList("toast--visible");
+            }
+
+            bool shop = sim.Phase == GamePhase.Shop;
+            Show(_shop, shop && !sim.IsOver);
+            Show(_waveControls, sim.Phase == GamePhase.Wave);
+            Show(_gameOver, sim.IsOver);
+
+            if (shop)
+            {
+                RefreshShop(sim, state, describe);
+            }
+            else if (sim.Phase == GamePhase.Wave)
+            {
+                RefreshWaveControls(sim, state);
+            }
+
+            if (sim.IsOver)
+            {
+                SetText(_gameOverTitle, sim.Phase == GamePhase.Victory ? "Victory" : $"Wave {sim.WavesCleared + 1} of {sim.TotalWaves}");
+                string stopped = sim.DefeatedBy.HasValue ? $"Stopped by: {sim.DefeatedBy.Value}\n" : string.Empty;
+                SetText(_gameOverStats, $"{stopped}Total damage {NumberFormat.CompactHundredths(sim.TotalDamage)}   Kills {sim.Kills}\nSeed {state.Seed}\n{state.ReplayStatus}");
+            }
+        }
+
+        private void RefreshTopBar(GameSimulation sim)
+        {
+            long integrity = sim.Integrity / SimConstants.HpScale;
+            SetText(_integrity, $"♥ {integrity}");
+            _integrity.EnableInClassList("top-number--warning", sim.Integrity * 4 <= sim.MaxIntegrity);
+            SetText(_wave, sim.IsGuardianWave ? $"Guardian {sim.CurrentWave}/{sim.TotalWaves}" : $"Wave {sim.CurrentWave}/{sim.TotalWaves}");
+            SetText(_credits, $"◈ {sim.Credits}");
+        }
+
+        private void RefreshShop(GameSimulation sim, HudState state, Func<ModuleKind, string> describe)
+        {
+            SetText(_preview, "Next: " + DescribeWave(sim.NextWavePreview));
+
+            ModuleInstance selected = sim.Ring.At(state.SelectedSlot);
+            Show(_modulePanel, selected != null);
+            Show(_cards, selected == null);
+            if (selected != null)
+            {
+                string stats = selected.Category == ModuleCategory.Weapon
+                    ? $"damage {NumberFormat.CompactHundredths(selected.EffectiveDamage)} ×{selected.DamageMultiplierPermille / 1000f:0.##}\nrange {selected.EffectiveRange / (float)SimConstants.Micro:0.#} · every {selected.EffectiveCooldown / (float)SimConstants.TicksPerSecond:0.##} s"
+                    : describe(selected.Kind);
+                SetText(_moduleInfo, $"{selected.Kind}  L{selected.Level}\n{stats}");
+                SetText(_sell, $"Sell\n+{ModuleRules.SellValue(selected.Invested)}");
+                SetText(_move, state.MoveMode ? "Tap a\nslot" : "Move");
+            }
+            else
+            {
+                RefreshCards(sim, state, describe);
+            }
+
+            _undo.SetEnabled(sim.CanUndo);
+            SetText(_reroll, $"Reroll {sim.RerollCost}");
+            _reroll.SetEnabled(sim.Credits >= sim.RerollCost);
+            Show(_buySlot, sim.CanBuyExtraSlot);
+            SetText(_buySlot, $"Slot +1 · {sim.ExtraSlotCost}");
+            _buySlot.SetEnabled(sim.Credits >= sim.ExtraSlotCost);
+        }
+
+        private void RefreshCards(GameSimulation sim, HudState state, Func<ModuleKind, string> describe)
+        {
+            while (_cardViews.Count < sim.OfferCount)
+            {
+                int index = _cardViews.Count;
+                VisualElement card = BuildCard();
+                card.RegisterCallback<ClickEvent>(_ => OfferTapped?.Invoke(index));
+                _cards.Add(card);
+                _cardViews.Add(card);
+            }
+
+            for (int i = 0; i < _cardViews.Count; i++)
+            {
+                VisualElement card = _cardViews[i];
+                ModuleKind? offer = i < sim.OfferCount ? sim.OfferAt(i) : null;
+                card.EnableInClassList("card--sold", offer == null);
+                if (offer == null)
+                {
+                    continue;
+                }
+
+                ModuleDefinition definition = sim.Content.Module(offer.Value);
+                bool merges = sim.Ring.FindMergeTarget(offer.Value) != null;
+                bool affordable = sim.Credits >= definition.Cost;
+                SetText(card.Q<Label>("name"), offer.Value.ToString());
+                SetText(card.Q<Label>("effect"), describe(offer.Value));
+                var cost = card.Q<Label>("cost");
+                SetText(cost, definition.Cost.ToString());
+                cost.EnableInClassList("card__cost--unaffordable", !affordable);
+                var badge = card.Q<Label>("badge");
+                SetText(badge, merges ? $"⇧ L{sim.Ring.FindMergeTarget(offer.Value).Level + 1}" : string.Empty);
+                var icon = card.Q<VisualElement>("icon");
+                icon.EnableInClassList("card__icon--weapon", definition.Category == ModuleCategory.Weapon);
+                icon.EnableInClassList("card__icon--booster", definition.Category == ModuleCategory.Booster);
+                icon.EnableInClassList("card__icon--economy", definition.Category == ModuleCategory.Economy);
+                card.EnableInClassList("card--uncommon", definition.Rarity == Rarity.Uncommon);
+                card.EnableInClassList("card--rare", definition.Rarity == Rarity.Rare);
+                card.EnableInClassList("card--disabled", !affordable);
+                card.EnableInClassList("card--selected", i == state.SelectedOffer);
+            }
+        }
+
+        private static VisualElement BuildCard()
+        {
+            var card = new VisualElement();
+            card.AddToClassList("card");
+            var badge = new Label { name = "badge", pickingMode = PickingMode.Ignore };
+            badge.AddToClassList("card__badge");
+            var icon = new VisualElement { name = "icon", pickingMode = PickingMode.Ignore };
+            icon.AddToClassList("card__icon");
+            var name = new Label { name = "name", pickingMode = PickingMode.Ignore };
+            name.AddToClassList("card__name");
+            var effect = new Label { name = "effect", pickingMode = PickingMode.Ignore };
+            effect.AddToClassList("card__effect");
+            var cost = new Label { name = "cost", pickingMode = PickingMode.Ignore };
+            cost.AddToClassList("card__cost");
+            card.Add(badge);
+            card.Add(icon);
+            card.Add(name);
+            card.Add(effect);
+            card.Add(cost);
+            return card;
+        }
+
+        private void RefreshWaveControls(GameSimulation sim, HudState state)
+        {
+            float cooldown = sim.Config.PulseCooldownTicks == 0 ? 0f : sim.PulseCooldownRemaining / (float)sim.Config.PulseCooldownTicks;
+            _pulse.EnableInClassList("pulse--ready", sim.IsPulseReady);
+            _pulseFill.style.height = Length.Percent((1f - cooldown) * 100f);
+            int seconds = Mathf.CeilToInt(sim.PulseCooldownRemaining / (float)SimConstants.TicksPerSecond);
+            SetText(_pulseLabel, sim.IsPulseReady ? "Pulse" : seconds <= 5 ? seconds.ToString() : "…");
+            SetText(_speed, $"{state.Speed}x");
+            SetText(_pause, state.Paused ? "Resume" : "Pause");
+        }
+
+        private static string DescribeWave(IReadOnlyList<SpawnEntry> spawns)
+        {
+            if (spawns.Count == 0)
+            {
+                return "—";
+            }
+
+            var counts = new SortedDictionary<EnemyKind, int>();
+            foreach (SpawnEntry entry in spawns)
+            {
+                counts[entry.Kind] = counts.TryGetValue(entry.Kind, out int n) ? n + 1 : 1;
+            }
+
+            var parts = new List<string>();
+            foreach (KeyValuePair<EnemyKind, int> pair in counts)
+            {
+                parts.Add($"{pair.Value} {pair.Key}");
+            }
+
+            return string.Join(" · ", parts);
+        }
+
+        private static void Show(VisualElement element, bool visible) => element.EnableInClassList("hidden", !visible);
+
+        private static void SetText(TextElement element, string text)
+        {
+            if (element.text != text)
+            {
+                element.text = text;
+            }
+        }
+    }
+}
