@@ -156,7 +156,7 @@ Deterministic simulation (60 ticks/s, integers), 7 modules, 3 enemies + Guardian
 *2.5-E · Device and gate (~2 d)*
 | # | Task |
 |---|---|
-| E1 | Android build; fps on the Pixel and on one 4 GB phone at all quality levels; fix stripping issues |
+| E1 | 🔄 Android development build ✅ 2026-09-22 (`Builds/Android/TowerDefense-2.5.apk`, 84 s, 0 errors; data payload 18.2 → 20.6 MB, so the font atlases and icons are in). **On the device still to check by hand:** fps at each quality level on the Pixel and on a 4 GB phone, that no glyph shows as a box, and that the drawn icons and the painted rings (Pulse, Integrity, compass) survive on a real GPU |
 | E2 | ✅ 2026-09-22: `docs/art/compare-wave.png` and `compare-shop.png`. What it showed: the framing gap that became D35, and tracers too faint at wave distance (now ivory at 0.6) |
 | E3 | **Testers (3–5, muted):** Gate 1 + Gate 2 questions + "calm but attractive, or prototype?" on the new build |
 
@@ -270,7 +270,7 @@ The operational calendar is in **`10` §4** (revised mapping in **§4.2**) (6-mo
 
 **Resume here (handoff, 2026-09-22):**
 - *Waiting on the user:* (1) approval of `11` names and systems and the launch scope of `12` — Phase 3 does not start before; (2) Google Play account; (3) **Gate 2.5 with 3–5 testers** (E3), on the build of E1.
-- *Next task:* **2.5-E1** — Android build, then fps at each quality level on the Pixel and on a 4 GB phone, and whatever stripping breaks. After that, Gate 2.5 and Phase 3.
+- *Next task:* the build of E1 exists; what is left of it is the **device pass** (fps, glyphs, painted rings) and then **E3, the testers**. After that, Gate 2.5 and Phase 3.
 - *Where things are:* design system (tokens, icons, all screen mockups) — artifact linked in `docs/README.md`; tokens copy `Tools/design/tokens.json` → `python Tools/tokens_to_uss.py` regenerates `Theme.uss` (including `.theme-contrast` and `.text-large`); fonts → *TowerDefense → Content → Build font assets* (`Assets/Scripts/Editor/FontMenu.cs`); icons → `python Tools/icons_to_png.py`; models → run `Tools/blender/build_models_v1.py` in Blender; arena code in `Assets/Scripts/Presentation/Arena/`, HUD in `UI/HudView.cs` (now ~1,200 lines: splitting it is the first job of Phase 3's UI work).
 - *Working notes:* portrait captures = render the camera into a 1080 × 1920 render texture **and** set `PanelSettings.targetTexture`, then read the pixels in a **second** call — the panel needs a frame to repaint (always restore both to null afterwards). `Time.timeScale = 0` freezes anything driven by `Time.time`, which is how a 2.5 s bubble can be captured at all. Unity sometimes drops `InputSystem_Actions` from `preloadedAssets` in `ProjectSettings.asset` after Play mode — revert that line. USS reloads during Play leave a stale HUD in the editor (restart Play).
 
