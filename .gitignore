@@ -53,3 +53,6 @@ Thumbs.db
 
 # Claude Code configuration (.claude/, CLAUDE.md, .mcp.json) is committed on purpose:
 # it must travel with the repository so every session behaves the same.
+
+# Android Gradle temp (created by builds)
+/.utmp/
