@@ -24,6 +24,12 @@ namespace TowerDefense.Presentation
         private const int MaxLineEffects = 32;
         private const int AttenuateAboveEnemies = 20;
 
+        /// <summary>Calm rule (docs/03 A1): no effect repeats more than twice a second in one spot.</summary>
+        private const float MinSecondsBetweenTracers = 0.5f;
+
+        /// <summary>How far inside the panel edge an off-screen marker sits, in panel pixels.</summary>
+        private const float EdgeMargin = 48f;
+
         [SerializeField] private int _seed = 1;
 
         private GameSimulation _sim;
@@ -43,6 +49,7 @@ namespace TowerDefense.Presentation
 
         private readonly List<SimEvent> _events = new List<SimEvent>();
         private readonly List<FloatingLabel> _floatingLabels = new List<FloatingLabel>();
+        private readonly List<Vector2> _edgeMarkers = new List<Vector2>();
 
         private double _tickAccumulator;
         private int _speed = 1;
@@ -76,7 +83,7 @@ namespace TowerDefense.Presentation
             _kit = new ArenaKit(_unlit, _lineMaterial, _surfaceTemplate);
             _cameraRig = new CameraRig();
             _backdrop = new ArenaBackdrop(LoadMaterial("Materials/SkyGround", "TowerDefense/SkyGround"));
-            _input = new ShopInput(_kit, _cameraRig, () => _hud, ShowMessage, TryPulse);
+            _input = new ShopInput(_kit, _cameraRig, () => _hud, ShowMessage, TryPulse, Inspect);
             SetupHud();
             for (int i = transform.childCount - 1; i >= 0; i--)
             {
@@ -152,14 +159,16 @@ namespace TowerDefense.Presentation
         {
             EnsureInitialized();
             float deltaTime = Time.deltaTime;
-            _cameraRig.UpdateLayout(_sim.Phase, deltaTime);
+            _cameraRig.UpdateLayout(_sim.Phase, deltaTime, FurthestEnemyRadius());
             _input.HandlePointer();
             _sim.ApplyPendingCommandsNow();
             AdvanceSimulation(deltaTime);
             ProcessEvents();
             _ring.Sync(_kit, _input.IsHighlighted, deltaTime);
-            _enemies.Sync(_kit);
+            _ring.ShowReach(_kit, _input.DragReach);
+            _enemies.Sync(_kit, deltaTime);
             _effects.Update(deltaTime);
+            _core.SetIntegrity(_sim.MaxIntegrity > 0 ? _sim.Integrity / (float)_sim.MaxIntegrity : 0f);
             _core.Update(deltaTime);
             CheckGameOver();
             SyncHud();
@@ -208,8 +217,10 @@ namespace TowerDefense.Presentation
                 return;
             }
 
+            _hud.SetPaused(_paused, _sim, _seed, _speed);
             _effects.FillLabels(_hud, _cameraRig.Camera, _floatingLabels);
             _hud.SetNumbers(_floatingLabels);
+            SyncThreats();
             _hud.Refresh(_sim, new HudState
             {
                 SelectedOffer = _input.SelectedOffer,
@@ -254,13 +265,20 @@ namespace TowerDefense.Presentation
             {
                 switch (e.Type)
                 {
+                    case SimEventType.EnemySpawned:
+                        _hud?.MarkEnemySeen((EnemyKind)e.Value); // met in person: its chip stops saying "new"
+                        break;
                     case SimEventType.EnemyHit:
                         OnEnemyHit(e);
                         break;
                     case SimEventType.EnemyKilled:
-                        if (ShowsNumber(e) && _enemies.TryGetPosition(e.EntityId, out Vector3 killedAt))
+                        if (_enemies.TryGetPosition(e.EntityId, out Vector3 killedAt))
                         {
-                            _effects.AddNumber(killedAt, UiText.FormatDamage(e.Value), e.Extra == 0);
+                            _effects.SpawnFlakes(_kit, killedAt, Palette.WithAlpha(Palette.Enemy, 0.85f));
+                            if (ShowsNumber(e))
+                            {
+                                _effects.AddNumber(killedAt, UiText.FormatDamage(e.Value), e.Extra == 0);
+                            }
                         }
 
                         break;
@@ -270,6 +288,7 @@ namespace TowerDefense.Presentation
                     case SimEventType.PulseUsed:
                         _effects.SpawnRing(_kit, _core.Position, 0.8f, _sim.Config.PulseRadius / (float)SimConstants.Micro,
                             Palette.WithAlpha(Palette.Core, 0.5f), 0.6f, 0.05f);
+                        _core.OnPulse();
                         break;
                     case SimEventType.ModuleMerged:
                         OnModuleMerged(e);
@@ -283,7 +302,8 @@ namespace TowerDefense.Presentation
                         // Credits were just paid: base + interest (+ Guardian bonus); the summary counts them up.
                         if (!_sim.IsOver)
                         {
-                            _hud?.ShowWaveSummary((int)e.Value, _sim.TotalDamage - _damageAtWaveStart, _sim.Credits, _sim.Credits - _creditsAtWaveStart, e.Extra);
+                            _hud?.ShowWaveSummary((int)e.Value, _sim.TotalDamage - _damageAtWaveStart, _sim.Credits,
+                                _sim.Credits - _creditsAtWaveStart, e.Extra, _sim.Ring);
                         }
 
                         break;
@@ -309,6 +329,24 @@ namespace TowerDefense.Presentation
             ShowMessage($"Level {e.Value}");
         }
 
+        /// <summary>
+        /// Numbers are for kills and for hits that take a real bite out of something (docs/09 §2.2): a quarter of the
+        /// enemy's maximum health. Chip damage stays silent, so the arena keeps its numbers few and meaningful.
+        /// </summary>
+        private void ShowHeavyHitNumber(SimEvent hit, Vector3 at)
+        {
+            if (PlayerOptions.DamageNumbers == DamageNumbersMode.None)
+            {
+                return;
+            }
+
+            Enemy enemy = _kit.FindEnemy(hit.EntityId);
+            if (enemy != null && enemy.MaxHp > 0 && hit.Value * 4 >= enemy.MaxHp)
+            {
+                _effects.AddNumber(at, UiText.FormatDamage(hit.Value), false);
+            }
+        }
+
         private static bool ShowsNumber(SimEvent kill)
         {
             switch (PlayerOptions.DamageNumbers)
@@ -329,6 +367,8 @@ namespace TowerDefense.Presentation
                 return;
             }
 
+            ShowHeavyHitNumber(e, enemyAt);
+
             // Clutter control: a cap on simultaneous tracers, and fainter tracers when the arena is crowded.
             if (_effects.ActiveLines >= Mathf.RoundToInt(MaxLineEffects * PlayerOptions.EffectScale))
             {
@@ -341,11 +381,24 @@ namespace TowerDefense.Presentation
                 return;
             }
 
-            // Soft, low-alpha tracer that fades over 0.25 s (calm; at most ~2 per second per module).
+            // "No effect repeated more than twice a second in one spot" (docs/03 A1): a fast module still fires every
+            // shot, it just does not draw a line for every one of them.
+            if (_lastTracer.TryGetValue(module.Id, out float last) && Time.time - last < MinSecondsBetweenTracers)
+            {
+                return;
+            }
+
+            _lastTracer[module.Id] = Time.time;
+
+            // A thin ivory tracer that fades over 0.25 s, as in the mood shot: at the wave framing a teal line at
+            // 0.35 alpha disappeared against the floor. Still calm - it is one line, twice a second at most.
             Vector3 from = _kit.SlotWorld(module.Slot) + Vector3.up * 0.3f;
             float crowd = Mathf.Min(1f, AttenuateAboveEnemies / (float)Mathf.Max(1, _sim.Enemies.Count));
-            _effects.SpawnBeam(_kit, from, enemyAt, Palette.WithAlpha(Palette.Weapon, 0.35f * crowd * PlayerOptions.EffectScale), 0.04f);
+            _effects.SpawnBeam(_kit, from, enemyAt, Palette.WithAlpha(Palette.Core, 0.6f * crowd * PlayerOptions.EffectScale), 0.05f);
         }
+
+        /// <summary>Last time each module drew a tracer, for the "at most 2 per second in one spot" rule.</summary>
+        private readonly Dictionary<int, float> _lastTracer = new Dictionary<int, float>();
 
         private void CheckGameOver()
         {
@@ -387,6 +440,116 @@ namespace TowerDefense.Presentation
             }
         }
 
+        /// <summary>
+        /// Threats the player cannot see: an elite or Guardian outside the panel leaves a marker on the edge it is
+        /// behind, and a Guardian also owns the strip under the top bar (docs/06 2.5-B6).
+        /// </summary>
+        private void SyncThreats()
+        {
+            _edgeMarkers.Clear();
+            Enemy guardian = null;
+            if (_sim.Phase == GamePhase.Wave)
+            {
+                Vector2 panelSize = _hud.PanelSize;
+                foreach (Enemy enemy in _sim.Enemies)
+                {
+                    bool worthMarking = enemy.IsElite || enemy.Kind == EnemyKind.Guardian;
+                    if (enemy.Kind == EnemyKind.Guardian && (guardian == null || enemy.Hp > guardian.Hp))
+                    {
+                        guardian = enemy;
+                    }
+
+                    if (!worthMarking || !_enemies.TryGetPosition(enemy.Id, out Vector3 at))
+                    {
+                        continue;
+                    }
+
+                    Vector2 panel = _hud.WorldToPanel(_cameraRig.Camera, at);
+                    if (panel.x >= EdgeMargin && panel.x <= panelSize.x - EdgeMargin &&
+                        panel.y >= EdgeMargin && panel.y <= panelSize.y - EdgeMargin)
+                    {
+                        continue; // on screen: the enemy speaks for itself
+                    }
+
+                    _edgeMarkers.Add(new Vector2(
+                        Mathf.Clamp(panel.x, EdgeMargin, panelSize.x - EdgeMargin),
+                        Mathf.Clamp(panel.y, EdgeMargin, panelSize.y - EdgeMargin)));
+                }
+            }
+
+            _hud.SetEdgeMarkers(_edgeMarkers);
+            _hud.SetCoreArc(_sim.Phase == GamePhase.Wave ? _hud.WorldToPanel(_cameraRig.Camera, _core.Position) : (Vector2?)null,
+                _core.Integrity);
+            _hud.SetGuardian(guardian == null ? null : guardian.Kind.ToString(),
+                guardian == null || guardian.MaxHp <= 0 ? 0f : guardian.Hp / (float)guardian.MaxHp);
+        }
+
+        /// <summary>The offer card under a long press: what the module does and what it costs (docs/06 2.5-C4).</summary>
+        private void InspectOffer(int index)
+        {
+            ModuleKind? offer = _sim.OfferAt(index);
+            if (!offer.HasValue)
+            {
+                _hud.HideInspector();
+                return;
+            }
+
+            ModuleDefinition definition = _sim.Content.Module(offer.Value);
+            _hud.ShowInspector(_hud.CardCentre(index), offer.Value.ToString(), UiText.OfferSheet(definition));
+        }
+
+        /// <summary>How far out the furthest living enemy is, in world units, for the wave framing.</summary>
+        private float FurthestEnemyRadius()
+        {
+            long furthest = 0;
+            foreach (Enemy enemy in _sim.Enemies)
+            {
+                furthest = System.Math.Max(furthest, enemy.Radius);
+            }
+
+            return furthest / (float)SimConstants.Micro;
+        }
+
         private void ShowMessage(string text) => _hud?.ShowToast(text);
+
+        /// <summary>
+        /// A tap during a wave, or a long press in the shop: whatever is under the finger explains itself in a
+        /// bubble (docs/06 2.5-B5, 2.5-C4). <paramref name="slot"/> is a ring slot, or -2 - index for an offer card.
+        /// Read-only — inspecting never touches the simulation.
+        /// </summary>
+        private void Inspect(int slot, int enemyId)
+        {
+            if (_hud == null)
+            {
+                return;
+            }
+
+            if (slot <= -2)
+            {
+                InspectOffer(-2 - slot);
+                return;
+            }
+
+            ModuleInstance module = slot >= 0 ? _sim.Ring.At(slot) : null;
+            if (module != null)
+            {
+                Vector2 at = _hud.WorldToPanel(_cameraRig.Camera, _kit.SlotWorld(slot) + Vector3.up * 0.6f);
+                string body = _sim.Phase == GamePhase.Shop
+                    ? UiText.ModuleSheet(module, _sim.Ring, ModuleRules.SellValue(module.Invested))
+                    : UiText.ModuleTooltip(module);
+                _hud.ShowInspector(at, UiText.ModuleTitle(module), body);
+                return;
+            }
+
+            Enemy enemy = enemyId >= 0 ? _kit.FindEnemy(enemyId) : null;
+            if (enemy != null && _enemies.TryGetPosition(enemyId, out Vector3 enemyAt))
+            {
+                Vector2 at = _hud.WorldToPanel(_cameraRig.Camera, enemyAt + Vector3.up * 0.6f);
+                _hud.ShowInspector(at, UiText.EnemyTitle(enemy), UiText.EnemyCard(enemy));
+                return;
+            }
+
+            _hud.HideInspector();
+        }
     }
 }

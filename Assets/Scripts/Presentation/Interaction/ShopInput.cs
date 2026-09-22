@@ -19,11 +19,17 @@ namespace TowerDefense.Presentation.Interaction
         private const float SlotPickRadius = 0.6f;
         private const float CorePickRadius = 0.9f;
 
+        /// <summary>Tap radius around an enemy: 48 dp of touch target translated into arena units.</summary>
+        private const float EnemyPickRadius = 0.75f;
+
         /// <summary>Magnet radius around a slot centre, world units (docs/07 §1.2).</summary>
         private const float MagnetRadius = 0.45f;
 
         /// <summary>Drag threshold: 8 dp (docs/07 §1.2); 1920 px reference = 640 dp.</summary>
         private const float DragThresholdDp = 8f;
+
+        /// <summary>Long press opens the detail sheet (docs/07 §1.2).</summary>
+        private const float LongPressSeconds = 0.25f;
 
         private enum DragKind : byte { None, Offer, Module }
 
@@ -33,20 +39,29 @@ namespace TowerDefense.Presentation.Interaction
         private readonly Action<string> _showMessage;
         private readonly Action _tryPulse;
 
+        /// <summary>Asked to describe what a wave tap landed on: a ring slot, or an enemy id (-1 = neither).</summary>
+        private readonly Action<int, int> _inspect;
+
         private DragKind _pendingKind;
         private DragKind _dragKind;
+
+        /// <summary>When the current press started, and whether it has already opened the sheet.</summary>
+        private float _pressTime;
+        private bool _longPressed;
         private int _dragIndex = -1;
         private Vector2 _pressScreen;
         private int _dragTargetSlot = -1;
         private bool _dragOverSell;
 
-        public ShopInput(ArenaKit kit, CameraRig cameraRig, Func<HudView> hud, Action<string> showMessage, Action tryPulse)
+        public ShopInput(ArenaKit kit, CameraRig cameraRig, Func<HudView> hud, Action<string> showMessage, Action tryPulse,
+            Action<int, int> inspect)
         {
             _kit = kit;
             _cameraRig = cameraRig;
             _hud = hud;
             _showMessage = showMessage;
             _tryPulse = tryPulse;
+            _inspect = inspect;
         }
 
         public int SelectedOffer { get; private set; } = -1;
@@ -55,6 +70,40 @@ namespace TowerDefense.Presentation.Interaction
         public string PreviewText { get; private set; }
         public int DragSourceOffer => _dragKind == DragKind.Offer ? _dragIndex : -1;
         public bool IsDraggingModule => _dragKind == DragKind.Module;
+
+        /// <summary>
+        /// Where a dragged weapon would reach, for the arena to draw: the slot it is hovering over and the range in
+        /// world units. Null while nothing with a reach is being dragged (docs/06 2.5-C2).
+        /// </summary>
+        public (int Slot, float Range)? DragReach
+        {
+            get
+            {
+                if (_dragKind == DragKind.None || _dragTargetSlot < 0)
+                {
+                    return null;
+                }
+
+                ModuleDefinition definition = null;
+                if (_dragKind == DragKind.Offer)
+                {
+                    ModuleKind? offer = Sim.OfferAt(_dragIndex);
+                    definition = offer.HasValue ? Sim.Content.Module(offer.Value) : null;
+                }
+                else
+                {
+                    ModuleInstance module = Sim.Ring.At(_dragIndex);
+                    definition = module?.Definition;
+                }
+
+                if (definition == null || definition.Category != ModuleCategory.Weapon)
+                {
+                    return null;
+                }
+
+                return (_dragTargetSlot, definition.RangeMilli / 1000f);
+            }
+        }
         public bool SellZoneHot => _dragOverSell;
 
         private GameSimulation Sim => _kit.Sim;
@@ -119,6 +168,8 @@ namespace TowerDefense.Presentation.Interaction
 
             HudView hud = _hud();
             _pressScreen = screen;
+            _pressTime = Time.unscaledTime;
+            _longPressed = false;
             if (Sim.Phase == GamePhase.Shop)
             {
                 int card = hud != null ? hud.CardAt(screen) : -1;
@@ -141,8 +192,11 @@ namespace TowerDefense.Presentation.Interaction
                 if (new Vector2(world.x, world.z).magnitude < CorePickRadius)
                 {
                     _tryPulse();
+                    return;
                 }
 
+                // Anything else the finger lands on is asked to explain itself, read-only (docs/09 §2.2).
+                _inspect?.Invoke(PickSlot(world), PickEnemy(world));
                 return;
             }
 
@@ -156,6 +210,52 @@ namespace TowerDefense.Presentation.Interaction
             }
 
             TapArena(slot);
+        }
+
+        /// <summary>
+        /// What the finger is resting on, in full: a module on the ring with its levels and what selling it returns,
+        /// or an offer card with what it does (docs/06 2.5-C4). Read-only, like every inspector.
+        /// </summary>
+        private void ShowSheet()
+        {
+            if (_pendingKind == DragKind.Offer)
+            {
+                ModuleKind? offer = Sim.OfferAt(_dragIndex);
+                if (offer.HasValue)
+                {
+                    _inspect?.Invoke(-2 - _dragIndex, -1);
+                }
+
+                return;
+            }
+
+            if (_pendingKind == DragKind.Module)
+            {
+                _inspect?.Invoke(_dragIndex, -1);
+            }
+        }
+
+        /// <summary>
+        /// The enemy nearest the tap within <see cref="EnemyPickRadius"/> (48 dp at the reference height), or -1.
+        /// Enemies move, so the pick is generous; the nearest one wins when several overlap.
+        /// </summary>
+        private int PickEnemy(Vector3 world)
+        {
+            int best = -1;
+            float bestDistance = EnemyPickRadius;
+            foreach (Enemy enemy in Sim.Enemies)
+            {
+                enemy.GetPosition(out long x, out long y);
+                var at = new Vector2(x / (float)SimConstants.Micro, y / (float)SimConstants.Micro);
+                float distance = Vector2.Distance(at, new Vector2(world.x, world.z));
+                if (distance < bestDistance)
+                {
+                    bestDistance = distance;
+                    best = enemy.Id;
+                }
+            }
+
+            return best;
         }
 
         /// <summary>The no-drag shop interaction: tap a card, then a slot; or Move mode.</summary>
@@ -194,6 +294,14 @@ namespace TowerDefense.Presentation.Interaction
                 float thresholdPixels = DragThresholdDp * Screen.height / 640f;
                 if ((screen - _pressScreen).sqrMagnitude < thresholdPixels * thresholdPixels)
                 {
+                    // A finger that stays put is asking about the thing under it, not moving it (docs/09 §2.3).
+                    if (!_longPressed && Time.unscaledTime - _pressTime >= LongPressSeconds)
+                    {
+                        _longPressed = true;
+                        Haptics.Light();
+                        ShowSheet();
+                    }
+
                     return;
                 }
 
@@ -227,7 +335,7 @@ namespace TowerDefense.Presentation.Interaction
                     return;
                 }
 
-                hud.ShowGhost(offer.Value.ToString(), Sim.Content.Module(offer.Value).Cost.ToString(), screen);
+                hud.ShowGhost(offer.Value.ToString(), offer.Value, screen);
             }
             else
             {
@@ -238,7 +346,7 @@ namespace TowerDefense.Presentation.Interaction
                     return;
                 }
 
-                hud.ShowGhost($"{module.Kind} L{module.Level}", string.Empty, screen);
+                hud.ShowGhost(module.Level > 1 ? $"{module.Kind} L{module.Level}" : module.Kind.ToString(), module.Kind, screen);
             }
         }
 

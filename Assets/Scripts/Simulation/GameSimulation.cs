@@ -83,6 +83,30 @@ namespace TowerDefense.Simulation
         public IReadOnlyList<SpawnEntry> NextWavePreview =>
             _nextWave ?? (IReadOnlyList<SpawnEntry>)Array.Empty<SpawnEntry>();
 
+        /// <summary>How many enemies this wave sends in total. Read-only, for the wave progress hairline (docs/09 §2.2).</summary>
+        public int WaveEnemyCount => _currentSpawns.Count;
+
+        /// <summary>The module with this id, wherever it sits on the ring, or null.</summary>
+        public ModuleInstance FindModule(int moduleId)
+        {
+            for (int slot = 0; slot < Ring.SlotCount; slot++)
+            {
+                ModuleInstance module = Ring.At(slot);
+                if (module != null && module.Id == moduleId)
+                {
+                    return module;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// How many of them are still to come: not yet spawned, plus the ones alive right now. It reaches zero
+        /// exactly when the wave ends, so <c>1 - remaining / total</c> is the wave's progress.
+        /// </summary>
+        public int WaveEnemiesLeft => _currentSpawns.Count - _spawnCursor + _enemies.Count;
+
         public GameSimulation(RunConfig config, ContentDatabase content)
         {
             _config = config;
@@ -504,6 +528,15 @@ namespace TowerDefense.Simulation
                 }
             }
 
+            for (int slot = 0; slot < Ring.SlotCount; slot++)
+            {
+                ModuleInstance module = Ring.At(slot);
+                if (module != null)
+                {
+                    module.DamageThisWave = 0;
+                }
+            }
+
             _events.Add(new SimEvent(SimEventType.WaveStarted, Tick, value: CurrentWave));
         }
 
@@ -894,6 +927,12 @@ namespace TowerDefense.Simulation
             long applied = Math.Min(dealt, enemy.Hp);
             enemy.Hp -= dealt;
             TotalDamage += applied;
+            ModuleInstance source = sourceModuleId == 0 ? null : FindModule(sourceModuleId);
+            if (source != null)
+            {
+                source.DamageThisWave += applied;
+            }
+
             _events.Add(new SimEvent(SimEventType.EnemyHit, Tick, enemy.Id, dealt, sourceModuleId));
 
             if (enemy.Hp <= 0)

@@ -61,9 +61,60 @@
     --font-number: 60px;
     --font-body: 48px;
     --font-caption: 36px;
+    --press-tint: rgba(243, 233, 215, 0.1);
+    --fill-tint: rgba(243, 233, 215, 0.18);
+    --border-uncommon: rgba(184, 188, 216, 0.6);
+    --scrim: rgba(20, 22, 48, 0.6);
+}
+
+/* High contrast: the design system's fourth theme, same measures, stronger separation. */
+.theme-contrast {
+    --sky-far: #1a1c3a;
+    --sky-mid: #0c0d22;
+    --sky-near: #07081a;
+    --arena-ring: #4a4d8a;
+    --surface-glass: #0b0c1e;
+    --surface-raised: #14163a;
+    --line: #9a9cc8;
+    --ivory: #fff8ec;
+    --ivory-muted: #e6e0e6;
+    --ivory-faint: #c9c4cc;
+    --ink: #000010;
+    --teal: #7fe8e0;
+    --teal-deep: #3fa39c;
+    --gold: #ffd08a;
+    --gold-deep: #c8944c;
+    --mint: #b4f0bb;
+    --mint-deep: #76be80;
+    --coral: #ff9a8a;
+    --coral-deep: #c85a4e;
+    --rose: #ff78a8;
+    --ally: #e0dcff;
+    --glow: #ffffff;
+    --silver: #dcdff0;
+    --focus-ring: #ffffff;
+    --night: #000010;
+    --glass: #0b0c1e;
+    --glass-border: #9a9cc8;
+    --ivory-60: #e6e0e6;
+    --ivory-40: #c9c4cc;
+}
+
+/* Large text: one step up on every size the interface reads from (docs/09 section 6). */
+.text-large {
+    --font-display: 120px;
+    --font-title: 90px;
+    --font-number: 75px;
+    --font-body: 60px;
+    --font-caption: 45px;
 }
 /* tokens:end */
 
+/*
+ * Typefaces (docs/09 §5, design system "Dusk Garden"): Nunito writes the words, Outfit writes the numbers the
+ * player tracks. The three weights are baked from the variable fonts by TowerDefense -> Content -> Build font
+ * assets; Nunito falls back to Outfit for the few signs it does not draw (the arrow of the drag preview).
+ */
 .root {
     position: absolute;
     left: 0;
@@ -72,6 +123,31 @@
     bottom: 0;
     color: var(--ivory);
     -unity-font-style: normal;
+    -unity-font-definition: url("/Assets/UI/Fonts/Nunito-SemiBold.asset");
+}
+
+/* Titles, button labels and anything small enough to need the extra weight. */
+.caption,
+.btn,
+.card__name,
+.sheet__title,
+.sheet__subtitle,
+.option-row__label,
+.summary__hint,
+.toast {
+    -unity-font-definition: url("/Assets/UI/Fonts/Nunito-ExtraBold.asset");
+}
+
+/* Numbers: top bar, costs, damage, previews, totals and the run-end title. */
+.top-number,
+.floating-number,
+.card__cost,
+.preview-effect,
+.pulse__label,
+.summary__title,
+.summary__line,
+.overlay__title {
+    -unity-font-definition: url("/Assets/UI/Fonts/Outfit-SemiBold.asset");
 }
 
 .numbers {
@@ -118,6 +194,117 @@
     color: var(--ivory);
 }
 
+/*
+ * Wave progress: a hairline under the top bar, not a bar with a number (docs/09 §0 rule 5 — the wave already says
+ * "7/18"; this only answers "how much of it is left"). Only during a wave.
+ */
+.wave-progress {
+    position: absolute;
+    left: var(--gutter);
+    right: var(--gutter);
+    top: 186px;
+    height: 3px;
+    background-color: var(--line);
+}
+
+.wave-progress__fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    background-color: var(--ivory-40);
+}
+
+/*
+ * Integrity arc: a ring around the Core, so health is read where the eye already is (docs/09 §2.2). Drawn in panel
+ * space by HudView, because a horizontal ring in the arena flattens to nothing under a 35-degree camera.
+ */
+.core-arc {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+}
+
+/*
+ * Edge markers (docs/06 2.5-B6): an elite or a Guardian that is off screen leaves a mark on the edge it is behind,
+ * so a threat is never a surprise. Small, faint and rose — the colour reserved for elites (docs/03 A4).
+ */
+.edge-marker {
+    position: absolute;
+    width: 42px;
+    height: 42px;
+    border-radius: 21px;
+    background-color: var(--rose);
+    opacity: 0.75;
+}
+
+/* Guardian: the name announces it, then the strip stays as its health bar. */
+.guardian {
+    position: absolute;
+    left: var(--gutter);
+    right: var(--gutter);
+    top: 210px;
+    align-items: center;
+    transition-property: opacity;
+    transition-duration: 0.3s;
+}
+
+.guardian__name {
+    font-size: var(--font-title);
+    color: var(--ivory);
+    -unity-font-definition: url("/Assets/UI/Fonts/Outfit-SemiBold.asset");
+    margin-bottom: 12px;
+}
+
+.guardian__track {
+    width: 100%;
+    height: 12px;
+    border-radius: 6px;
+    background-color: var(--surface-raised);
+}
+
+.guardian__fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+    border-radius: 6px;
+    background-color: var(--rose);
+}
+
+/*
+ * Inspector (docs/09 §2.2): tap a module or an enemy during a wave and a small read-only bubble appears above it
+ * for a couple of seconds. It never blocks the arena: pointer events pass straight through.
+ */
+.inspector {
+    position: absolute;
+    width: 480px;
+    padding: 18px 24px;
+    border-radius: var(--radius-card);
+    background-color: var(--surface-glass);
+    border-width: 3px;
+    border-color: var(--line);
+    align-items: center;
+    transition-property: opacity;
+    transition-duration: 0.15s;
+}
+
+.inspector__title {
+    font-size: var(--font-body);
+    color: var(--ivory);
+    -unity-font-definition: url("/Assets/UI/Fonts/Nunito-ExtraBold.asset");
+}
+
+.inspector__body {
+    font-size: var(--font-caption);
+    color: var(--ivory-60);
+    -unity-text-align: middle-center;
+    white-space: normal;
+    -unity-font-definition: url("/Assets/UI/Fonts/Outfit-SemiBold.asset");
+}
+
 .toast {
     position: absolute;
     left: var(--gutter);
@@ -156,6 +343,70 @@
 .column {
     flex-direction: column;
     justify-content: space-between;
+}
+
+/*
+ * Wave preview (docs/09 §2.3): what is coming, as shapes rather than a sentence — a chip per enemy kind with its
+ * count, "new" on a kind never seen before, and a compass showing which sides they enter from.
+ */
+.wave-preview {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.compass {
+    width: 84px;
+    height: 84px;
+    margin-right: 18px;
+    flex-shrink: 0;
+}
+
+.threats {
+    flex-direction: row;
+    flex-wrap: wrap;
+    flex-grow: 1;
+}
+
+.threat {
+    flex-direction: row;
+    align-items: center;
+    height: 60px;
+    padding: 0 18px;
+    margin-right: 12px;
+    border-radius: var(--radius-chip);
+    background-color: var(--surface-glass);
+    border-width: 3px;
+    border-color: var(--line);
+}
+
+.threat--new {
+    border-color: var(--gold);
+}
+
+.threat__icon {
+    width: 36px;
+    height: 36px;
+    margin-right: 9px;
+    -unity-background-scale-mode: scale-to-fit;
+    -unity-background-image-tint-color: var(--coral);
+}
+
+.threat__icon--enemy { background-image: url("/Assets/UI/Icons/enemy.png"); }
+.threat__icon--swarm { background-image: url("/Assets/UI/Icons/swarm.png"); }
+.threat__icon--dash { background-image: url("/Assets/UI/Icons/dash.png"); }
+.threat__icon--split { background-image: url("/Assets/UI/Icons/split.png"); }
+.threat__icon--shield { background-image: url("/Assets/UI/Icons/shield.png"); }
+.threat__icon--guardian { background-image: url("/Assets/UI/Icons/guardian.png"); }
+
+.threat__icon--elite {
+    -unity-background-image-tint-color: var(--rose);
+}
+
+.threat__count {
+    font-size: var(--font-caption);
+    color: var(--ivory);
+    -unity-font-definition: url("/Assets/UI/Fonts/Outfit-SemiBold.asset");
 }
 
 .caption {
@@ -206,19 +457,27 @@
 }
 
 .btn-secondary:active {
-    background-color: rgba(243, 233, 215, 0.1);
+    background-color: var(--press-tint);
 }
 
 .btn--breathing {
     /* "Breathing" replaces red dots: one element per screen (docs/09 §4.2). Driven from code (scale). */
 }
 
-/* Drag feedback (docs/03 B3, docs/09 §2.3): preview at the top, Sell zone only while dragging a module */
+/*
+ * Drag feedback (docs/03 B3, docs/09 §2.3): while a module is being dragged, what it would change appears as a
+ * bubble under the top bar — away from the finger, and where the eye already checks the numbers.
+ */
 .preview-effect {
     position: absolute;
-    left: var(--gutter);
-    right: var(--gutter);
-    top: -120px;
+    left: 240px;
+    right: 240px;
+    top: 228px;
+    padding: 12px 0;
+    border-radius: var(--radius-button);
+    background-color: var(--surface-glass);
+    border-width: 3px;
+    border-color: var(--line);
     font-size: var(--font-body);
     color: var(--ivory);
     -unity-text-align: middle-center;
@@ -250,14 +509,21 @@
     color: var(--ivory);
 }
 
+/* The ghost is the module itself, lifted above the finger (docs/03 B3), not a card-shaped box. */
+.drag-ghost__art {
+    width: 150px;
+    height: 132px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
 .drag-ghost {
     position: absolute;
     width: 240px;
-    height: 200px;
+    height: 216px;
     border-radius: var(--radius-card);
     border-width: 3px;
     border-color: var(--teal);
-    background-color: #1A1D40;
+    background-color: var(--surface-glass);
     justify-content: center;
     align-items: center;
     scale: 1.1 1.1;
@@ -276,7 +542,8 @@
 
 /* Offer cards (docs/09 §2.3) */
 .cards {
-    height: 432px;
+    /* v2 cards: render, name, reach dots, cost. No sentence, so they are shorter again (docs/09 §2.3). */
+    height: 420px;
     margin-bottom: 24px;
     margin-right: -24px;
 }
@@ -293,7 +560,17 @@
     border-color: var(--glass-border);
     border-width: 3px;
     transition-property: translate, scale, opacity;
-    transition-duration: 0.12s;
+    transition-duration: 0.25s;
+    transition-timing-function: ease-out;
+}
+
+/*
+ * Cards arrive when the shop opens, one 40 ms after the other (docs/09 section 4.5): the shop assembles itself
+ * rather than snapping into place. The camera move between shop and wave is the other half of the same beat.
+ */
+.card--entering {
+    translate: 0 90px;
+    opacity: 0;
 }
 
 .card--selected {
@@ -311,7 +588,7 @@
 }
 
 .card--uncommon {
-    border-color: rgba(200, 205, 220, 0.6);
+    border-color: var(--border-uncommon);
 }
 
 .card--rare {
@@ -330,9 +607,10 @@
 .card__icon--economy { background-color: var(--mint); }
 
 /* Rendered module art (docs/09 §2.3 card anatomy): the model is the main element of the card. */
+/* One height for every render, so name, dots and cost line up across the four cards. */
 .card__icon--art {
-    width: 120px;
-    height: 120px;
+    width: 168px;
+    height: 150px;
     flex-shrink: 0;
     margin-top: 0;
     border-radius: 0;
@@ -341,16 +619,71 @@
 }
 
 .card__name {
-    font-size: var(--font-body);
+    /* One line, always: at caption size the longest name (Overclock) is wider than the card. */
+    font-size: 34px;
     color: var(--ivory);
     -unity-text-align: middle-center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.card__effect {
-    font-size: 26px;
-    color: var(--ivory-60);
-    -unity-text-align: middle-center;
-    white-space: normal;
+/* Category glyph in the corner: colour AND shape say what a module is (docs/03 A4). */
+.card__glyph {
+    position: absolute;
+    top: 18px;
+    left: 18px;
+    width: 42px;
+    height: 42px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.card__glyph--weapon {
+    background-image: url("/Assets/UI/Icons/cat-weapon.png");
+    -unity-background-image-tint-color: var(--teal);
+}
+
+.card__glyph--booster {
+    background-image: url("/Assets/UI/Icons/cat-booster.png");
+    -unity-background-image-tint-color: var(--gold);
+}
+
+.card__glyph--economy {
+    background-image: url("/Assets/UI/Icons/cat-economy.png");
+    -unity-background-image-tint-color: var(--mint);
+}
+
+/* Reach dots: how many range bands the module covers from the ring (D32). */
+.card__reach {
+    flex-direction: row;
+    justify-content: center;
+    margin-top: 6px;
+}
+
+.card__dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    margin: 0 6px;
+    border-width: 3px;
+    border-color: var(--ivory-40);
+}
+
+.card__dot--on {
+    background-color: var(--teal);
+    border-color: var(--teal);
+}
+
+.card__cost-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon--small {
+    width: 36px;
+    height: 36px;
+    margin-right: 9px;
 }
 
 .card__cost {
@@ -408,16 +741,38 @@
     height: 360px;
 }
 
+/*
+ * Pulse (docs/09 §2.2): the cooldown is a ring that fills, drawn by HudView; when it is ready the button turns
+ * ivory and a halo breathes at its edge (0.3 -> 0.6 -> 0.3 over 2 s, never a flash).
+ */
 .pulse {
     width: 60%;
     height: 360px;
     border-radius: var(--radius-button);
-    background-color: #2B2F5A;
+    background-color: var(--surface-raised);
     border-color: var(--ivory-40);
     border-width: 3px;
+    flex-direction: row;
     justify-content: center;
     align-items: center;
-    overflow: hidden;
+}
+
+.pulse__halo {
+    position: absolute;
+    left: -12px;
+    right: -12px;
+    top: -12px;
+    bottom: -12px;
+    border-radius: var(--radius-button);
+    border-width: 3px;
+    border-color: var(--ivory);
+    opacity: 0;
+}
+
+.pulse__ring {
+    width: 108px;
+    height: 108px;
+    margin-right: 24px;
 }
 
 .pulse--ready {
@@ -425,14 +780,6 @@
     border-color: var(--ivory);
 }
 
-.pulse__fill {
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    right: 0;
-    height: 0;
-    background-color: rgba(243, 233, 215, 0.18);
-}
 
 .pulse__label {
     font-size: var(--font-title);
@@ -449,23 +796,51 @@
     height: 360px;
 }
 
+/* Round buttons, as the mockup has them: speed keeps its "2x", pause is a drawn icon. */
 .side-buttons > .btn {
+    width: 168px;
     height: 168px;
+    align-self: flex-end;
+    border-radius: 84px;
+    padding: 0;
 }
 
-.credits-group {
+.btn--icon {
+    background-image: url("/Assets/UI/Icons/pause.png");
+    -unity-background-scale-mode: scale-to-fit;
+    -unity-background-image-tint-color: var(--ivory);
+    background-size: 60px 60px;
+}
+
+.btn--icon-resume {
+    background-image: url("/Assets/UI/Icons/next.png");
+}
+
+.top-group {
     flex-direction: row;
     align-items: center;
 }
 
-/* Credits icon drawn, not a glyph: fonts on the device lack the symbols */
-.credit-icon {
-    width: 36px;
-    height: 36px;
-    margin-right: 18px;
-    background-color: var(--gold);
-    rotate: 45deg;
-    border-radius: 6px;
+/*
+ * Icons are drawings, never glyphs: device fonts lack the symbols, and the design system's line set reads better
+ * at this size. Tools/icons_to_png.py renders docs/art/icons/*.svg white on transparency, so each use tints its
+ * own copy. 54 px = 18 dp, the size the top bar's numbers sit beside.
+ */
+.icon {
+    width: 54px;
+    height: 54px;
+    margin-right: 15px;
+    -unity-background-scale-mode: scale-to-fit;
+    -unity-background-image-tint-color: var(--ivory);
+}
+
+.icon--integrity {
+    background-image: url("/Assets/UI/Icons/integrity.png");
+}
+
+.icon--credits {
+    background-image: url("/Assets/UI/Icons/credits.png");
+    -unity-background-image-tint-color: var(--gold);
 }
 
 /* Options sheet (docs/09 §2.7): one list, immediate effect */
@@ -477,15 +852,15 @@
     border-radius: 48px;
     border-width: 0;
     background-color: rgba(0, 0, 0, 0);
-    color: var(--ivory-40);
-    font-size: var(--font-number);
-    -unity-text-align: middle-center;
+    background-image: url("/Assets/UI/Icons/options.png");
+    -unity-background-scale-mode: scale-to-fit;
+    -unity-background-image-tint-color: var(--ivory-40);
 }
 
 .sheet {
     width: 900px;
     padding: 48px;
-    background-color: #1A1D40;
+    background-color: var(--surface-glass);
 }
 
 .sheet__title {
@@ -549,11 +924,49 @@
     padding-bottom: 260px;
 }
 
+/*
+ * Damage share (docs/06 2.5-D1): one bar per module that did something this wave, so the shop that follows is a
+ * decision made on evidence rather than on a feeling. Fed by the simulation's per-module counter.
+ */
+.summary__shares {
+    width: 100%;
+    margin-top: 24px;
+}
+
+.share {
+    flex-direction: row;
+    align-items: center;
+    height: 48px;
+}
+
+.share__name {
+    width: 240px;
+    font-size: var(--font-caption);
+    color: var(--ivory-60);
+}
+
+.share__track {
+    flex-grow: 1;
+    height: 12px;
+    border-radius: 6px;
+    background-color: var(--surface-raised);
+}
+
+.share__fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    border-radius: 6px;
+    background-color: var(--teal);
+}
+
 .summary__panel {
     width: 720px;
     padding: 48px;
     align-items: center;
-    background-color: #1A1D40;
+    background-color: var(--surface-glass);
 }
 
 .summary__title {
@@ -585,10 +998,40 @@
     right: 0;
     top: 0;
     bottom: 0;
-    background-color: rgba(20, 22, 48, 0.6);
+    background-color: var(--scrim);
     justify-content: center;
     align-items: center;
     padding: var(--gutter);
+}
+
+/* Run end (docs/09 §2.4): what stopped the run, the totals rolling up, then what to do next. */
+.stopped-by {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.stopped-by__label {
+    font-size: var(--font-body);
+    color: var(--ivory-60);
+}
+
+.run-total {
+    font-size: var(--font-number);
+    color: var(--ivory);
+    -unity-font-definition: url("/Assets/UI/Fonts/Outfit-SemiBold.asset");
+    margin-bottom: 12px;
+}
+
+.run-end-actions {
+    width: 100%;
+    margin-top: 24px;
+}
+
+.run-end-actions > .btn {
+    flex-grow: 1;
+    flex-basis: 0;
+    margin-right: 24px;
 }
 
 .overlay__title {

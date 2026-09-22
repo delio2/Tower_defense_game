@@ -16,6 +16,7 @@ TOKENS = os.path.join(ROOT, "Tools", "design", "tokens.json")
 USS = os.path.join(ROOT, "Assets", "UI", "Resources", "Theme.uss")
 DP = 3  # px per dp at the 1080-wide reference
 THEME = "dusk"  # Act I; act themes switch only the arena for now
+LARGE_TEXT = 1.25  # how much the "large text" option grows every interface size
 
 # Names used by the existing stylesheet, mapped onto design tokens (kept so no rule has to change at once).
 LEGACY = {
@@ -25,6 +26,13 @@ LEGACY = {
     "--ivory-60": "ivory-muted",  # solid: translucent colours did not blend reliably on Android
     "--ivory-40": "ivory-faint",
 }
+
+
+def rgba(hex_colour, alpha):
+    """USS has no colour-mix: a translucent state has to be written out from its base token."""
+    value = hex_colour.lstrip("#")
+    red, green, blue = (int(value[i:i + 2], 16) for i in (0, 2, 4))
+    return f"rgba({red}, {green}, {blue}, {alpha:g})"
 
 
 def px(value):
@@ -63,7 +71,40 @@ def main():
         f"    --font-body: {px(styles['body']['fontSize'])};",
         f"    --font-caption: {px(styles['caption']['fontSize'])};",
     ]
-    lines += ["}", "/* tokens:end */"]
+    # Translucent states the design system describes but does not tokenise: a pressed button, the fill climbing
+    # the Pulse button, the border of an uncommon card and the scrim behind a sheet. Derived here so no rule has
+    # to write a literal colour, and so a new palette moves them too.
+    lines += [
+        f"    --press-tint: {rgba(colours['ivory'], 0.10)};",
+        f"    --fill-tint: {rgba(colours['ivory'], 0.18)};",
+        f"    --border-uncommon: {rgba(colours['silver'], 0.6)};",
+        f"    --scrim: {rgba(colours['ink'], 0.6)};",
+    ]
+    # The accessibility themes ride on the same variables: a class on the root swaps the colours (high contrast)
+    # or the five font sizes (large text), and every rule that uses var() follows with no second layout.
+    lines.append("}")
+    lines.append("")
+    lines.append("/* High contrast: the design system's fourth theme, same measures, stronger separation. */")
+    lines.append(".theme-contrast {")
+    for token in tokens["color"]["tokens"]:
+        value = token["value"]
+        if isinstance(value, dict) and "contrast" in value:
+            lines.append(f"    --{token['name']}: {value['contrast']};")
+    contrast = {t["name"]: t["value"]["contrast"] for t in tokens["color"]["tokens"]
+                if isinstance(t["value"], dict) and "contrast" in t["value"]}
+    for legacy, source in LEGACY.items():
+        if source in contrast:
+            lines.append(f"    {legacy}: {contrast[source]};")
+    lines.append("}")
+    lines.append("")
+    lines.append("/* Large text: one step up on every size the interface reads from (docs/09 section 6). */")
+    lines.append(".text-large {")
+    for name, style in (("display", "number-xl"), ("title", "title"), ("number", "number"),
+                        ("body", "body"), ("caption", "caption")):
+        base = float(px(styles[style]["fontSize"])[:-2])
+        lines.append(f"    --font-{name}: {base * LARGE_TEXT:g}px;")
+    lines.append("}")
+    lines += ["/* tokens:end */"]
     block = "\n".join(lines)
 
     with open(USS, encoding="utf-8") as f:

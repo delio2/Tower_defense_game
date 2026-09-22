@@ -79,5 +79,25 @@ namespace TowerDefense.Presentation.Settings
         }
 
         public static void Save() => PlayerPrefs.Save();
+
+        /// <summary>
+        /// Larger text for everyone who needs it (docs/09 §6): the stylesheet overrides the five font variables,
+        /// so every rule that uses them follows without a second layout.
+        /// </summary>
+        public static bool LargeText
+        {
+            get => PlayerPrefs.GetInt(LargeTextKey, 0) == 1;
+            set => PlayerPrefs.SetInt(LargeTextKey, value ? 1 : 0);
+        }
+
+        /// <summary>The design system's fourth theme: the same layout with contrast pushed up (docs/09 §6).</summary>
+        public static bool HighContrast
+        {
+            get => PlayerPrefs.GetInt(HighContrastKey, 0) == 1;
+            set => PlayerPrefs.SetInt(HighContrastKey, value ? 1 : 0);
+        }
+
+        private const string LargeTextKey = "opt.largeText";
+        private const string HighContrastKey = "opt.highContrast";
     }
 }

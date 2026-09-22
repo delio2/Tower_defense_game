@@ -46,6 +46,79 @@ namespace TowerDefense.Presentation.UI
             };
         }
 
+        /// <summary>Title of a module's tooltip: what it is and how far it has been levelled.</summary>
+        public static string ModuleTitle(ModuleInstance module)
+        {
+            return module.Level > 1 ? $"{module.Kind} L{module.Level}" : module.Kind.ToString();
+        }
+
+        /// <summary>
+        /// What a module is doing right now (docs/09 §2.2): its damage after neighbours, how often it fires, and how
+        /// much health it has taken off this wave — the number that answers "is this one pulling its weight?".
+        /// </summary>
+        public static string ModuleTooltip(ModuleInstance module)
+        {
+            if (module.Category != ModuleCategory.Weapon)
+            {
+                return Describe(module.Kind);
+            }
+
+            string damage = NumberFormat.CompactHundredths(module.EffectiveDamage);
+            string every = (module.EffectiveCooldown / (float)SimConstants.TicksPerSecond).ToString("0.00");
+            string dealt = NumberFormat.CompactHundredths(module.DamageThisWave);
+            return $"{damage} every {every} s\nthis wave: {dealt}";
+        }
+
+        /// <summary>
+        /// The module sheet of the shop (docs/09 §2.3): what it does, what it is worth back, and — for a booster —
+        /// which neighbours it is actually lifting right now, which is the whole point of the ring.
+        /// </summary>
+        public static string ModuleSheet(ModuleInstance module, Ring ring, int sellValue)
+        {
+            string head = module.Category == ModuleCategory.Weapon
+                ? $"{NumberFormat.CompactHundredths(module.EffectiveDamage)} every {(module.EffectiveCooldown / (float)SimConstants.TicksPerSecond):0.00} s"
+                : Describe(module.Kind);
+
+            string neighbours = string.Empty;
+            if (module.Category == ModuleCategory.Booster)
+            {
+                ModuleInstance left = ring.At(ring.LeftOf(module.Slot));
+                ModuleInstance right = ring.At(ring.RightOf(module.Slot));
+                string lifted = Join(left, right);
+                neighbours = lifted.Length > 0 ? $"\nlifting {lifted}" : "\nno neighbours to lift";
+            }
+
+            return $"{head}\nsells back for {sellValue}{neighbours}";
+        }
+
+        private static string Join(ModuleInstance left, ModuleInstance right)
+        {
+            if (left != null && right != null)
+            {
+                return $"{left.Kind} and {right.Kind}";
+            }
+
+            return left?.Kind.ToString() ?? right?.Kind.ToString() ?? string.Empty;
+        }
+
+        /// <summary>An offer card held down: what buying it would give and what it costs.</summary>
+        public static string OfferSheet(ModuleDefinition definition)
+        {
+            return $"{Describe(definition.Kind)}\ncosts {definition.Cost}";
+        }
+
+        public static string EnemyTitle(Enemy enemy) => enemy.IsElite ? $"{enemy.Kind} (elite)" : enemy.Kind.ToString();
+
+        /// <summary>The enemy card: health left, what it shrugs off, and how fast it closes in.</summary>
+        public static string EnemyCard(Enemy enemy)
+        {
+            string hp = NumberFormat.CompactHundredths(enemy.Hp);
+            string maxHp = NumberFormat.CompactHundredths(enemy.MaxHp);
+            string speed = (enemy.Definition.SpeedMilli / 1000f).ToString("0.0");
+            string armour = enemy.Armor > 0 ? $"\narmour {NumberFormat.CompactHundredths(enemy.Armor)}" : string.Empty;
+            return $"{hp} / {maxHp}\n{speed} units per second{armour}";
+        }
+
         public static string DescribeRejection(CommandResult result)
         {
             return result switch

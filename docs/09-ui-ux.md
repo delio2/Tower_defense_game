@@ -1,6 +1,6 @@
 # 09 — Mobile UI/UX (Phase 1 and 3 brief)
 
-> Version 2 · 2026-09-22 · Status: brief; every screen below is now mocked up, interactive, in the **Dusk Garden design system** (https://claude.ai/artifact/5aKRr9H8e3WJsMui64MNnu) — the mockups are the visual reference, this file keeps the rules. Screen structure, navigation, components and interface micro-interactions.
+> Version 3 · 2026-09-22 · Status: brief; every screen below is now mocked up, interactive, in the **Dusk Garden design system** (https://claude.ai/artifact/5aKRr9H8e3WJsMui64MNnu) — the mockups are the visual reference, this file keeps the rules. Screen structure, navigation, components and interface micro-interactions.
 > Does not repeat: the second-by-second FTUE (`07` §1.5), the **game** micro-animation catalogue (`03` A7), in-arena readability (`03` A8), the drag rules (`03` B3). It references them.
 > Layout reference: **1080 × 1920 (9:16)**, measures in **dp** (1 dp ≈ 3 px at this density). **PROPOSAL** items are listed in `04` §Open decisions.
 
@@ -286,6 +286,11 @@ Never lateral slides between screens (they imply a hierarchy that does not exist
 
 ## 5. Design tokens (for UI Toolkit, D22)
 > **v2:** the source of truth is now `tokens.json` in the design system (https://claude.ai/artifact/5aKRr9H8e3WJsMui64MNnu): 4 themes (Act I Dusk, Act II Twilight, Act III Night, High contrast), sky tokens, `surface-glass`/`surface-raised`, `ally`, Outfit + Nunito type styles, shadows and sizes. `Theme.uss` is to be regenerated from it (Phase 2.5-A). The block below is the v1 summary kept for history.
+
+**How it is wired (2026-09-22, task 2.5-A7).**
+- `Tools/design/tokens.json` is the local copy of the design system's tokens; `python Tools/tokens_to_uss.py` rewrites the `tokens:begin`/`tokens:end` block of `Assets/UI/Resources/Theme.uss` (1 dp = 3 px at the 1080-wide reference). Hand-written rules below the block are kept. **No rule writes a literal colour**: the four translucent states the design system describes but does not tokenise — pressed button, Pulse fill, uncommon border, sheet scrim — are derived from their base colour by the script (`--press-tint`, `--fill-tint`, `--border-uncommon`, `--scrim`).
+- **Typefaces.** Outfit writes the numbers the player tracks, Nunito the words. *TowerDefense → Content → Build font assets* bakes three weights out of the two variable fonts in `Assets/UI/Fonts` (SIL OFL, from Google Fonts): `Outfit-SemiBold` (600), `Nunito-SemiBold` (600), `Nunito-ExtraBold` (800, also used for the 700 caption, whose 12 dp size hides the difference). The assets are dynamic with the Latin-1 atlas pre-baked, so the text costs nothing at runtime and an unexpected character is still drawn instead of showing a box; Nunito falls back to Outfit for the arrow of the drag preview, which it does not draw. Static font assets are *not* an option: Unity 6 no longer renders them.
+- **Icons.** `python Tools/icons_to_png.py` rasterises the design system's 47 line icons (`docs/art/icons/*.svg`) into `Assets/UI/Icons` at 96 px, white on transparency, through headless Edge; each use tints its own copy (`-unity-background-image-tint-color`). In the HUD so far: Integrity, Credits, Options. The rest arrive with slices 2.5-B and 2.5-C.
 ```
 Grid            8 dp · gutter 16 dp · thumb zone = bottom third
 Radii           cards 16 · buttons 24 · sheets 32 (top corners only)

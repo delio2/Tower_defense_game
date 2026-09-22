@@ -203,6 +203,21 @@ namespace TowerDefense.Presentation.Arena
             }
         }
 
+        /// <summary>
+        /// An open arc of <paramref name="fraction"/> of the circle, drawn clockwise from the top: how the Core wears
+        /// its Integrity (docs/09 §2.2). The caller turns the loop off.
+        /// </summary>
+        public static void SetArc(LineRenderer line, Vector3 centre, float radius, float fraction)
+        {
+            int segments = Mathf.Max(2, Mathf.RoundToInt(64 * Mathf.Clamp01(fraction)));
+            line.positionCount = segments;
+            for (int i = 0; i < segments; i++)
+            {
+                float angle = Mathf.PI * 0.5f - i / (float)(segments - 1) * Mathf.PI * 2f * Mathf.Clamp01(fraction);
+                line.SetPosition(i, centre + new Vector3(Mathf.Cos(angle) * radius, 0f, Mathf.Sin(angle) * radius));
+            }
+        }
+
         public ModuleInstance FindModule(int id)
         {
             for (int slot = 0; slot < Sim.Ring.SlotCount; slot++)

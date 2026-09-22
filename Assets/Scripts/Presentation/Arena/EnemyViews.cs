@@ -11,6 +11,9 @@ namespace TowerDefense.Presentation.Arena
     /// </summary>
     internal sealed class EnemyViews
     {
+        /// <summary>How long an enemy takes to grow to full size after it spawns (docs/03 A7: nothing pops in).</summary>
+        private const float SpawnSeconds = 0.3f;
+
         private readonly Dictionary<int, EnemyView> _views = new Dictionary<int, EnemyView>();
         private readonly List<int> _staleIds = new List<int>();
 
@@ -28,7 +31,7 @@ namespace TowerDefense.Presentation.Arena
             return false;
         }
 
-        public void Sync(ArenaKit kit)
+        public void Sync(ArenaKit kit, float deltaTime)
         {
             foreach (Enemy enemy in kit.Sim.Enemies)
             {
@@ -39,9 +42,23 @@ namespace TowerDefense.Presentation.Arena
                 }
 
                 enemy.GetPosition(out long x, out long y);
-                Vector3 position = new Vector3(x / (float)SimConstants.Micro, 0.45f, y / (float)SimConstants.Micro);
+                float hover = PlayerOptions.ReduceMotion ? 0f : 0.05f * Mathf.Sin(Time.time * 1.9f + view.Phase);
+                var target = new Vector3(x / (float)SimConstants.Micro, 0.45f + hover, y / (float)SimConstants.Micro);
+
+                // The simulation moves an enemy in one step when it is knocked back; the view catches up over a few
+                // frames so the jump reads as being pushed. New arrivals start where they are, not where the last one was.
+                Vector3 position = view.HasPosition
+                    ? Vector3.Lerp(view.Body.transform.position, target, 1f - Mathf.Exp(-deltaTime * 18f))
+                    : target;
+                view.HasPosition = true;
                 view.Body.transform.position = position;
                 view.Body.transform.rotation = Orientation(view, position, enemy.Kind);
+
+                // Arriving: the body grows into place over SpawnSeconds instead of appearing at full size. The lit
+                // shader is opaque, so a scale-in is the calm way in (an alpha fade would need a second material).
+                float spawn = Mathf.Clamp01((Time.time - view.SpawnedAt) / SpawnSeconds);
+                float eased = 1f - (1f - spawn) * (1f - spawn);
+                view.Body.transform.localScale = view.BaseScale * Mathf.Lerp(0.35f, 1f, eased);
 
                 if (view.Halo != null)
                 {
@@ -179,7 +196,14 @@ namespace TowerDefense.Presentation.Arena
 
             GameObject bar = kit.CreatePrimitive(PrimitiveType.Cube, "HP", Vector3.zero, Vector3.one * 0.05f,
                 Color.Lerp(Palette.Core, Palette.Background, 0.3f));
-            var view = new EnemyView(body, bar.transform, size) { IsModel = isModel, Phase = enemy.Id * 47f % 360f };
+            Vector3 baseScale = body.transform.localScale;
+            var view = new EnemyView(body, bar.transform, size)
+            {
+                IsModel = isModel,
+                Phase = enemy.Id * 47f % 360f,
+                BaseScale = baseScale,
+                SpawnedAt = Time.time,
+            };
             if (haloRadius > 0f)
             {
                 view.Halo = kit.CreateLine("Halo", 0.025f, Palette.WithAlpha(color, enemy.IsElite ? 0.55f : 0.35f), true);
@@ -205,8 +229,17 @@ namespace TowerDefense.Presentation.Arena
             public float HaloRadius;
             public bool IsModel;
 
-            /// <summary>Per-enemy roll offset so a group does not turn in lockstep.</summary>
+            /// <summary>Per-enemy roll offset so a group does not turn or hover in lockstep.</summary>
             public float Phase;
+
+            /// <summary>Scale the body was created with; the spawn growth and the hover scale from it.</summary>
+            public Vector3 BaseScale;
+
+            /// <summary>Time.time when the enemy appeared, for the spawn growth.</summary>
+            public float SpawnedAt;
+
+            /// <summary>False until the first Sync places the body, so an arrival does not glide in from the origin.</summary>
+            public bool HasPosition;
 
             public EnemyView(GameObject body, Transform hpBar, float size)
             {

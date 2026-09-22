@@ -13,9 +13,16 @@ namespace TowerDefense.Presentation.Arena
     {
         private const float NumberLifetime = 0.9f;
 
+        /// <summary>A death scatters this many flakes, and no more than <see cref="MaxFlakes"/> fly at once (docs/03 A8).</summary>
+        private const int FlakesPerDeath = 4;
+        private const int MaxFlakes = 12;
+        private const float FlakeLifetime = 0.55f;
+
         private readonly List<LineEffect> _effects = new List<LineEffect>();
         private readonly Stack<LineRenderer> _linePool = new Stack<LineRenderer>();
         private readonly List<FloatingNumber> _numbers = new List<FloatingNumber>();
+        private readonly List<Flake> _flakes = new List<Flake>();
+        private readonly Stack<Transform> _flakePool = new Stack<Transform>();
 
         public int ActiveLines => _effects.Count;
 
@@ -24,6 +31,32 @@ namespace TowerDefense.Presentation.Arena
             _effects.Clear();
             _linePool.Clear();
             _numbers.Clear();
+            _flakes.Clear();
+            _flakePool.Clear();
+        }
+
+        /// <summary>
+        /// A death: a few flakes drift outward and sink while they shrink away (docs/03 A7 — a dissolve, not a burst).
+        /// Silent when "reduce motion" is on or the cap is reached; the cap is what keeps a swarm wipe readable.
+        /// </summary>
+        public void SpawnFlakes(ArenaKit kit, Vector3 centre, Color color)
+        {
+            if (PlayerOptions.ReduceMotion)
+            {
+                return;
+            }
+
+            int wanted = Mathf.Min(FlakesPerDeath, MaxFlakes - _flakes.Count);
+            for (int i = 0; i < wanted; i++)
+            {
+                Transform flake = RentFlake(kit, color);
+                float angle = Random.value * Mathf.PI * 2f;
+                var drift = new Vector3(Mathf.Cos(angle), 1.6f, Mathf.Sin(angle)) * Random.Range(0.5f, 0.9f);
+                flake.position = centre;
+                flake.localScale = Vector3.one * 0.09f;
+                flake.localRotation = Random.rotation;
+                _flakes.Add(new Flake(flake, centre, drift));
+            }
         }
 
         public void SpawnRing(ArenaKit kit, Vector3 centre, float fromRadius, float toRadius, Color color, float duration, float width)
@@ -82,6 +115,22 @@ namespace TowerDefense.Presentation.Arena
                     _numbers.RemoveAt(i);
                 }
             }
+
+            for (int i = _flakes.Count - 1; i >= 0; i--)
+            {
+                Flake flake = _flakes[i];
+                flake.Age += deltaTime;
+                float t = Mathf.Clamp01(flake.Age / FlakeLifetime);
+                // Thrown out and up, then pulled down: the arc reads as "it came apart", not "it exploded".
+                flake.Root.position = flake.Origin + flake.Drift * t + Vector3.up * (-1.8f * t * t);
+                flake.Root.localScale = Vector3.one * (0.09f * (1f - t));
+                if (t >= 1f)
+                {
+                    flake.Root.gameObject.SetActive(false);
+                    _flakePool.Push(flake.Root);
+                    _flakes.RemoveAt(i);
+                }
+            }
         }
 
         /// <summary>Projects the floating numbers into HUD labels: they rise and fade over 0.9 s.</summary>
@@ -109,6 +158,34 @@ namespace TowerDefense.Presentation.Arena
             line.startColor = color;
             line.endColor = color;
             return line;
+        }
+
+        private Transform RentFlake(ArenaKit kit, Color color)
+        {
+            if (_flakePool.Count > 0)
+            {
+                Transform pooled = _flakePool.Pop();
+                pooled.gameObject.SetActive(true);
+                kit.SetColor(pooled.GetComponent<Renderer>(), color);
+                return pooled;
+            }
+
+            return kit.CreatePrimitive(PrimitiveType.Cube, "Flake", Vector3.zero, Vector3.one * 0.09f, color).transform;
+        }
+
+        private sealed class Flake
+        {
+            public readonly Transform Root;
+            public readonly Vector3 Origin;
+            public readonly Vector3 Drift;
+            public float Age;
+
+            public Flake(Transform root, Vector3 origin, Vector3 drift)
+            {
+                Root = root;
+                Origin = origin;
+                Drift = drift;
+            }
         }
 
         private sealed class LineEffect

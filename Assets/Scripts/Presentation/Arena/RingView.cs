@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using TowerDefense.Presentation.Settings;
 using TowerDefense.Simulation;
 using UnityEngine;
 
@@ -16,9 +17,16 @@ namespace TowerDefense.Presentation.Arena
         private const float ModelHeight = 0.18f;
         private const float ModelScale = 1.25f;
 
+        /// <summary>How long a newly placed module takes to settle onto its petal.</summary>
+        private const float SettleSeconds = 0.22f;
+
+        /// <summary>Petal shape: a flattened ellipsoid, long axis pointing away from the Core (mood shot v1).</summary>
+        private static readonly Vector3 PetalScale = new Vector3(0.84f, 0.2f, 1.24f);
+
         /// <summary>Modules sit a little further out than the slot centre so the Core never hides them (visual only).</summary>
         private const float ModuleRadialOffset = 1.12f;
 
+        private LineRenderer _reach;
         private readonly List<Renderer> _petals = new List<Renderer>();
         private readonly List<LineRenderer> _links = new List<LineRenderer>();
         private readonly Dictionary<int, ModuleView> _modules = new Dictionary<int, ModuleView>();
@@ -32,11 +40,14 @@ namespace TowerDefense.Presentation.Arena
             _petalMaterial = kit.Surface(Palette.PetalSurface);
             _petalLitMaterial = kit.Surface(Palette.PetalLitSurface);
 
+            _reach = kit.CreateLine("Reach", 0.04f, Palette.WithAlpha(Palette.Weapon, 0.5f), true);
+            _reach.enabled = false;
+
             // Petals: flattened ellipsoids, long axis pointing away from the Core (mood shot v1).
             for (int slot = 0; slot < Ring.MaxSlots; slot++)
             {
                 GameObject petal = kit.CreateSurface(PrimitiveType.Sphere, $"Slot {slot}", Vector3.zero,
-                    new Vector3(0.84f, 0.2f, 1.24f), _petalMaterial);
+                    PetalScale, _petalMaterial);
                 _petals.Add(petal.GetComponent<Renderer>());
                 _links.Add(kit.CreateLine("Link", 0.05f, Palette.WithAlpha(Palette.Booster, 0.5f), false));
             }
@@ -59,6 +70,22 @@ namespace TowerDefense.Presentation.Arena
             return false;
         }
 
+        /// <summary>
+        /// Shows how far a dragged weapon would shoot from the slot under the finger (docs/06 2.5-C2): a soft circle
+        /// at its range, so "will it cover that side?" is answered before dropping. Null clears it.
+        /// </summary>
+        public void ShowReach(ArenaKit kit, (int Slot, float Range)? reach)
+        {
+            if (!reach.HasValue)
+            {
+                _reach.enabled = false;
+                return;
+            }
+
+            _reach.enabled = true;
+            ArenaKit.SetCircle(_reach, kit.SlotWorld(reach.Value.Slot) + Vector3.up * 0.02f, reach.Value.Range);
+        }
+
         /// <param name="isHighlighted">Whether a slot is lit (selected, drag target, valid drop, free for a selected card).</param>
         public void Sync(ArenaKit kit, Func<int, bool> isHighlighted, float deltaTime)
         {
@@ -77,7 +104,12 @@ namespace TowerDefense.Presentation.Arena
                 Transform petal = _petals[slot].transform;
                 petal.localPosition = slotPosition * 1.05f + Vector3.up * 0.1f;
                 petal.localRotation = Quaternion.LookRotation(new Vector3(slotPosition.x, 0f, slotPosition.z));
-                _petals[slot].sharedMaterial = isHighlighted(slot) ? _petalLitMaterial : _petalMaterial;
+
+                // A lit petal breathes rather than blinking: 4% over 1.4 s (docs/09 §4.2).
+                bool lit = isHighlighted(slot);
+                _petals[slot].sharedMaterial = lit ? _petalLitMaterial : _petalMaterial;
+                float breath = lit && !PlayerOptions.ReduceMotion ? 1f + 0.04f * Mathf.Sin(Time.time * 4.5f) : 1f;
+                petal.localScale = PetalScale * breath;
             }
 
             _staleIds.Clear();
@@ -112,9 +144,14 @@ namespace TowerDefense.Presentation.Arena
                 float levelScale = 1f + 0.18f * (module.Level - 1);
                 float merge = view.MergeAt >= 0f ? Mathf.Clamp01((Time.time - view.MergeAt) / 0.15f) : 1f;
                 float swell = 1f + 0.15f * (1f - merge) * (1f - merge); // ease-out back to 1
-                view.Root.localScale = view.BaseScale * levelScale * swell;
+
+                // Settling in: a placed module grows into its petal instead of appearing (docs/03 A7).
+                float settle = Mathf.Clamp01((Time.time - view.PlacedAt) / SettleSeconds);
+                float eased = 1f - (1f - settle) * (1f - settle);
+                view.Root.localScale = view.BaseScale * levelScale * swell * Mathf.Lerp(0.55f, 1f, eased);
                 Vector3 target = kit.SlotWorld(slot) * ModuleRadialOffset;
-                view.Root.localPosition = Vector3.Lerp(view.Root.localPosition, target + Vector3.up * view.Height, 1f - Mathf.Exp(-deltaTime * 12f));
+                float height = view.Height + IdleFloat(view.Phase);
+                view.Root.localPosition = Vector3.Lerp(view.Root.localPosition, target + Vector3.up * height, 1f - Mathf.Exp(-deltaTime * 12f));
                 if (view.IsModel)
                 {
                     view.Root.localRotation = FacingOutward(target);
@@ -155,7 +192,7 @@ namespace TowerDefense.Presentation.Arena
             if (model != null)
             {
                 model.transform.localRotation = FacingOutward(slot);
-                return new ModuleView(model.transform, Vector3.one * ModelScale, ModelHeight, true);
+                return new ModuleView(model.transform, Vector3.one * ModelScale, ModelHeight, true) { Phase = Phase(module.Id) };
             }
 
             // Fallback placeholder shapes (a model is missing); sized ~1.7x the v1 guess (mood shot lesson).
@@ -178,7 +215,19 @@ namespace TowerDefense.Presentation.Arena
             }
 
             GameObject go = kit.CreateSurface(shape, objectName, slot + Vector3.up * PrimitiveHeight, scale, material);
-            return new ModuleView(go.transform, scale, PrimitiveHeight, false);
+            return new ModuleView(go.transform, scale, PrimitiveHeight, false) { Phase = Phase(module.Id) };
+        }
+
+        /// <summary>A stable per-module offset in radians, spread over the circle by the module id.</summary>
+        private static float Phase(int moduleId) => moduleId * 1.7f % 6.2831853f;
+
+        /// <summary>
+        /// The idle float of docs/03 A7: ± 3.5 cm over 2.6 s, each module on its own phase so the ring never breathes
+        /// in lockstep. Still under "reduce motion".
+        /// </summary>
+        private static float IdleFloat(float phase)
+        {
+            return PlayerOptions.ReduceMotion ? 0f : 0.035f * Mathf.Sin(Time.time * 2.4f + phase);
         }
 
         /// <summary>Models look along local −Z: point that away from the Core (Lance aims outward).</summary>
@@ -194,6 +243,12 @@ namespace TowerDefense.Presentation.Arena
             public readonly Vector3 BaseScale;
             public readonly float Height;
             public readonly bool IsModel;
+
+            /// <summary>Offset into the idle float so neighbouring modules do not rise and fall together.</summary>
+            public float Phase;
+
+            /// <summary>Time.time when this view was created, for the settle-in growth.</summary>
+            public float PlacedAt = Time.time;
 
             /// <summary>Time.time when a merge swelled this module (scale 1.15 → 1 over 0.15 s, docs/03 A7).</summary>
             public float MergeAt = -1f;

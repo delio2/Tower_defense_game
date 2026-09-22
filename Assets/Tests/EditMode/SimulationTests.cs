@@ -163,6 +163,65 @@ namespace TowerDefense.Simulation.Tests
         }
 
         [Test]
+        public void DamageThisWave_AddsUpPerModuleAndResetsEachWave()
+        {
+            GameSimulation sim = Create();
+            sim.Enqueue(Command.StartWave());
+            sim.Step(); // the queued command applies here: only now is the wave running
+            for (int i = 0; i < 120 * SimConstants.TicksPerSecond && sim.Phase == GamePhase.Wave; i++)
+            {
+                sim.Step();
+            }
+
+            long perModule = 0;
+            for (int slot = 0; slot < sim.Ring.SlotCount; slot++)
+            {
+                ModuleInstance module = sim.Ring.At(slot);
+                if (module != null)
+                {
+                    perModule += module.DamageThisWave;
+                }
+            }
+
+            Assert.Greater(perModule, 0, "the starting module does damage in the first wave");
+            Assert.LessOrEqual(perModule, sim.TotalDamage, "module damage is a share of the run total, never more");
+
+            sim.Enqueue(Command.StartWave());
+            sim.Step();
+            for (int slot = 0; slot < sim.Ring.SlotCount; slot++)
+            {
+                ModuleInstance module = sim.Ring.At(slot);
+                if (module != null)
+                {
+                    Assert.AreEqual(0, module.DamageThisWave, "each wave starts the count again");
+                }
+            }
+        }
+
+        [Test]
+        public void WaveEnemiesLeft_CountsDownToZeroOverTheWave()
+        {
+            GameSimulation sim = Create();
+            sim.Enqueue(Command.StartWave());
+            sim.Step();
+
+            int total = sim.WaveEnemyCount;
+            Assert.Greater(total, 0, "a wave sends enemies");
+            Assert.AreEqual(total, sim.WaveEnemiesLeft, "at the start none of them have been dealt with");
+
+            int previous = sim.WaveEnemiesLeft;
+            for (int i = 0; i < 120 * SimConstants.TicksPerSecond && sim.Phase == GamePhase.Wave; i++)
+            {
+                sim.Step();
+                Assert.LessOrEqual(sim.WaveEnemiesLeft, previous + 1, "the count never jumps up by more than one spawn");
+                previous = sim.WaveEnemiesLeft;
+            }
+
+            Assert.AreEqual(GamePhase.Shop, sim.Phase, "the wave ends");
+            Assert.AreEqual(0, sim.WaveEnemiesLeft, "nothing is left when it does");
+        }
+
+        [Test]
         public void UndefendedCore_LosesIntegrity()
         {
             GameSimulation sim = Create();

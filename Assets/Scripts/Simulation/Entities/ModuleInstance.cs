@@ -29,6 +29,13 @@ namespace TowerDefense.Simulation
         /// <summary>Echo from neighbours: every hit fires a second one at this fraction (0 = none), permille.</summary>
         public int EchoPermille { get; internal set; }
 
+        /// <summary>
+        /// Health actually taken off enemies by this module since the wave began, in hundredths. Read-only bookkeeping
+        /// for the wave summary's damage share and the module tooltip (docs/06 2.5-B5); it reads the same for every
+        /// replay of a run, so it is safe to show but it never feeds a decision back into the simulation.
+        /// </summary>
+        public long DamageThisWave { get; internal set; }
+
         public ModuleKind Kind => Definition.Kind;
         public ModuleCategory Category => Definition.Category;
 

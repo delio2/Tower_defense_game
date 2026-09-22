@@ -123,41 +123,41 @@ Deterministic simulation (60 ticks/s, integers), 7 modules, 3 enemies + Guardian
 | A4 | **Three-surface shader** (Shader Graph, URP Lit): body + fresnel rim (category colour) + emissive; materials Core, petal, teal, gold, mint, coral, rose, ally as assets in `Resources/Materials`; SRP Batcher compatible | ≤ 40 draw calls with 60 enemies; works in a player build (no stripping) — 🔄 hand-written URP shader `TowerDefense/ThreeSurface` (lit body, fresnel rim, emissive; ShadowCaster + DepthOnly), one material per style, assets in `Resources/Materials`; draw calls and device build to check |
 | A5 | **Sky and rings:** per-act gradient background (dusk/twilight/night) + range-band rings at 3.0 / 5.5 / 7.5 / 9.0 as thin line meshes; act theme switch API | colours equal `tokens.json`; rings at 15–20% — ✅ `SkyGround` shader (gradient, glow, shadows) + range bands 3 / 5.5 / 7.5 / 9 (`ArenaBackdrop`); act theme switch applied at each wave start (`Palette.Acts`) |
 | A6 | **Model pipeline:** Blender family script v1 generating the **14 existing modules** and **7 enemies + Guardian** (from the `11` silhouettes), exported as glTF to `Assets/Models/`; prefab per model; `ModuleAsset`/`EnemyAsset` reference a prefab; `PrimitiveMesh` fallback | every current module/enemy shows its own silhouette in game — ✅ 2026-09-22: `Tools/blender/build_models_v1.py` builds the 21 models (`Art/Blender/models_v1.blend`) and exports FBX to `Resources/Models/{Modules,Enemies}`; the game loads them by kind (`ArenaKit.CreateModel`, sub-mesh 1 = glowing accent) with the primitive fallback; modules face outward, shards point at the Core with a slow roll. Star faces (★★/★★★) come with the v2 family scripts (3b) |
-| A7 | **UI foundations:** `Tools/tokens_to_uss.py` generates `Theme.uss` variables from `tokens.json`; Outfit + Nunito font assets (Latin-1 atlas); the 60 icons rasterised to 96 px sprites (Blender render of the SVGs) as UI Toolkit backgrounds; card renders for the 14 modules | the HUD uses no hard-coded colour or system font; no missing-glyph box on device — 🔄 2026-09-22: `Tools/tokens_to_uss.py` generates the `Theme.uss` variables from `Tools/design/tokens.json`; coral removed from player UI (sell zone, preview, low Integrity); card art rendered from `models_v1.blend` (`Resources/Cards`) and shown on offer cards; portrait captures now include the UI (panel rendered to a texture). Still to do: Outfit + Nunito font assets (download to approve), the drawn icon set in the HUD |
+| A7 | **UI foundations:** `Tools/tokens_to_uss.py` generates `Theme.uss` variables from `tokens.json`; Outfit + Nunito font assets (Latin-1 atlas); the icons rasterised to 96 px sprites as UI Toolkit backgrounds; card renders for the 14 modules | the HUD uses no hard-coded colour or system font; no missing-glyph box on device — ✅ 2026-09-22: tokens → USS, plus four derived tokens so no rule writes a literal colour (`--press-tint`, `--fill-tint`, `--border-uncommon`, `--scrim`); coral removed from player UI; card art from `models_v1.blend`; **fonts** — Outfit SemiBold + Nunito SemiBold/ExtraBold baked from the variable files by *Content → Build font assets* (dynamic with a pre-baked Latin-1 atlas: Unity 6 no longer draws static ones; Nunito falls back to Outfit for the arrow); **icons** — `Tools/icons_to_png.py` renders the 47 SVGs to `Assets/UI/Icons` through headless Edge, tinted per use, wired for Integrity, Credits and Options. Card name and card height were nudged so the heavier typeface still fits; the card itself is rebuilt in C1. Device check for missing glyphs rides with 2.5-E |
 
-*2.5-B · Wave slice (~4 d)* — mockups *Wave*, *Guardian fight*, *Arena feedback*, *Threat alerts*, *Module tooltip*, *Enemy card*
+*2.5-B · Wave slice (~4 d)* ✅ **2026-09-22** — mockups *Wave*, *Guardian fight*, *Arena feedback*, *Threat alerts*, *Module tooltip*, *Enemy card*
 | # | Task |
 |---|---|
-| B1 | Models on petals with idle float; enemies with float + slow self-rotation; spawn fade |
-| B2 | Hit lines (≤ 2 repeats/s rule), flake deaths (cap 12), Pulse ring + Core emissive, Core-hit coral tint, knockback interpolation |
-| B3 | Top bar with drawn icons + **wave progress hairline**; **Integrity arc** around the Core; damage numbers restyle (kills and > 25% only) |
-| B4 | Pulse button with cooldown ring and ready halo; speed and pause rounds |
-| B5 | **Module tooltip** (tap) and **enemy card** (tap, 48 dp hit area) — needs a read-only per-module "damage this wave" counter in the simulation (event data, test) |
-| B6 | **Edge markers** for off-screen elites/Guardian; **Guardian title card → HP bar** |
-| B7 | Act palette switch between acts (temporary: at the first wave of the act, until the act card of Phase 3) |
+| B1 | ✅ Models on petals with idle float (± 3.5 cm, own phase each); enemies hover and grow into place over 0.3 s — a scale-in, not an alpha fade: the lit shader is opaque |
+| B2 | ✅ Hit lines throttled per module (one every 0.5 s, the "≤ 2 per second in one spot" rule), flake deaths (4 per death, 12 at once), Pulse ring + Core emissive flare, Core-hit coral tint, knockback smoothed over a few frames |
+| B3 | ✅ Top bar with drawn icons + wave progress hairline (fed by `WaveEnemyCount` / `WaveEnemiesLeft`, new read-only counters with a test); **Integrity arc** around the Core — drawn in panel space, since a horizontal ring in the arena flattens against the Core under the 35° camera; damage numbers on kills and on hits worth a quarter of the target's health |
+| B4 | ✅ Pulse with a painted cooldown ring and a halo that breathes when ready; speed and pause are round, pause carries the drawn icon |
+| B5 | ✅ Module tooltip and enemy card on tap (48 dp pick radius), on a new read-only `DamageThisWave` per module (test: adds up, resets each wave) |
+| B6 | ✅ Edge markers for off-screen elites and Guardians; the Guardian announces its name, then the strip stays as its health bar |
+| B7 | ✅ Act palette switch at the first wave of an act (already in `ApplyActTheme`; the act card of Phase 3 will own it) |
 
-*2.5-C · Shop slice (~4 d)* — mockups *Shop*, *Offer card*, *Drag feedback*, *Combo inspector*, *Module sheet*, *Wave preview*
+*2.5-C · Shop slice (~4 d)* ✅ **2026-09-22** — mockups *Shop*, *Offer card*, *Drag feedback*, *Combo inspector*, *Module sheet*, *Wave preview*
 | # | Task |
 |---|---|
-| C1 | Offer cards v2: render, name, cost, category glyph, **reach dots** (range bands, D32), rarity border, merge badge, unaffordable/bought states |
-| C2 | Drag v2: ghost of the real model 48 dp above the finger, valid petals breathe, magnet, **reach band wedge** of the dragged module, preview bubble at the top, sell zone |
-| C3 | Merge fx (swell + gold glow), placement settle, combo links in gold |
-| C4 | **Combo inspector** (long-press a booster) and **module sheet** (long-press card/module, ★ levels side by side, hold to sell) |
-| C5 | **Wave preview** panel: threat chips + "new enemy" strip + spawn compass fed by the simulation's next-wave preview (directions histogram; becomes gates in Phase 3a) |
-| C6 | Camera shop ⇄ wave with cards dropping/rising 40 ms apart |
+| C1 | ✅ Offer cards v2: render at a fixed height, name on one line, category glyph, reach dots, rarity border, merge badge, unaffordable and bought states. The effect sentence is gone from the card, as `09` §2.3 asks — it wrapped to four lines and now lives in the drag preview and the sheet |
+| C2 | ✅ Drag v2: the ghost is the module's own render above the finger, valid petals breathe (4% over 1.4 s), magnet, a **reach circle** drawn at the dragged weapon's range from the hovered slot (a truer answer than a band wedge), preview bubble under the top bar, sell zone |
+| C3 | ✅ Merge swell + gold ring, settle-in growth when a module is placed, combo links in gold |
+| C4 | ✅ Long press (250 ms) opens the sheet: a module shows what it does, what it sells back for and — for a booster — which neighbours it is lifting (the combo inspector); an offer card shows its effect and cost. Hold-to-sell stays out: without a visible hold meter it is too easy to trigger by accident, and the module panel already has Sell |
+| C5 | ✅ Wave preview: a chip per enemy kind with its count and a gold border on a kind never met, plus an eight-sector **spawn compass** weighted by the next wave's directions |
+| C6 | ✅ Cards drop in 40 ms apart when the shop opens, over the camera move |
 
-*2.5-D · Wave end and overlays (~3 d)* — mockups *Wave summary*, *Run end*, *Pause*, *Options*
+*2.5-D · Wave end and overlays (~3 d)* ✅ **2026-09-22** — mockups *Wave summary*, *Run end*, *Pause*, *Options*
 | # | Task |
 |---|---|
-| D1 | Wave summary v2 with **damage share per module** (uses B5's counter), rolling Credits, tap to skip, animation speed option |
-| D2 | Run end v2 (defeat/victory, "stopped by", rolling totals, same-seed and share placeholders) |
-| D3 | Pause v2 (run info with seed, four quick options, hold to abandon); options sheet restyle with text size and high contrast (the `contrast` theme) |
+| D1 | ✅ Wave summary v2: the damage share of the top four modules as bars that fill after the numbers land, rolling Credits with the interest called out, tap to skip |
+| D2 | ✅ Run end v2: what stopped the run with its drawn icon, totals rolling up over 1.2 s, seed and replay status, and the "Same seed" / "Share" buttons in place, saying which phase brings them |
+| D3 | ✅ Pause v2 as a sheet: wave, Core, grade and seed, the four options worth changing mid-run, and **hold to abandon** with a filling label (a tap can never lose a run). Options gained **Large text** and **High contrast**, both generated from `tokens.json` into `.text-large` and `.theme-contrast` and applied as classes on the root — the arena keeps its act palette for now |
 
 *2.5-E · Device and gate (~2 d)*
 | # | Task |
 |---|---|
 | E1 | Android build; fps on the Pixel and on one 4 GB phone at all quality levels; fix stripping issues |
-| E2 | Side-by-side sheet: mood shot vs Unity (wave and shop) → `docs/art/compare-*.png` |
+| E2 | ✅ 2026-09-22: `docs/art/compare-wave.png` and `compare-shop.png`. What it showed: the framing gap that became D35, and tracers too faint at wave distance (now ivory at 0.6) |
 | E3 | **Testers (3–5, muted):** Gate 1 + Gate 2 questions + "calm but attractive, or prototype?" on the new build |
 
 **Gate 2.5:** the Unity build matches the mood shot side by side (camera, light, palette); the new information layer passes the Gate 1 questions (neighbourhood understood by the second shop, nobody stuck > 10 s); ≥ 3 of 5 testers say "attractive", not "prototype"; 30 fps on the 4 GB phone at Low, 60 fps on the Pixel at High.
@@ -255,23 +255,24 @@ The operational calendar is in **`10` §4** (revised mapping in **§4.2**) (6-mo
 ---
 
 ## 4. Where we are and next steps
-**Status (2026-09-22):** Phase 0 ✅ · Phase 1 ✅ (Gate 1 with testers pending) · Phase 2 ✅ in code (Gate 2 with testers pending) · **Phase 2.5 🔄** (design ✅ approved by the user, mood shot v1 ✅; Unity foundations A1–A6 ✅, A7 🔄) · Phase 3 ⬜ (waits for approval of `11`–`12`). 45 automated tests, balance `0.3.0`.
+**Status (2026-09-22):** Phase 0 ✅ · Phase 1 ✅ (Gate 1 with testers pending) · Phase 2 ✅ in code (Gate 2 with testers pending) · **Phase 2.5 🔄** (design ✅; foundations A1–A7 ✅ except the device checks of A3/A4; slices **B, C, D ✅**; E1 build and E3 testers left) · Phase 3 ⬜ (waits for approval of `11`–`12`). 47 automated tests, balance `0.3.0`.
 
 **Done in order:** bot runner → ScriptableObject content → `BuySlot` → compact notation → UI Toolkit HUD → magnetic drag with previews → merge animation and wave summary → options and haptics → 14 modules, 7 enemies, 3 acts, elites → balance v0.3 → Core types, Grades 1–3, Endless → replay R2 → save/resume → Core tuning, enemy silhouettes.
 
 **Next, in order:**
 1. ✅ **Android development build** (2026-09-22, Pixel 10, Android 17). Still to check by hand: dragging feel, haptics, fps on a 4 GB phone.
-2. **Phase 2.5-A — foundations**: A1 view split ✅ · A2 camera ✅ · A5 sky and rings ✅ · A6 models v1 ✅ · A3 light/post and A4 shader 🔄 (quality levels, draw calls and device check left) · A7 UI foundations 🔄 (tokens → USS ✅, card art ✅; fonts and icons left) · then **2.5-B Wave slice**.
+2. ✅ **Slices B (wave), C (shop) and D (overlays)** — 2026-09-22, see their tables above.
+3. **Phase 2.5-A — foundations**: A1 view split ✅ · A2 camera ✅ · A5 sky and rings ✅ · A6 models v1 ✅ · A7 UI foundations ✅ (tokens → USS, fonts, icons) · A3 light/post and A4 shader 🔄 (quality levels, draw calls and device check left) · then **2.5-B Wave slice**.
 3. **2.5-B Wave → 2.5-C Shop → 2.5-D Wave end and overlays → 2.5-E device + testers** (Gate 1, 2 and 2.5 together, on the new look).
 4. In parallel, the user: approve `11` (names, gates, economy) and choose the launch scope of `12`; open the **Google Play account** (D13).
 5. **Phase 3a** in the order of its table; then 3b art completion and 3c FTUE, audio, languages, profiling.
 6. Phase 4: Garden (Archive), Daily/Weekly with local leaderboard, replay codes and ghosts, `Services` fakes.
 
 **Resume here (handoff, 2026-09-22):**
-- *Waiting on the user:* (1) permission to download the Outfit + Nunito fonts (SIL OFL, Google Fonts GitHub `ofl/outfit`, `ofl/nunito`) into `Assets/UI/Fonts/`; (2) approval of `11` names and systems and the launch scope of `12` — Phase 3 does not start before; (3) Google Play account.
-- *Next task:* finish A7 (font assets with a Latin-1 atlas; drawn icons in the HUD, rasterised from `docs/art/icons/*.svg`), then 2.5-B Wave slice (task table above).
-- *Where things are:* design system (tokens, icons, all screen mockups) — artifact linked in `docs/README.md`; tokens copy `Tools/design/tokens.json` → `python Tools/tokens_to_uss.py` regenerates `Theme.uss`; models — run `Tools/blender/build_models_v1.py` in Blender (source `Art/Blender/models_v1.blend`, FBX to `Assets/Content/Resources/Models`, card art to `Assets/UI/Resources/Cards`); arena code in `Assets/Scripts/Presentation/Arena/`, shaders in `Assets/Shaders/`.
-- *Working notes:* portrait captures = render the camera into a 1080 × 2220 render texture and set `PanelSettings.targetTexture` for the UI (always restore it to null afterwards: it is an asset); Unity sometimes drops `InputSystem_Actions` from `preloadedAssets` in `ProjectSettings.asset` after Play mode — revert that line; USS reloads during Play leave a stale HUD in the editor (restart Play).
+- *Waiting on the user:* (1) approval of `11` names and systems and the launch scope of `12` — Phase 3 does not start before; (2) Google Play account; (3) **Gate 2.5 with 3–5 testers** (E3), on the build of E1.
+- *Next task:* **2.5-E1** — Android build, then fps at each quality level on the Pixel and on a 4 GB phone, and whatever stripping breaks. After that, Gate 2.5 and Phase 3.
+- *Where things are:* design system (tokens, icons, all screen mockups) — artifact linked in `docs/README.md`; tokens copy `Tools/design/tokens.json` → `python Tools/tokens_to_uss.py` regenerates `Theme.uss` (including `.theme-contrast` and `.text-large`); fonts → *TowerDefense → Content → Build font assets* (`Assets/Scripts/Editor/FontMenu.cs`); icons → `python Tools/icons_to_png.py`; models → run `Tools/blender/build_models_v1.py` in Blender; arena code in `Assets/Scripts/Presentation/Arena/`, HUD in `UI/HudView.cs` (now ~1,200 lines: splitting it is the first job of Phase 3's UI work).
+- *Working notes:* portrait captures = render the camera into a 1080 × 1920 render texture **and** set `PanelSettings.targetTexture`, then read the pixels in a **second** call — the panel needs a frame to repaint (always restore both to null afterwards). `Time.timeScale = 0` freezes anything driven by `Time.time`, which is how a 2.5 s bubble can be captured at all. Unity sometimes drops `InputSystem_Actions` from `preloadedAssets` in `ProjectSettings.asset` after Play mode — revert that line. USS reloads during Play leave a stale HUD in the editor (restart Play).
 
 **Known open points:** the Grade ladder is steep between 1 and 2; Mortar and Echo rarely appear (rare + act 2); the greedy bot never buys economy modules, so economy builds are untested by bots; the state hash gained fields (slot count, elites, dash timing) under balance version 0.3.0 — no replays from 0.2.0 exist.
 

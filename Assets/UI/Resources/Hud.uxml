@@ -4,20 +4,47 @@
         <ui:VisualElement name="numbers" class="numbers" picking-mode="Ignore" />
 
         <ui:VisualElement name="top-bar" class="top-bar" picking-mode="Ignore">
-            <ui:Label name="integrity" class="top-number" text="♥ 100" picking-mode="Ignore" />
+            <ui:VisualElement class="top-group" picking-mode="Ignore">
+                <ui:VisualElement name="integrity-icon" class="icon icon--integrity" picking-mode="Ignore" />
+                <ui:Label name="integrity" class="top-number" text="100" picking-mode="Ignore" />
+            </ui:VisualElement>
             <ui:Label name="wave" class="top-number" text="Wave 1/6" picking-mode="Ignore" />
-            <ui:VisualElement class="credits-group" picking-mode="Ignore">
-                <ui:VisualElement class="credit-icon" picking-mode="Ignore" />
+            <ui:VisualElement class="top-group" picking-mode="Ignore">
+                <ui:VisualElement class="icon icon--credits" picking-mode="Ignore" />
                 <ui:Label name="credits" class="top-number" text="6" picking-mode="Ignore" />
             </ui:VisualElement>
-            <ui:Button name="options-open" class="gear" text="..." />
+            <ui:Button name="options-open" class="gear" />
         </ui:VisualElement>
+
+        <ui:VisualElement name="wave-progress" class="wave-progress hidden" picking-mode="Ignore">
+            <ui:VisualElement name="wave-progress-fill" class="wave-progress__fill" picking-mode="Ignore" />
+        </ui:VisualElement>
+
+        <ui:Label name="preview-effect" class="preview-effect hidden" text="" picking-mode="Ignore" />
 
         <ui:Label name="toast" class="toast" picking-mode="Ignore" text="" />
 
+        <ui:VisualElement name="core-arc" class="core-arc hidden" picking-mode="Ignore" />
+
+        <ui:VisualElement name="edge-markers" class="numbers" picking-mode="Ignore" />
+
+        <ui:VisualElement name="guardian" class="guardian hidden" picking-mode="Ignore">
+            <ui:Label name="guardian-name" class="guardian__name" text="" picking-mode="Ignore" />
+            <ui:VisualElement name="guardian-track" class="guardian__track" picking-mode="Ignore">
+                <ui:VisualElement name="guardian-fill" class="guardian__fill" picking-mode="Ignore" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="inspector" class="inspector hidden" picking-mode="Ignore">
+            <ui:Label name="inspector-title" class="inspector__title" text="" picking-mode="Ignore" />
+            <ui:Label name="inspector-body" class="inspector__body" text="" picking-mode="Ignore" />
+        </ui:VisualElement>
+
         <ui:VisualElement name="shop" class="bottom-panel" picking-mode="Ignore">
-            <ui:Label name="preview" class="caption" text="Next: —" />
-            <ui:Label name="preview-effect" class="preview-effect hidden" text="" picking-mode="Ignore" />
+            <ui:VisualElement name="wave-preview" class="wave-preview" picking-mode="Ignore">
+                <ui:VisualElement name="compass" class="compass" picking-mode="Ignore" />
+                <ui:VisualElement name="threats" class="threats" picking-mode="Ignore" />
+            </ui:VisualElement>
             <ui:VisualElement name="sell-zone" class="sell-zone hidden" picking-mode="Ignore">
                 <ui:Label name="sell-zone-label" class="sell-zone__label" text="Sell" picking-mode="Ignore" />
             </ui:VisualElement>
@@ -38,7 +65,8 @@
 
         <ui:VisualElement name="wave-controls" class="bottom-panel wave-controls row hidden" picking-mode="Ignore">
             <ui:VisualElement name="pulse" class="pulse">
-                <ui:VisualElement name="pulse-fill" class="pulse__fill" picking-mode="Ignore" />
+                <ui:VisualElement name="pulse-halo" class="pulse__halo" picking-mode="Ignore" />
+                <ui:VisualElement name="pulse-ring" class="pulse__ring" picking-mode="Ignore" />
                 <ui:Label name="pulse-label" class="pulse__label" text="Pulse" picking-mode="Ignore" />
             </ui:VisualElement>
             <ui:VisualElement name="side-buttons" class="side-buttons column" picking-mode="Ignore">
@@ -70,6 +98,14 @@
                     <ui:Label class="option-row__label" text="Default speed" picking-mode="Ignore" />
                     <ui:Button name="opt-speed" class="btn btn-secondary option-row__button" text="1x" />
                 </ui:VisualElement>
+                <ui:VisualElement class="option-row">
+                    <ui:Label class="option-row__label" text="Large text" picking-mode="Ignore" />
+                    <ui:Toggle name="opt-large-text" class="option-row__control" />
+                </ui:VisualElement>
+                <ui:VisualElement class="option-row">
+                    <ui:Label class="option-row__label" text="High contrast" picking-mode="Ignore" />
+                    <ui:Toggle name="opt-contrast" class="option-row__control" />
+                </ui:VisualElement>
                 <ui:Label class="sheet__subtitle" text="Next run" picking-mode="Ignore" />
                 <ui:VisualElement class="option-row">
                     <ui:Label class="option-row__label" text="Core" picking-mode="Ignore" />
@@ -87,24 +123,62 @@
             </ui:VisualElement>
         </ui:VisualElement>
 
+        <ui:VisualElement name="pause-sheet" class="overlay hidden">
+            <ui:VisualElement class="sheet glass" picking-mode="Ignore">
+                <ui:Label class="sheet__title" text="Paused" picking-mode="Ignore" />
+                <ui:Label name="pause-info" class="overlay__stats" text="" picking-mode="Ignore" />
+                <ui:VisualElement class="option-row">
+                    <ui:Label class="option-row__label" text="Reduce motion" picking-mode="Ignore" />
+                    <ui:Toggle name="pause-reduce-motion" class="option-row__control" />
+                </ui:VisualElement>
+                <ui:VisualElement class="option-row">
+                    <ui:Label class="option-row__label" text="Effect intensity" picking-mode="Ignore" />
+                    <ui:SliderInt name="pause-effects" class="option-row__slider" low-value="0" high-value="100" value="100" />
+                </ui:VisualElement>
+                <ui:VisualElement class="option-row">
+                    <ui:Label class="option-row__label" text="Damage numbers" picking-mode="Ignore" />
+                    <ui:Button name="pause-numbers" class="btn btn-secondary option-row__button" text="All" />
+                </ui:VisualElement>
+                <ui:VisualElement class="option-row">
+                    <ui:Label class="option-row__label" text="Speed" picking-mode="Ignore" />
+                    <ui:Button name="pause-speed" class="btn btn-secondary option-row__button" text="1x" />
+                </ui:VisualElement>
+                <ui:Button name="pause-abandon" class="btn btn-secondary" text="Hold to abandon" />
+                <ui:Button name="pause-resume" class="btn btn-primary sheet__close" text="Resume" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
         <ui:VisualElement name="wave-summary" class="summary hidden">
             <ui:VisualElement class="summary__panel glass" picking-mode="Ignore">
                 <ui:Label name="summary-title" class="summary__title" text="Wave 1 cleared" picking-mode="Ignore" />
                 <ui:Label name="summary-damage" class="summary__line" text="" picking-mode="Ignore" />
                 <ui:Label name="summary-credits" class="summary__line summary__credits" text="" picking-mode="Ignore" />
+                <ui:VisualElement name="summary-shares" class="summary__shares" picking-mode="Ignore" />
                 <ui:Label class="summary__hint" text="tap to continue" picking-mode="Ignore" />
             </ui:VisualElement>
         </ui:VisualElement>
 
         <ui:VisualElement name="drag-ghost" class="drag-ghost hidden" picking-mode="Ignore">
+            <ui:VisualElement name="ghost-art" class="drag-ghost__art" picking-mode="Ignore" />
             <ui:Label name="ghost-name" class="card__name" text="" picking-mode="Ignore" />
-            <ui:Label name="ghost-cost" class="card__cost" text="" picking-mode="Ignore" />
         </ui:VisualElement>
 
         <ui:VisualElement name="game-over" class="overlay hidden">
-            <ui:Label name="game-over-title" class="overlay__title" text="Victory" />
-            <ui:Label name="game-over-stats" class="overlay__stats" text="" />
-            <ui:Button name="play-again" class="btn btn-primary" text="Play again" />
+            <ui:VisualElement class="sheet glass" picking-mode="Ignore">
+                <ui:Label name="game-over-title" class="overlay__title" text="Victory" picking-mode="Ignore" />
+                <ui:VisualElement name="stopped-by" class="stopped-by hidden" picking-mode="Ignore">
+                    <ui:VisualElement name="stopped-icon" class="threat__icon" picking-mode="Ignore" />
+                    <ui:Label name="stopped-label" class="stopped-by__label" text="" picking-mode="Ignore" />
+                </ui:VisualElement>
+                <ui:Label name="total-damage" class="run-total" text="" picking-mode="Ignore" />
+                <ui:Label name="total-kills" class="run-total" text="" picking-mode="Ignore" />
+                <ui:Label name="game-over-stats" class="overlay__stats" text="" picking-mode="Ignore" />
+                <ui:VisualElement class="run-end-actions row">
+                    <ui:Button name="same-seed" class="btn btn-secondary" text="Same seed" />
+                    <ui:Button name="share-run" class="btn btn-secondary" text="Share" />
+                </ui:VisualElement>
+                <ui:Button name="play-again" class="btn btn-primary sheet__close" text="Play again" />
+            </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>
