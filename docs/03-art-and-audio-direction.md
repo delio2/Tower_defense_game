@@ -1,6 +1,6 @@
 # 03 — Art and audio direction ("Dusk Garden")
 
-> Version 4 · 2026-09-22 · Status: direction v2 (Phase 2.5, D30): mood shot v1 done, to approve. This is the **art bible**: every visual or audio rule lives here. UI screens and components are in `09`; the living tokens, icons, components and interactive screen mockups are in the **Dusk Garden design system** (https://claude.ai/artifact/5aKRr9H8e3WJsMui64MNnu). Where the two disagree, the design system's tokens win and this file is updated.
+> Version 4 · 2026-09-22 · Status: direction v2 (Phase 2.5, D30): mood shot v1 done and the direction approved by the user; testers confirm it at Gate 2.5. This is the **art bible**: every visual or audio rule lives here. UI screens and components are in `09`; the living tokens, icons, components and interactive screen mockups are in the **Dusk Garden design system** (https://claude.ai/artifact/5aKRr9H8e3WJsMui64MNnu). Where the two disagree, the design system's tokens win and this file is updated.
 > **Feeling to convey:** a geometric garden at dusk. Calm, soft, elegant; the numbers grow but the screen stays serene.
 > **Anti-copy rule (D20):** the identity must be **clearly different** from The Tower (neon on black, square tower, range circle).
 
@@ -84,13 +84,14 @@ The palette switches only at the act card, never during a wave. Endless stays in
 Module levels: L1 = base shape · L2 = a **second, brighter face** · L3 = **three faces** and a golden edge. Readable from afar without numbers.
 
 ### A6. Lighting and rendering (URP, mobile)
-- **Camera:** orthographic, tilted **35°**; during waves the arena fills the screen width (edge ring 9.0 visible); in the shop the whole ring sits in the upper half (about 4 units, the prototype's 3.4 cropped the petals); 0.6 s ease-in-out transition. No camera motion during a wave.
+- **Camera:** orthographic, tilted **35°**; during waves the arena fills the screen width (edge ring 9.0 visible); in the shop the whole ring sits in the upper half (about 4 units, the prototype's 3.4 cropped the petals); 0.6 s ease-in-out transition. During a wave the view **follows the fight** (D35): close (5.6) while everything is near, opening to the whole arena (9.4) when an enemy is far — it opens quickly and closes slowly, never pumping; no other camera motion.
 - **Tone mapping:** none/Standard (sRGB). AgX and filmic curves grey the ivory Core and shift the palette (mood shot v1 lesson).
-- **Lights:** one warm directional light (`#FFD9A8`, 35° elevation, from the upper left) + gradient ambient (sky `#3B3F72`, ground `#141630`). Soft shadows only at medium/high quality (1 cascade, 1024 resolution).
+- **Lights:** one warm directional light (`#FFD9A8`, 35° elevation, from the upper left) + gradient ambient (sky `#3B3F72`, ground `#141630`). Shadows by quality level (D36): none on Low, hard 1024 on Medium, soft 2048 on High (1 cascade).
 - **Post-processing:** bloom threshold 1.1, intensity 0.3 (light: visible only on emissive); vignette 0.25; **no** chromatic aberration, grain or CRT (motion sickness, Balatro lesson); one "dusk" LUT (shadows towards blue, warm highlights).
 - **Background:** gradient + concentric rings at 15–20% + vignette. **Still.** Only the Core breathes. **No continuous rotation** of background or ring.
 - **The rings are range bands (v4, D32):** ring I 3.0 (Pulse reach; glows softly when the Pulse is ready), II 5.5, III 7.5, edge 9.0 (gates). The band a module reaches lights in its sector while dragging. Allied Sprites (`12` §5) use the `ally` pale lavender `#C9C2FF`, never coral.
 - **Budget:** ≤ 40 draw calls, ≤ 60k triangles on screen, 4 materials (one per category + enemies) with the SRP Batcher; shadows and bloom off in the "low" quality level. Target: 30 fps on 4 GB phones with 60 enemies, 60 fps on mid-range (D4).
+- **Quality levels (D36):** **Low** — no shadows, no HDR, no post-processing (so no bloom or vignette), render scale 0.75; **Medium** — hard shadows (1024), bloom and vignette, render scale 0.8; **High** — soft shadows (2048), 4× MSAA, render scale 1.0. **Auto** (default) picks by device memory: ≤ 4.5 GB Low, ≤ 6.5 GB Medium, above that High. Palette, shapes and motion are identical on every level: only light quality changes.
 - **Motion:** enemies move only because they advance, with a slow self-rotation and a light vertical float (±0.03 units, 2 s). All decorative motion turns off with "reduce motion".
 
 ### A7. Micro-animation catalogue (all eased, none stepped)
@@ -120,7 +121,7 @@ Module levels: L1 = base shape · L2 = a **second, brighter face** · L3 = **thr
 ### A8. On-screen readability
 - **Three depth planes:** background (range-band rings at 15–20%), arena (Core, modules, enemies, effects), interface (dark glass: ivory at 6%, 1 px border at 12%).
 - **Scale hierarchy:** Core 1.4 > Guardian 1.0 > Brute 0.55 > modules 0.5 > Drifter 0.35 > Swarmlet 0.2. Bigger = more important.
-- **Typography (v4, PROPOSAL):** **Outfit** (SIL OFL) for every number and for act/Guardian titles, **Nunito** (SIL OFL) for words; tabular figures for counters. Minimum 14 sp for in-game numbers, 16 sp in the interface, 20 sp for Credits and wave. Text size option 100–200%. Styles are the design system's type tokens.
+- **Typography (v4, decided and built — D34, 2.5-A7):** **Outfit** (SIL OFL) for every number and for act/Guardian titles, **Nunito** (SIL OFL) for words; tabular figures for counters. Minimum 14 sp for in-game numbers, 16 sp in the interface, 20 sp for Credits and wave. Text size option 100–200%. Styles are the design system's type tokens.
 - **Numbers:** compact notation above 9,999 (12.3K · 4.5M · 6.7B), ivory; important hits at 150% in gold, without flash; can be hidden.
 - **Clutter control** (for exploding numbers): cap on simultaneous effects; numbers **only for kills** and important hits, a summary at wave end for the rest; effects **attenuate automatically** with many enemies.
 
@@ -135,7 +136,7 @@ One carefully made screen (Core with petals, 3 modules, some enemies, shop cards
 - arena rings at 16% alpha are enough; the combo link reads well as a thin gold arc.
 
 ### A10. Production with AI
-- **Blender via MCP:** parametric scripts for petals, gems, rings, shards (one `.blend` per family); glTF export to `Assets/Models/<family>/`; 1 unit = 1 m.
+- **Blender via MCP:** parametric scripts for petals, gems, rings, shards (one `.blend` per family); FBX export to `Assets/Content/Resources/Models/<family>/` (`Tools/blender/build_models_v1.py`, loaded by kind at runtime); 1 unit = 1 m.
 - **Unity via MCP:** 4 URP Lit materials + 1 Unlit for lines; post-processing volume; prefabs for Core, module (L1–L3 variants), enemy.
 - **Card icons rendered from the 3D models** (same light, same camera): free consistency between game and cards.
 - Store icons and art: image generator **within this style guide** (palette and shapes above).

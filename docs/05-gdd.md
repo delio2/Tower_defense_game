@@ -217,7 +217,7 @@ At most **one line of text** per hint. Second-by-second script: `07` §1.5. Prog
 - **Preview computed by the simulation** (read-only function on a copy of the ring): what you see is exactly what happens.
 
 ### 15.2 Options (from the prototype)
-Reduce motion · effect intensity · damage numbers (all / big only / none) · haptics · speed 1x/2x/3x · **large text** · **high contrast** (the design system's fourth theme; both added in 2.5-D3). Later: colour-blind modes (`03` B7).
+Reduce motion · effect intensity · damage numbers (all / big only / none) · haptics · speed 1x/2x/3x · **large text** · **high contrast** (the design system's fourth theme; both added in 2.5-D3) · **graphics quality** Auto/Low/Medium/High (`03` A6, D36) · **language** Auto/English/Italiano (D38). Later: colour-blind modes (`03` B7).
 
 ## 16. Technical architecture
 | Module | Responsibility |
@@ -272,6 +272,18 @@ Reduce motion · effect intensity · damage numbers (all / big only / none) · h
 - [x] **Core types and Grades (2026-09-22, 150 seeds, MaxDps / Naive win rates):** Standard 56 / 8 · Merchant 45 / 2 · Bastion 92 / 6 → tuned to **2 Credits**: 76 / 6 · Glass 92 / 41 → tuned to **Emitter only, 0 Credits**: 68 / 16 · Grade 1: 42 / 4 · Grade 2: 18 / 1 · Grade 3: 9 / 0. The Grade ladder is steep between 1 and 2 (−1 Credit per wave weighs a lot): to review with testers.
 - [x] **Winning builds (300 seeds, MaxDps, Grade 0, 59% wins):** 38 distinct weapon/booster sets among the wins; the most common are Arc+Emitter+Scatter with Amplifier+Lens(+Overclock), then Lance variants; Mortar and Echo are rare (rare rarity, act 2+). The greedy bot never buys economy modules, so "economy" builds are untested by bots. → The 6-slot ring supports at least three different winning weapon sets (Gate 2 criterion), pending human confirmation.
 
+- [x] **Bot farm probe (2026-09-22, balance 0.3.0, `Tools/BotFarm`, 1,000–2,000 seeds per cell):** four new bots — archetypes **Swarm** (multi-target weapons weigh ×2), **Sniper** (Lance, Mortar, Lens, Amplifier ×2), **Fortress** (Bulwark, Frost, Capacitor first, eager Pulse) and **Planner** (at every shop it tries five archetypes on copies of the run, plays the next wave on each and keeps the best: an upper bound for a very good player). Win rates:
+  | Setting | Naive | MaxDps | Economy | Swarm | Sniper | Fortress | Planner |
+  |---|---|---|---|---|---|---|---|
+  | Standard, Grade 0 | 8% | 64% | 31% | 60% | **83%** | 69% | 97% |
+  | Grade 1 | 4% | 48% | 19% | 42% | 69% | 58% | 93% |
+  | Grade 2 | 2% | 20% | 6% | 19% | 35% | 33% | 73% |
+  | Grade 3 | 2% | 13% | 2% | 12% | 28% | 23% | 69% |
+  | Merchant | 3% | 49% | 11% | 40% | 68% | 42% | 88% |
+  | Bastion | 8% | 78% | **0%** | 70% | **88%** | 50% | 92% |
+  | Glass | 16% | 68% | 24% | 56% | 82% | 66% | 98% |
+  → (1) **Sniper breaks the "no fixed strategy above 85%" rule with Bastion (88%)** and is at 83% on Standard: Lance and Mortar are the strongest weapons. (2) Defensive builds work (Fortress 69%, 22 Pulses per run), economy builds do not (EconomyFirst 31%, 0% with Bastion). (3) The Grade 1 → 2 step is confirmed steep (Sniper 69% → 35%). (4) The Planner wins 97% at Grade 0: a player who reads the next wave can nearly always win; Grades must carry the challenge for experts. (5) Deaths cluster at the Guardians (waves 12 and 18). 15 distinct winning weapon sets per archetype, so Gate 2's "three builds" holds for bots. No number was changed: the fixes are **PROPOSALS** for the user (`04` D37).
+
 ## 19. Prototype status
 *Updated 2026-09-22, end of the Phase 2.5 slices. What exists in the repository, not what is planned.*
 
@@ -292,6 +304,10 @@ Reduce motion · effect intensity · damage numbers (all / big only / none) · h
 8. ⬜ **Test with 3–5 people** (muted first) — Gate 1, Gate 2 and Gate 2.5 together, on the current build.
 9. ⬜ Decision: go on, fix, or change.
 
-**47 automated tests** (EditMode, assembly `TowerDefense.Simulation.Tests`).
+10. ✅ **Quality levels** Low/Medium/High with an Auto choice by device memory (D36).
+11. ✅ **Automated testing** (D37): the headless bot farm `Tools/BotFarm` (seven bots, thousands of runs in seconds, results in §18) and the autoplay benchmark (a bot plays the real game on emulators or a phone and logs frame times, memory and the final state hash — the same hash as the farm, so determinism is checked across platforms).
+12. ✅ **Playtest kit** (E3, `13`): every session is logged on the device (real wave and shop times, idle stretches, run length, first-run funnel) and `Tools/playtest/report.py` turns the logs into the Gate numbers.
+
+**52 automated tests** (EditMode, assembly `TowerDefense.Simulation.Tests`).
 
 **Exit criteria ("it works"):** at least 3 testers out of 5 ask to play again; they understand the neighbourhood without explanations by the second shop; nobody is stuck for more than 10 s; real duration is measured. The full phase plan is in `06`.

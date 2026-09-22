@@ -90,7 +90,7 @@ Mechanics are free, look and names are not. **Different visual identity** from T
 | Too few players for multiplayer | Asynchronous play works with few players; bot-generated ghosts at first |
 
 ## 11. First playable version (MVP) `(estimate)`
-- 1 Core, 1 act (5 waves + Guardian), the 14 MVP modules (weapons, boosters, economy; `05` §6), shop with merge, Pulse, the 6 enemies + Guardian (`05` §8). *The current prototype has 7 modules and 3 enemies + Guardian.*
+- 1 Core, 1 act (5 waves + Guardian), the 14 MVP modules (weapons, boosters, economy; `05` §6), shop with merge, Pulse, the 6 enemies + Guardian (`05` §8). *The prototype has had all of it since Phase 2 (14 modules, 7 enemies + Guardian, 3 acts).*
 - Local replay recording and verification; Daily Run with the day's seed (local leaderboard for now).
 - **Timeline with AI assistance** `(estimate)`, detailed month by month in `10` §4:
   | Milestone | Time |

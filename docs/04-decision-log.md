@@ -1,6 +1,6 @@
 # 04 — Decision log
 
-> Version 4 · 2026-09-22 · Status: living document. Format per decision: **question → data → what the best do → decision → confidence**.
+> Version 5 · 2026-09-22 · Status: living document (v5: D36–D38). Format per decision: **question → data → what the best do → decision → confidence**.
 > Confidence: 🟢 high · 🟡 medium, to confirm in the prototype · 🔴 low, hypothesis.
 > Decisions are numbered in the order they were taken. **Superseded** decisions are kept as one-line history. The D17 pivot (2026-09-21) replaced the "musical maze defense" concept with "central Core + modules with combos + asynchronous multiplayer" (D17–D21).
 
@@ -32,7 +32,7 @@
 - **Reason:** volume and soft shadows with URP, depth in videos, the Blender/MCP pipeline is ready, and it stays as readable as 2D.
 - **Risk:** bloom and shadow performance on budget phones. Mitigation: quality levels with bloom and shadows off.
 - **Validation:** quick comparison in the mood shot (`03` A9): tilted orthographic 3D vs top-down.
-- *D17 update (`03` v2):* "Dusk Garden" uses **softly lit** materials (warm key + cool ambient, soft shadows) and an orthographic camera **tilted about 35°**. The prototype still uses unlit materials and a top-down view.
+- *D17 update (`03` v2):* "Dusk Garden" uses **softly lit** materials (warm key + cool ambient, soft shadows) and an orthographic camera **tilted about 35°**. Built in Phase 2.5 (A2–A4): lit three-surface materials and the 35° camera are in the game.
 
 ### D6 — Online or offline? → **Offline-first; Unity Gaming Services backend (D21), Play Games Services optional** 🟢
 - **Data:** offline play is a recurring player request and a strength of Mini TD 2 and Thronefall.
@@ -73,7 +73,7 @@
 **TODO — before letting other people try the game (closed test)**
 - [ ] **Google Play account**: choose personal vs organization, verify identity, reserve the package name *(personal requires 12 testers × 14 days + about 7 days of review; organization requires D-U-N-S and can take weeks → start in month 1, `10` §4)*
 - [ ] **Analytics + crash reporting** (Firebase or GameAnalytics → D24)
-- [ ] Analytics events: tutorial funnel (`07` §4.5), run start/end, act and wave reached, defeat (wave and cause), shop buys/sells/merges/undos, Pulse use, wave and shop durations
+- [x] Analytics events: tutorial funnel (`07` §3), run start/end, act and wave reached, defeat (wave and cause), shop buys/sells/merges/undos, Pulse use, wave and shop durations — defined and recorded by the local fake (`IAnalytics` → `LocalAnalytics`, `SessionRecorder`, 2026-09-22); the real SDK plugs in behind the same interface (D24)
 - [ ] Minimal privacy policy (needed for the closed test if data is collected)
 - [ ] ⚖️ **Consent at first start (D16)**: integrate Google UMP **before** the tutorial (only where mandatory) and start analytics and crash reporting **after** the answer. To be checked by a lawyer before publishing
 - [ ] Discord / tester group (at least 12 for a personal account)
@@ -166,6 +166,24 @@
 - **Decision (user):** neither fixed framing. The wave view **follows the fight**: it sits close (5.6 units) while everything is near, and opens out to the whole arena (9.4) as soon as an enemy is further away, so a distant threat is never a surprise. It opens quickly and closes slowly, so it never pumps while enemies come and go. The shop close-up (3.4) is unchanged.
 - **Consequence:** A2's criterion is read as "the view never hides an enemy", not "the view is always the whole arena".
 
+### D38 — Keyed strings, English and Italian 🟢 *(2026-09-22, technical; Italian word choices to confirm)*
+- **Question:** the presentation rule says "strings by key, never text in code", yet about 130 player-facing strings were written in C# and UXML; D7 wants EN + IT in the game first; `11` §1 may rename half of the game's words.
+- **Decision:** one table, `Assets/UI/Resources/Strings.txt` (key, English, Italian, tab-separated, editable by hand); `Loc.T(key, args)` in code and `@key` in UXML; an option **Language: Auto / English / Italiano** (Auto follows the phone). Names of modules, enemies and Cores are keys too, so the `11` §1 renames become a table edit. A test fails if any key the game uses is missing, if a language lacks a line, if the two languages take different arguments, or if a character falls outside what the fonts draw.
+- **Italian word choices (to confirm with the user):** Wave → Ondata, Guardian → Guardiano, Credits → Crediti, Pulse → Impulso, Core → Nucleo, Grade → Grado, Endless → Infinita, Seed stays Seed; proper names of modules, enemies and Cores stay English until `11` §1 is decided.
+
+### D37 — Automated testing: a headless bot farm and an autoplay benchmark 🟢 *(2026-09-22, user request)*
+- **Question:** the user asked for many emulator instances at different screen sizes and more advanced bots — "as if we had thousands of testers".
+- **Decision:** two tools. (1) **`Tools/BotFarm`**, a .NET console app that compiles the Simulation sources unchanged and plays thousands of runs on every core (12,000 runs in about 2 s); same final hashes as the Unity editor. New bots: Swarm, Sniper, Fortress and the lookahead **Planner** (`05` §18). (2) **Autoplay benchmark**: the game started with a `benchmark` intent extra lets a bot play a whole run through the real presentation and logs frame times, draw calls, memory and the final state hash per wave; `Tools/bench/run_emulators.py` boots the AVDs in parallel (Small phone, Medium phone, Pixel 9 Pro, Pixel 9 Pro Fold, Pixel Tablet), installs the benchmark APK (ARM64: Unity 6.6 dropped x86_64 for Android, so the x86_64 emulator images run it through their ARM translation), collects the logs and screenshots of shops and Guardian waves, and checks that every device ends with the same hash.
+- **First results (2026-09-22):** the same benchmark run (MaxDps, seed 4) ended with the **same state hash** in the Unity editor, in the .NET farm and on an x86_64 emulator running the ARM64 build through translation — determinism holds across CPUs and runtimes, which is what server-side replay verification (D19, D23) needs. Two emulator traps, both handled by the script: Android's one-time "Viewing full screen" prompt steals focus and Unity waits behind it on the splash (the script taps it away), and the images' own `uwb-service` crashes every few seconds (ignored: only our process counts). The "Draw Calls Count" profiler counter reads 0 in players; SetPass calls and triangles are logged instead.
+- **Five-device run (2026-09-22):** Small phone 720x1280 (4 GB, Auto chose Low), Medium phone (6 GB, Medium), Pixel 9 Pro, Pixel 9 Pro Fold and Pixel Tablet (8 GB, High): all won the MaxDps run on seed 4 with the replay verified and the same final hash; about 100 MB of memory; at most 22 enemies alive at once. The tablet shows the portrait game pillarboxed, as expected. Screenshots per device in `Temp/Bench/<time>/`.
+- **Limits, written down:** emulator frame rates run on the PC's GPU, so they are not phone performance (real fps: the Pixel and a 4 GB phone through `--device`); no bot answers whether the game is fun, understood, or pleasant to touch — the Gate testers stay.
+- **Open, for the user (PROPOSALS from the farm):** Sniper above 85% with Bastion; economy builds too weak; the Grade 1 → 2 step. Candidate levers: Lance/Mortar damage −10%, Bank +1 Credit per wave, Grade 2 at −1 Credit every other wave.
+
+### D36 — Three quality levels, all built on the mobile renderer 🟢 *(2026-09-22, technical)*
+- **Question:** task 2.5-A3 asks for Low / Medium / High; the project had two levels, *Mobile* and *PC*, and the PC asset is Unity's desktop template (screen-space ambient occlusion, Forward+, depth and opaque textures, GPU Resident Drawer) — a look nobody designed and a cost no phone needs.
+- **Decision:** three levels on one renderer (`Mobile_Renderer`), one URP asset each: **Low** (no shadows, no HDR, post-processing skipped by the camera, render scale 0.75), **Medium** (the former Mobile asset, unchanged — the one measured at 60 fps on the Pixel 10), **High** (soft shadows 2048, 4× MSAA, render scale 1.0). The PC level and its assets were removed; every platform uses the same three. An option **Graphics: Auto / Low / Medium / High** (default Auto) switches at runtime; Auto reads the device memory (≤ 4.5 GB Low, ≤ 6.5 GB Medium, else High — thresholds are an estimate, D4 names the 4 GB phone as the reference). Presentation only: replays are unaffected.
+- **Measured (editor, wave 17):** Low cuts SetPass calls from 24 to 6 and triangles from ~18k to ~9.7k (no shadow pass). To confirm on devices: High at 60 fps on the Pixel, Low at 30 fps on a 4 GB phone (Gate 2.5).
+
 ### D34 — How the UI typefaces and icons are produced 🟢 *(2026-09-22, technical)*
 - **Question:** the design system asks for Outfit and Nunito at weights 600/700/800 and a 47-icon line set; Google Fonts ships only variable files and the icons are SVG, which Unity does not read.
 - **Decision:** bake the weights from the variable files as Unity font assets (*Content → Build font assets*), reading each weight as a **named instance** and keeping the assets **dynamic** with a pre-baked Latin-1 atlas — Unity 6 no longer draws static font assets, and dynamic ones also cover a character the atlas does not hold. Nunito falls back to Outfit for the arrow it does not draw. Icons are rasterised to 96 px PNGs by `Tools/icons_to_png.py` through **headless Edge** (already on the machine, nothing to install), white on transparency so each use tints its own copy. The user approved the font download (SIL OFL) on 2026-09-22. Detail in `09` §5.
@@ -191,7 +209,6 @@
 | Pulse as a choice | P1 resonance (3+ enemies hit → next cooldown −25%); P2 as a rare "Resonator" booster; P3 "Focus" tap only if testers get bored | `07` §1.7 |
 | Difficulty | Grades 4–10 (1–3 are implemented, D28) | `07` §2.2 |
 | Defeat | one contextual tip after 3 defeats in the same act, never a hidden nerf | `07` §2.4 |
-| Typography | Outfit for numbers and display + Nunito for text (both SIL OFL), replacing Nunito alone (D30) | `03` A8 |
 | Blueprints | +5 for the first win of the day, +3 for the Daily (even if lost), +2 for the top half | `08` §1.4, `10` §1.1 |
 | Blueprint packs | cap of 400 per 7 days | `08` §2.2 |
 | Shop bad-luck protection | 2 shops without a booster → the third guarantees one (deterministic); a rare guaranteed in the first shop of acts 2 and 3 | `08` §4.2 |
@@ -214,6 +231,8 @@
 | Economy v2 | Flawless +1, elite +1, Leech −3; run pool of 16; owned ×1.5; free Lock; Boons after Guardians | `11` §6 |
 | Run structure v2 | act path, Charms (replace Boons), affinities, Nests/Sprites, special petals, editions, Pouch; Outposts in Update 1 | `12` |
 | In-run mini windows | module tooltip, enemy card, edge markers, combo inspector; none pauses the game | `09` §2.2 |
+| Balance from the bot farm | Sniper archetype above 85% (Bastion 88%): Lance/Mortar damage −10%; economy builds weak: Bank +1 Credit per wave; Grade 2 softer (−1 Credit every other wave) | `05` §18, D37 |
+| Italian words | Wave → Ondata, Credits → Crediti, Pulse → Impulso, Core → Nucleo, Grade → Grado, Endless → Infinita; proper names stay English until `11` §1 | D38, `Assets/UI/Resources/Strings.txt` |
 | Marketing | WebGL demo of act 1 on itch.io | `10` §3.2 |
 | Schedule | the three compression choices and a release at the end of March 2027 (possible slip to April) | `10` §4.0 |
 

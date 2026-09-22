@@ -12,9 +12,10 @@ Roguelite core defense for Android (Unity 6, URP, C#). Deterministic simulation 
 
 ## Project facts
 - Unity **6000.6.2f1**, Universal 3D (URP 17.6), new Input System, UI Toolkit (D22). Portrait, one-handed. minSdk 26, targetSdk 36.
-- Assemblies: `Assets/Scripts/Simulation` (pure C#, `noEngineReferences`), `Assets/Scripts/Presentation` (Unity; HUD in `UI/HudView.cs` with `Assets/UI/Resources/Hud.uxml` + `Theme.uss`), `Assets/Scripts/Editor`, `Assets/Tests/EditMode` (NUnit).
+- Assemblies: `Assets/Scripts/Simulation` (pure C#, `noEngineReferences`), `Assets/Scripts/Presentation` (Unity; HUD in `UI/` — `HudView` is the facade, one panel per screen part: `WaveHud`, `ShopPanel` + `OfferCards` + `WavePreview`, `ArenaOverlay`, `WaveSummaryPanel`, `RunEndPanel`, `PauseSheet`, `OptionsSheet` — with `Assets/UI/Resources/Hud.uxml` + `Theme.uss`), `Assets/Scripts/Editor`, `Assets/Tests/EditMode` (NUnit).
 - Scene: `Assets/Scenes/Prototype.unity`. Balance data: ScriptableObjects in `Assets/Content/Resources/` (catalog `PrototypeCatalog`), generated from `ContentDatabase.CreatePrototypeDefaults()` by *TowerDefense → Content → Generate…*; the defaults stay the reference for tests.
 - UI assets are generated, never hand-edited: `python Tools/tokens_to_uss.py` writes the `Theme.uss` variables (plus `.theme-contrast` and `.text-large`) from `Tools/design/tokens.json`; *TowerDefense → Content → Build font assets* bakes the three weights from the variable fonts; `python Tools/icons_to_png.py` rasterises `docs/art/icons/*.svg` into `Assets/UI/Icons` (outside Resources: reference them from USS, not `Resources.Load`).
+- Player-facing text lives only in `Assets/UI/Resources/Strings.txt` (key, English, Italian): `Loc.T("key", args)` in code, `@key` in UXML; a test checks every key (D38).
 - Git: this folder is the repository; Git LFS for binaries. **Commit only when the user asks** (`/commit` skill). A dynamic font asset rewrites itself after Play: `git checkout -- Assets/UI/Fonts/` before committing.
 
 ## Tools (MCP)
@@ -28,6 +29,7 @@ Roguelite core defense for Android (Unity 6, URP, C#). Deterministic simulation 
 ## Verify before saying "done"
 - After any C# change: `read_console` until there are no compile errors, then `/verify` (runs the EditMode tests, assembly `TowerDefense.Simulation.Tests`). All tests must pass.
 - Without Unity MCP: `python Tools/compile_check.py` compiles the four assemblies offline (no tests).
+- Balance changes: run the bot farm (`dotnet run -c Release --project Tools/BotFarm -- --seeds 1000 --strategies all`) and record the probe in `docs/05` §18. Device checks: benchmark APK + `python Tools/bench/run_emulators.py` (D37). Playtests: `docs/13`, tester APK, `python Tools/playtest/report.py`.
 - After visual changes: take a screenshot and look at it. The camera screenshot excludes the UI Toolkit overlay: use `ScreenCapture.CaptureScreenshot` via `execute_code` for the full Game View (its alpha compositing makes glass panels look opaque: check transparency in the editor, not in the capture).
 
 ## Rules that always apply

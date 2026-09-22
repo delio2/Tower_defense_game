@@ -183,7 +183,7 @@
 One list, grouped, with **immediate preview** (changes are visible behind the veil):
 - **Visual:** reduce motion · effect intensity (slider) · damage numbers (all / big / none) · text size (100–200%, with a sample text) · colour-blind (3 presets, with a colour preview) · high contrast.
 - **Audio and touch:** music · effects · haptics.
-- **Game:** default speed · animation speed (1x / 2x / instant) · Calm Mode (`08` §4.3, with the note "unranked").
+- **Game:** language (Auto / English / Italiano, D38) · default speed · graphics quality (Auto / Low / Medium / High, `03` A6; built 2026-09-22) · animation speed (1x / 2x / instant) · Calm Mode (`08` §4.3, with the note "unranked").
 - **Account and privacy:** consent (reviewable), restore purchases, delete data (hold 1 s).
 - The four most requested options (reduce motion, intensity, numbers, haptics) are also reachable **from pause** in one tap.
 
@@ -285,12 +285,12 @@ Never lateral slides between screens (they imply a hierarchy that does not exist
 ---
 
 ## 5. Design tokens (for UI Toolkit, D22)
-> **v2:** the source of truth is now `tokens.json` in the design system (https://claude.ai/artifact/5aKRr9H8e3WJsMui64MNnu): 4 themes (Act I Dusk, Act II Twilight, Act III Night, High contrast), sky tokens, `surface-glass`/`surface-raised`, `ally`, Outfit + Nunito type styles, shadows and sizes. `Theme.uss` is to be regenerated from it (Phase 2.5-A). The block below is the v1 summary kept for history.
+> **v2:** the source of truth is now `tokens.json` in the design system (https://claude.ai/artifact/5aKRr9H8e3WJsMui64MNnu): 4 themes (Act I Dusk, Act II Twilight, Act III Night, High contrast), sky tokens, `surface-glass`/`surface-raised`, `ally`, Outfit + Nunito type styles, shadows and sizes. `Theme.uss` is generated from it (`Tools/tokens_to_uss.py`, done in 2.5-A7). The block below is the v1 summary kept for history.
 
 **How it is wired (2026-09-22, task 2.5-A7).**
 - `Tools/design/tokens.json` is the local copy of the design system's tokens; `python Tools/tokens_to_uss.py` rewrites the `tokens:begin`/`tokens:end` block of `Assets/UI/Resources/Theme.uss` (1 dp = 3 px at the 1080-wide reference). Hand-written rules below the block are kept. **No rule writes a literal colour**: the four translucent states the design system describes but does not tokenise — pressed button, Pulse fill, uncommon border, sheet scrim — are derived from their base colour by the script (`--press-tint`, `--fill-tint`, `--border-uncommon`, `--scrim`).
 - **Typefaces.** Outfit writes the numbers the player tracks, Nunito the words. *TowerDefense → Content → Build font assets* bakes three weights out of the two variable fonts in `Assets/UI/Fonts` (SIL OFL, from Google Fonts): `Outfit-SemiBold` (600), `Nunito-SemiBold` (600), `Nunito-ExtraBold` (800, also used for the 700 caption, whose 12 dp size hides the difference). The assets are dynamic with the Latin-1 atlas pre-baked, so the text costs nothing at runtime and an unexpected character is still drawn instead of showing a box; Nunito falls back to Outfit for the arrow of the drag preview, which it does not draw. Static font assets are *not* an option: Unity 6 no longer renders them.
-- **Icons.** `python Tools/icons_to_png.py` rasterises the design system's 47 line icons (`docs/art/icons/*.svg`) into `Assets/UI/Icons` at 96 px, white on transparency, through headless Edge; each use tints its own copy (`-unity-background-image-tint-color`). In the HUD so far: Integrity, Credits, Options. The rest arrive with slices 2.5-B and 2.5-C.
+- **Icons.** `python Tools/icons_to_png.py` rasterises the design system's 47 line icons (`docs/art/icons/*.svg`) into `Assets/UI/Icons` at 96 px, white on transparency, through headless Edge; each use tints its own copy (`-unity-background-image-tint-color`). Used across the HUD since slices 2.5-B to D (top bar, Pulse, pause, merge badge, action buttons, run end).
 ```
 Grid            8 dp · gutter 16 dp · thumb zone = bottom third
 Radii           cards 16 · buttons 24 · sheets 32 (top corners only)
@@ -302,7 +302,7 @@ Durations       touch 80 · state 150 · component 250 · screen 200 · camera 6
 Curves          ease-out (cubic 0.2,0.8,0.2,1) · ease-out-back (0.34,1.56,0.64,1) for settles
 Touch           minimum 48 × 48 dp · drag threshold 8 dp · long press 250 ms · hold 1,000 ms
 ```
-Everything lives in one USS file (`Assets/UI/Theme.uss`) with variables: seasonal themes change only colour variables, never measures.
+Everything lives in one USS file (`Assets/UI/Resources/Theme.uss`) with variables: seasonal themes change only colour variables, never measures.
 
 ---
 

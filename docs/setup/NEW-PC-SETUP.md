@@ -50,7 +50,7 @@ The first GitHub access opens a login window (Git Credential Manager).
 7. In the Game View choose a **portrait** resolution: resolution menu → **+** → *Fixed Resolution* 1080 × 1920.
 8. Press **Play** to try the prototype (keep Unity in the foreground).
 
-**Check that everything works:** Window → General → **Test Runner** → EditMode → **Run All** → all tests must pass (45 as of 2026-09-22).
+**Check that everything works:** Window → General → **Test Runner** → EditMode → **Run All** → all tests must pass (52 as of 2026-09-22).
 
 ## 5. Connecting Claude Code (MCP)
 The repository already contains `.mcp.json` (Unity server), `.claude/settings.json`, rules and skills: **opening Claude Code inside `TowerDefense` is enough for Unity.** The parent-folder configuration below adds the Blender server and lets one session span several game projects.
@@ -93,7 +93,12 @@ git push                 # at the end: save online
 3. Unity: **File → Build Profiles → Android → Switch Platform** (slow the first time) → **Build And Run**. With Claude: `manage_build` (`platform android`, then `build` with `auto_run`); the APK lands in `Builds/Android/` (ignored by git). Screenshots from the phone: `adb exec-out screencap -p > file.png`; errors: `adb logcat -d -s Unity:E`.
    Android settings are already in the project: portrait, Android 8+ minimum, target Android 16, IL2CPP ARM64, provisional package `com.d3lioss.towerdefense`.
 
-## 8. Common problems
+## 8. Automated testing (optional)
+- **Bot farm** (needs only the .NET SDK): `dotnet run -c Release --project Tools/BotFarm -- --seeds 1000 --strategies all` plays thousands of bot runs with the game's own simulation; results in `Temp/Balance/`.
+- **Emulators** (needs **Android Studio**, https://developer.android.com/studio): enable *Windows Hypervisor Platform* in Windows features and reboot; in Android Studio → Virtual Device Manager create the devices (on the original PC: Small Phone, Medium Phone, Pixel 9 Pro, Pixel 9 Pro Fold, Pixel Tablet, x86_64 images). Then Unity menu *TowerDefense → Build → Android benchmark APK* and `python Tools/bench/run_emulators.py` (results in `Temp/Bench/`). Emulator frame rates are not phone frame rates.
+- **Playtests:** `docs/13-playtest-protocol.md`; *TowerDefense → Build → Android tester APK*; after each tester, with the phone on USB, `python Tools/playtest/report.py`.
+
+## 9. Common problems
 | Problem | Solution |
 |---|---|
 | Claude says "unity: ConnectionRefused" | Unity closed or MCP server not started → Start Server, then reopen the Claude session |

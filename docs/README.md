@@ -1,6 +1,6 @@
 # Design documentation — working title "TowerDefense"
 
-**Status (2026-09-22):** pre-production. Phases 1 and 2 of [06-development-plan.md](06-development-plan.md) are done in code (deterministic simulation with the full MVP roster, UI Toolkit HUD with magnetic drag, options, save/resume, balance v0.3 tuned by bots; 47 automated tests). Now in **Phase 2.5 — visual overhaul** (D30): design system and mood shot v1 done and approved by the user; Unity foundations A1–A7 done, and the three vertical slices **B (wave), C (shop) and D (overlays)** with them: models in motion, the information layer of the wave, offer cards v2 with reach dots, long-press sheets, wave preview with a spawn compass, damage share, pause and run end, large text and high contrast. The Android build runs on a Pixel 10 at 60 fps (E1) and the comparison sheets are in `art/` (E2). Left: the Low/Medium/High quality split, a 4 GB phone, and the tester gate (E3). Proposals under review: `11`, `12`. **Start from `06` §4.**
+**Status (2026-09-22):** pre-production. Phases 1 and 2 of [06-development-plan.md](06-development-plan.md) are done in code (deterministic simulation with the full MVP roster, UI Toolkit HUD with magnetic drag, options, save/resume, balance v0.3 tuned by bots; 52 automated tests). Now in **Phase 2.5 — visual overhaul** (D30): design system and mood shot v1 done and approved by the user; Unity foundations A1–A7 done, and the three vertical slices **B (wave), C (shop) and D (overlays)** with them: models in motion, the information layer of the wave, offer cards v2 with reach dots, long-press sheets, wave preview with a spawn compass, damage share, pause and run end, large text and high contrast. The Android build runs on a Pixel 10 at 60 fps (E1) and the comparison sheets are in `art/` (E2). Since then: Low/Medium/High quality levels (D36); a headless bot farm with seven bots and an autoplay benchmark that runs on five Android emulators (D37); the HUD split into one panel per screen part (A1 met); keyed strings with the game in **English and Italian** (D38); and the playtest kit — protocol `13`, session logs on the device, a report script. Left: the tester sessions (E3), fps on a 4 GB phone and High on the Pixel. Proposals under review: `11`, `12`. **Start from `06` §4.**
 
 ## How these documents work
 - **One source of truth per topic.** Numbers and rules live in the GDD (`05`). Direction lives in `03`. Decisions live in `04`. The briefs (`07`–`10`) add detail for a phase; when a brief changes a rule, the change goes into `05` and the reason into `04`.
@@ -16,7 +16,7 @@
 | [01-concept.md](01-concept.md) | **Concept v2**: a Core at the centre, a ring of modules with neighbour combos, asynchronous multiplayer on replays |
 | [02-monetization-and-marketing.md](02-monetization-and-marketing.md) | Fixed rules ("never pay-to-win"), models A (trial + unlock) and B (fair free-to-play), rewards, marketing principles |
 | [03-art-and-audio-direction.md](03-art-and-audio-direction.md) | **Art bible** "Dusk Garden": principles, identity, palette, shapes, lighting, micro-animation catalogue, tactile interaction, haptics, audio |
-| [04-decision-log.md](04-decision-log.md) | Decisions D1–D21 (current form; superseded ones as one-line history) and **open decisions** |
+| [04-decision-log.md](04-decision-log.md) | Decisions D1–D38 (current form; superseded ones as one-line history) and **open decisions** |
 | [05-gdd.md](05-gdd.md) | **Game Design Document v0.2**: glossary, rules, numbers, modes, replay format, architecture, open questions, prototype status |
 | [06-development-plan.md](06-development-plan.md) | Seven phases with deliverables and exit gates; what the community loves/hates mapped to phases; next steps |
 | [07-gameplay-brief.md](07-gameplay-brief.md) | Phase 1 brief: input spec, second-by-second first run, enemies-as-questions, difficulty curves |
@@ -25,6 +25,7 @@
 | [10-liveops-and-roadmap.md](10-liveops-and-roadmap.md) | Daily challenge, leaderboards and anti-cheat, secondary modes, multiplayer gates, launch marketing and store listing, **6-month roadmap** |
 | [11-content-and-systems-brief.md](11-content-and-systems-brief.md) | **PROPOSAL** (D31): simpler names, shape grammar, 36 modules, 14 enemies + 3 Guardians, spawn gates and sectors, act rhythm, rewards, economy v2 |
 | [12-run-structure-and-synergies-brief.md](12-run-structure-and-synergies-brief.md) | **PROPOSAL** (D32): rings as range bands (decided), act path, Charms, affinities, Nests and allied Sprites, rare and special petals, editions, the Pouch |
+| [13-playtest-protocol.md](13-playtest-protocol.md) | **How to run the tester sessions** (E3, Gates 1, 2, 2.5): who, setup, what to say, observation sheet, questions, the report script |
 | [art/](art/) | Mood shot v1 renders, transparent module/enemy renders, the 47 SVG icons (source: `Art/Blender/moodshot.blend`) |
 | [Dusk Garden design system](https://claude.ai/artifact/5aKRr9H8e3WJsMui64MNnu) | **Living visual reference** (private artifact): tokens for 4 themes, icons, components and every screen as an interactive mockup, research, screen map |
 | [setup/NEW-PC-SETUP.md](setup/NEW-PC-SETUP.md) | How to set up a new PC: software, clone, Unity, MCP, Claude Code, Git |
@@ -35,6 +36,7 @@ The repository carries its own Claude configuration, so a fresh session on any P
 - `.claude/rules/` — path-scoped rules loaded only when the matching files are touched: `simulation.md`, `presentation.md`, `docs.md`.
 - `.claude/skills/` — `/verify` (console + EditMode tests through MCP) and `/commit` (user-only).
 - `.claude/settings.json` — enables the `unity` MCP server from `.mcp.json` and pre-approves read-only tools.
+- `Tools/` — `BotFarm` (headless balance bots, .NET), `bench/run_emulators.py` (autoplay benchmark on emulators or a phone), `playtest/report.py` (Gate numbers from tester sessions), `compile_check.py`, and the generators for tokens, icons and Blender models.
 - Personal, per-machine notes go in `CLAUDE.local.md` (gitignored). Claude's auto-memory lives outside the repository and is not a substitute for these files.
 History of the abandoned v1 concept ("musical maze defense") is in git history before commit `b136844`; it is not kept in the tree.
 
@@ -56,6 +58,7 @@ History of the abandoned v1 concept ("musical maze defense") is in git history b
 | **FTUE** | first-time user experience (the first minutes after install) |
 | **GDD** | game design document |
 | **GDPR** | EU General Data Protection Regulation |
+| **HDR** | high dynamic range (colour values above 1, needed for bloom) |
 | **HP** | hit points |
 | **IAP** | in-app purchase |
 | **IARC** | International Age Rating Coalition (store age ratings) |
@@ -66,10 +69,12 @@ History of the abandoned v1 concept ("musical maze defense") is in git history b
 | **LFS** | Git Large File Storage |
 | **LTS** | long-term support release |
 | **MCP** | Model Context Protocol (how Claude drives Unity and Blender) |
+| **MSAA** | multisample anti-aliasing (smooths model edges) |
 | **MVP** | minimum viable product |
 | **PGS** | Google Play Games Services |
 | **PvP** | player versus player |
 | **QoL** | quality of life (features) |
+| **RAM** | device memory |
 | **RNG** | random number generator |
 | **SDK** | software development kit |
 | **SO** | ScriptableObject (Unity data asset) |

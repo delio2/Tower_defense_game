@@ -13,7 +13,7 @@ paths:
 - **Rendering:** orthographic camera tilted 35°, warm key + gradient ambient, three-surface materials (body, fresnel rim, low emissive), tone mapping None (not AgX/ACES: they grey the ivory).
 - **Mobile budget:** low-poly, ≤ 4 materials per category, SRP Batcher-friendly, no per-frame allocations in `Update`, pooling for lines and numbers, 30 fps on a 4 GB phone.
 - **Touch (`docs/07` §1.2, `docs/09`):** targets ≥ 48 dp, drag threshold 8 dp, dragged object above the finger, magnet 0.45 units, long press 250 ms, hold 1 s for irreversible actions, no confirmation dialogs (Undo is the confirmation).
-- **UI Toolkit** for HUD, cards and options (D22); tokens in `Assets/UI/Theme.uss` (`docs/09` §5); strings by key, never text in code.
+- **UI Toolkit** for HUD, cards and options (D22); tokens in `Assets/UI/Resources/Theme.uss` (`docs/09` §5); strings by key, never text in code: `Loc.T("key")` / `@key` in UXML, the table is `Assets/UI/Resources/Strings.txt` (EN + IT, D38).
 - **Content ScriptableObjects** (`Assets/Content/`) mirror `ModuleDefinition`/`EnemyDefinition`/`RunConfig` and are loaded into `ContentDatabase` by `ContentLoader`; the numbers must equal `docs/05-gdd.md` and the defaults' hash test must stay green.
 - Private fields `_camelCase`, `[SerializeField] private`, no public fields; `Application.targetFrameRate = 60`.
 - After a visual change: screenshot via MCP (`Temp/Screenshots`) and look at it before reporting.
