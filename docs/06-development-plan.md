@@ -170,15 +170,20 @@ The operational calendar is in **`10` §4** (6-month roadmap, October 2026 → M
 
 ---
 
-## 4. Next steps (in order)
-1. ✅ Bot runner + CSV (2026-09-21).
-2. ✅ `ContentLoader` from ScriptableObjects + equivalence tests (2026-09-22).
-3. ✅ `BuySlot` command + tests (2026-09-22).
-4. ✅ UI Toolkit instead of IMGUI (2026-09-22).
-5. ✅ Dragging with magnet and preview (2026-09-22) — manual check on the phone pending.
-6. ✅ Undo and Sell in the UI; animated merge; wave-end summary (2026-09-22).
-7. ✅ Basic options + haptics (2026-09-22).
-8. Android development build on the phone → Gate 1 with 3–5 testers.
+## 4. Where we are and next steps
+**Status (2026-09-22):** Phase 0 ✅ · Phase 1 ✅ (all deliverables; Gate 1 with testers pending) · Phase 2 ✅ in code (Gate 2 with testers pending) · Phase 3 ⬜ next. 45 automated tests, balance `0.3.0`.
+
+**Done in order:** bot runner → ScriptableObject content → `BuySlot` → compact notation → UI Toolkit HUD → magnetic drag with previews → merge animation and wave summary → options and haptics → 14 modules, 7 enemies, 3 acts, elites → balance v0.3 → Core types, Grades 1–3, Endless → replay R2 → save/resume → Core tuning, enemy silhouettes.
+
+**Next, in order:**
+1. **Android development build** on a phone (USB debugging; `docs/setup/NEW-PC-SETUP.md` §7). Check touch dragging, haptics, 30 fps, the wave summary and the options sheet on the device.
+2. **Gate 1 + Gate 2 with 3–5 testers** (muted): the criteria are in Phase 1 and Phase 2 above. Record durations, whether the neighbourhood is understood by the second shop, and which builds win.
+3. **Google Play account** (the user; long lead time, D13).
+4. **Phase 3 — mood shot** (`03` A9) in Blender via MCP: Core with petals, one module of each category, two enemies, a card; then the tilted 35° camera and URP lighting; then models for the 14 modules and 7 enemies.
+5. Phase 3 continued: final UI (icons rendered from the models, wave preview with icons), FTUE (`07` §1.5), audio, EN/IT strings, on-device profiling.
+6. Phase 4: Blueprints and Archive, Daily/Weekly with local leaderboard, replay codes and ghosts, `Services` fakes.
+
+**Known open points:** the Grade ladder is steep between 1 and 2; Mortar and Echo rarely appear (rare + act 2); the greedy bot never buys economy modules, so economy builds are untested by bots; the state hash gained fields (slot count, elites, dash timing) under balance version 0.3.0 — no replays from 0.2.0 exist.
 
 ## 5. Open decisions
 D22–D25 and the open proposals are listed in **`04` §Open decisions**.

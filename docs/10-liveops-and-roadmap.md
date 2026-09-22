@@ -152,6 +152,8 @@ Never other games' names, never fake UI: **real gameplay only** (`02` §5), the 
 
 Each month = a `06` phase, a **gate** and an "if it fails" line. Work inside a month runs in parallel; the order is logical, not rigid.
 
+> **Progress note (2026-09-22):** Phases 1 and 2 were completed in code on 2026-09-21/22, ahead of this calendar; the tester gates and the Android build are the open items. Month 2 (art) can start early; the month labels below stay as the original plan.
+
 ### Month 1 — October 2026 · Core mechanics and tactile prototype (= Phase 1)
 - ✅ Bot runner + CSV (2026-09-21) · ✅ ScriptableObject `ContentLoader` (2026-09-22) · ✅ `BuySlot` (2026-09-22) · ✅ compact notation (2026-09-22).
 - UI Toolkit instead of IMGUI; dragging with magnet and preview; Undo and Sell; animated merge; wave-end summary; basic options; haptics.

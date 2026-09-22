@@ -6,7 +6,7 @@ Roguelite core defense for Android (Unity 6, URP, C#). Deterministic simulation 
 - Chat with the user in **Italian**. Everything else in **English**: docs, code, comments, logs, commit messages.
 
 ## Start of every session
-1. Read `docs/README.md` (index + conventions) and `docs/06-development-plan.md` §4 (next steps).
+1. Read `docs/README.md` (index + conventions) and `docs/06-development-plan.md` §4 (status, next steps, known open points).
 2. Run `git log --oneline -10` and `git status` to see where the work stopped.
 3. Do not install software: propose it, the user installs by hand.
 
