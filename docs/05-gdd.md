@@ -200,7 +200,7 @@ At most **one line of text** per hint. Second-by-second script: `07` §1.5. Prog
 - **Top:** Core integrity · wave X/18 · Credits.
 - **Centre:** the circular arena with the Core and the ring. The concentric rings are **range bands** (D32): I 3.0 = Pulse reach, II 5.5 = short, III 7.5 = mid, edge 9.0 = spawn edge; offer cards show a module's reach as ●○○/●●○/●●● (exact ranges stay in §6).
 - **Bottom, during a wave:** a large **Pulse** button with visible cooldown · speed 1x/2x/3x · pause.
-- **Bottom, in the shop:** 4 **offer cards** (icon, name, cost, short effect) · Reroll · **Undo** · **Next wave**. Active combos are shown as **soft lines** between neighbours.
+- **Bottom, in the shop:** 4 **offer cards** (render, name, category glyph, reach dots, cost — the effect sentence lives in the drag preview and the module sheet, `09` §2.3) · Reroll · **Undo** · **Next wave**. Active combos are shown as **soft lines** between neighbours.
 - Buttons of at least 48 dp, very little text, icons. Screens and components: `09`.
 
 ### 15.1 Shop interaction: dragging (details in `03` Part B)
@@ -217,7 +217,7 @@ At most **one line of text** per hint. Second-by-second script: `07` §1.5. Prog
 - **Preview computed by the simulation** (read-only function on a copy of the ring): what you see is exactly what happens.
 
 ### 15.2 Options (from the prototype)
-Reduce motion · effect intensity · damage numbers (all / big only / none) · haptics · speed 1x/2x/3x. Later: text size, colour-blind modes, high contrast (`03` B7).
+Reduce motion · effect intensity · damage numbers (all / big only / none) · haptics · speed 1x/2x/3x · **large text** · **high contrast** (the design system's fourth theme; both added in 2.5-D3). Later: colour-blind modes (`03` B7).
 
 ## 16. Technical architecture
 | Module | Responsibility |
@@ -273,13 +273,25 @@ Reduce motion · effect intensity · damage numbers (all / big only / none) · h
 - [x] **Winning builds (300 seeds, MaxDps, Grade 0, 59% wins):** 38 distinct weapon/booster sets among the wins; the most common are Arc+Emitter+Scatter with Amplifier+Lens(+Overclock), then Lance variants; Mortar and Echo are rare (rare rarity, act 2+). The greedy bot never buys economy modules, so "economy" builds are untested by bots. → The 6-slot ring supports at least three different winning weapon sets (Gate 2 criterion), pending human confirmation.
 
 ## 19. Prototype status
-1. ✅ **Simulation v2** (reuses RNG, hash and commands): radial arena, Core, 3 enemies (Drifter, Swarmlet, Brute) + Guardian, 7 modules (Emitter, Scatter, Amplifier, Lens, Overclock, Bank, Bulwark), shop with merge and undo, previews, Pulse, 1 act.
-2. ✅ **Replay:** recording, playback and hash verification (automated test, including tampering).
-2b. ✅ **Balance bots** (`BalanceBot`, `BalanceRunner`, editor menu `TowerDefense/Balance`): three strategies, CSV + console summary; first results in §18.
-2c. ✅ **Content in ScriptableObjects** (`Assets/Content/Resources`, `ContentLoader`): the prototype reads balance data from assets equal to the code defaults.
-2d. ✅ **Extra slot** (`BuySlot`, ring 6 → 8, undo, preview, bots buy it when the ring is full). **26 automated tests** in total (compact notation `NumberFormat` included).
-3. 🔄 **Calm presentation** with simple shapes and a provisional interface, **with tactile interaction** (§15.1). *Done:* `Prototype` scene, simple shapes, tap card → tap slot, Sell/Move, Reroll, Next wave, Pulse, speed 1x/2x/3x, pause, damage numbers, combo lines. *Missing:* magnetic drag, **Undo in the UI** (the command exists), **previews in the UI** (the `TryPreview*` functions exist but are unused), drag-to-sell, animated merge, wave-end summary, haptics, basic options.
-4. ⬜ **Test with 3–5 people** (muted first).
-5. ⬜ Decision: go on, fix, or change.
+*Updated 2026-09-22, end of the Phase 2.5 slices. What exists in the repository, not what is planned.*
+
+1. ✅ **Simulation** (§16): radial arena, 4 Core types, 14 modules, 7 enemies + Guardian, elites, 3 acts of 6 waves,
+   Grades 0–3, Endless, shop with merge, reroll, extra slot and undo, previews, Pulse. Everything is a command, so
+   everything is replayable. Read-only bookkeeping for the interface: wave enemy counts and per-module damage.
+2. ✅ **Replay `R2`:** recording, playback and hash verification, including tampering; verified on the device too.
+3. ✅ **Save and resume** at every shop; the save is dropped when the balance version changes.
+4. ✅ **Balance bots** (`TowerDefense/Balance`): three strategies, CSV and console summary; results in §18.
+5. ✅ **Content in ScriptableObjects** (`Assets/Content/Resources`): equal to the code defaults, with a hash test.
+6. ✅ **Presentation** (Phase 2.5): Blender models on the ring and for every enemy, tilted camera that follows the
+   fight, three-surface shader, act skies, range-band rings; the wave's information layer (progress hairline,
+   Integrity ring, Pulse cooldown ring, edge markers, Guardian bar, module and enemy inspectors); the shop
+   (offer cards v2 with reach dots, model ghost while dragging with its reach circle, long-press sheets, threat
+   chips and spawn compass); the overlays (wave summary with damage share, run end, pause, options with large text
+   and high contrast). Typefaces and icons come from the design system.
+7. ✅ **Android:** development build, 60 fps on a Pixel 10 in shop and wave.
+8. ⬜ **Test with 3–5 people** (muted first) — Gate 1, Gate 2 and Gate 2.5 together, on the current build.
+9. ⬜ Decision: go on, fix, or change.
+
+**47 automated tests** (EditMode, assembly `TowerDefense.Simulation.Tests`).
 
 **Exit criteria ("it works"):** at least 3 testers out of 5 ask to play again; they understand the neighbourhood without explanations by the second shop; nobody is stuck for more than 10 s; real duration is measured. The full phase plan is in `06`.

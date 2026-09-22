@@ -14,7 +14,8 @@ Roguelite core defense for Android (Unity 6, URP, C#). Deterministic simulation 
 - Unity **6000.6.2f1**, Universal 3D (URP 17.6), new Input System, UI Toolkit (D22). Portrait, one-handed. minSdk 26, targetSdk 36.
 - Assemblies: `Assets/Scripts/Simulation` (pure C#, `noEngineReferences`), `Assets/Scripts/Presentation` (Unity; HUD in `UI/HudView.cs` with `Assets/UI/Resources/Hud.uxml` + `Theme.uss`), `Assets/Scripts/Editor`, `Assets/Tests/EditMode` (NUnit).
 - Scene: `Assets/Scenes/Prototype.unity`. Balance data: ScriptableObjects in `Assets/Content/Resources/` (catalog `PrototypeCatalog`), generated from `ContentDatabase.CreatePrototypeDefaults()` by *TowerDefense → Content → Generate…*; the defaults stay the reference for tests.
-- Git: this folder is the repository; Git LFS for binaries. **Commit only when the user asks** (`/commit` skill).
+- UI assets are generated, never hand-edited: `python Tools/tokens_to_uss.py` writes the `Theme.uss` variables (plus `.theme-contrast` and `.text-large`) from `Tools/design/tokens.json`; *TowerDefense → Content → Build font assets* bakes the three weights from the variable fonts; `python Tools/icons_to_png.py` rasterises `docs/art/icons/*.svg` into `Assets/UI/Icons` (outside Resources: reference them from USS, not `Resources.Load`).
+- Git: this folder is the repository; Git LFS for binaries. **Commit only when the user asks** (`/commit` skill). A dynamic font asset rewrites itself after Play: `git checkout -- Assets/UI/Fonts/` before committing.
 
 ## Tools (MCP)
 - **unity** (MCP for Unity, `http://127.0.0.1:8080/mcp`): requires Unity open with *Window → MCP for Unity → Start Server*. If not connected, open the session in the parent folder that holds `.mcp.json` or start the server and restart the session (`docs/setup/NEW-PC-SETUP.md` §5).

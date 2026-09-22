@@ -98,7 +98,7 @@ Module levels: L1 = base shape · L2 = a **second, brighter face** · L3 = **thr
 |---|---|---|---|---|
 | Core idle | scale 1.00 → 1.03 | 4 s cycle | sine | off with "reduce motion" |
 | Module idle | rises/falls 0.02 units | 3 s cycle | sine, offset per slot | idem |
-| Spawn | fade 0 → 1 + slow self-rotation | 300 ms | ease-out | — |
+| Spawn | grows 0.35 → 1 + slow self-rotation | 300 ms | ease-out | a scale-in, not an alpha fade: the lit three-surface shader is opaque, and a fade would need a second, transparent material per enemy |
 | Weapon fires | 4% recoil inward; thin line weapon → target | 120 ms; line 200–300 ms | ease-out-back | max 2 visible repeats per second per module: faster fire keeps the line lit instead of repeating; one module never draws overlapping lines |
 | Enemy hit | 3% visual nudge outward (visual only; the simulated position does not change) | 80 ms | ease-out | numbers only for kills and hits > 25% of HP |
 | Enemy dies | 6–10 flakes, alpha 1 → 0, scale 1 → 0.6 | 400 ms | ease-out | cap: 12 animated deaths at once, the rest just fade |

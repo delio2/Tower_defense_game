@@ -72,8 +72,8 @@
 │                              │
 │        (whole arena,         │
 │        camera at 9.4 u,      │
-│        integrity = arc       │  ← PROPOSAL: integrity also as a thin arc around the Core
-│        around the Core)      │     (seen without looking up)
+│        integrity = arc       │  ← built (2.5-B3): a ring around the Core, drawn in panel space
+│        around the Core)      │     because a flat ring vanishes under the 35° camera
 │                              │
 │                              │
 │                              │
@@ -118,8 +118,8 @@
 ```
 - **Card anatomy** (78 × 108 dp, v2): render of the 3D model (same light as the game), name, cost with the Credits icon, category glyph in the corner, **reach dots ●○○/●●○/●●●** (range bands, D32), rarity border, "⇧ L2" (★★ if `11` §1 is approved) badge when buying would merge. The effect sentence moved to the drag preview and the module sheet: at card width it wrapped to four lines.
 - **Card states:** normal · lifted (while dragging) · unaffordable (60% alpha, cost in faint coral) · bought (fades out and the others **do not shift**: the gap stays, so card positions are stable).
-- **Module sheet** (long press on a card or module, 250 ms): rises to half screen: large 3D model, stats at L1/L2/L3 with the current one highlighted, "affected by: Amplifier (left), Lens (right)". Closes by dragging down. From here: **Sell** (hold 1 s) as an alternative to the Sell zone.
-- **Extra slot** (current rule, `05` §5; `12` proposes making it rare via Grove/Charm): appears as a special **fifth card** "Slot +1 · 8", draggable onto the ring where you want to insert it (the ring opens with a 300 ms animation).
+- **Module sheet** (long press on a card or module, 250 ms): rises to half screen: large 3D model, stats at L1/L2/L3 with the current one highlighted, "affected by: Amplifier (left), Lens (right)". Closes by dragging down. From here: **Sell** (hold 1 s) as an alternative to the Sell zone. *Built so far (2.5-C4): the sheet is the read-only bubble with stats, sell value and, for a booster, the neighbours it lifts. Hold-to-sell is deliberately not wired: without a visible hold meter it sells by accident, and the module panel already has Sell.*
+- **Extra slot** (current rule, `05` §5; `12` proposes making it rare via Grove/Charm): appears as a special **fifth card** "Slot +1 · 8", draggable onto the ring where you want to insert it (the ring opens with a 300 ms animation). *Today it is an icon button beside Reroll; the card form waits for Phase 3.*
 
 ### 2.4 Run end — victory and defeat (same structure)
 ```

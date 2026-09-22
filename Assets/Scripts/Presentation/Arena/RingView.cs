@@ -222,12 +222,13 @@ namespace TowerDefense.Presentation.Arena
         private static float Phase(int moduleId) => moduleId * 1.7f % 6.2831853f;
 
         /// <summary>
-        /// The idle float of docs/03 A7: ± 3.5 cm over 2.6 s, each module on its own phase so the ring never breathes
-        /// in lockstep. Still under "reduce motion".
+        /// The idle float of docs/03 A7: 0.02 units over a 3 s cycle, each module on its own phase so the ring never
+        /// breathes in lockstep. Still under "reduce motion".
         /// </summary>
         private static float IdleFloat(float phase)
         {
-            return PlayerOptions.ReduceMotion ? 0f : 0.035f * Mathf.Sin(Time.time * 2.4f + phase);
+            const float cycleSeconds = 3f;
+            return PlayerOptions.ReduceMotion ? 0f : 0.02f * Mathf.Sin(Time.time * (2f * Mathf.PI / cycleSeconds) + phase);
         }
 
         /// <summary>Models look along local −Z: point that away from the Core (Lance aims outward).</summary>
