@@ -455,6 +455,17 @@
     margin-top: 36px;
 }
 
+.sheet__subtitle {
+    font-size: var(--font-caption);
+    color: var(--ivory-40);
+    -unity-text-align: middle-center;
+    margin-top: 24px;
+}
+
+.option-row {
+    height: 108px;
+}
+
 /* End-of-wave summary (docs/03 B4): progressive counting, tap anywhere to skip */
 .summary {
     position: absolute;

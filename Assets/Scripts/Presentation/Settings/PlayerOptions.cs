@@ -1,3 +1,4 @@
+using TowerDefense.Simulation;
 using UnityEngine;
 
 namespace TowerDefense.Presentation.Settings
@@ -20,6 +21,9 @@ namespace TowerDefense.Presentation.Settings
         private const string DamageNumbersKey = "options.damageNumbers";
         private const string HapticsKey = "options.haptics";
         private const string DefaultSpeedKey = "options.defaultSpeed";
+        private const string CoreKey = "run.core";
+        private const string GradeKey = "run.grade";
+        private const string EndlessKey = "run.endless";
 
         public static bool ReduceMotion
         {
@@ -53,6 +57,25 @@ namespace TowerDefense.Presentation.Settings
         {
             get => Mathf.Clamp(PlayerPrefs.GetInt(DefaultSpeedKey, 1), 1, 3);
             set => PlayerPrefs.SetInt(DefaultSpeedKey, Mathf.Clamp(value, 1, 3));
+        }
+
+        // Choices for the next run (a Home screen replaces these in Phase 3/4, docs/09 §2.1)
+        public static CoreType Core
+        {
+            get => (CoreType)Mathf.Clamp(PlayerPrefs.GetInt(CoreKey, 0), 0, 3);
+            set => PlayerPrefs.SetInt(CoreKey, (int)value);
+        }
+
+        public static int Grade
+        {
+            get => Mathf.Clamp(PlayerPrefs.GetInt(GradeKey, 0), 0, 3);
+            set => PlayerPrefs.SetInt(GradeKey, Mathf.Clamp(value, 0, 3));
+        }
+
+        public static bool Endless
+        {
+            get => PlayerPrefs.GetInt(EndlessKey, 0) == 1;
+            set => PlayerPrefs.SetInt(EndlessKey, value ? 1 : 0);
         }
 
         public static void Save() => PlayerPrefs.Save();

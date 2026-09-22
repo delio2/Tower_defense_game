@@ -82,7 +82,7 @@ namespace TowerDefense.Simulation
                 events.Clear();
             }
 
-            result.Won = sim.Phase == GamePhase.Victory;
+            result.Won = sim.HasWon;
             result.WavesCleared = sim.WavesCleared;
             result.Ticks = sim.Tick;
             result.TotalDamage = sim.TotalDamage;

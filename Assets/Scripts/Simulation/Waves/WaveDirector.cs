@@ -46,8 +46,7 @@ namespace TowerDefense.Simulation
             (EnemyKind.Warden, 13),
         };
 
-        /// <summary>Elites appear from act 2: one or two per wave (GDD v0.2 §8).</summary>
-        private const int EliteFromAct = 2;
+        // Elites appear from act 2 (GDD v0.2 §8) or earlier at high Grades: see RunConfig.EliteFromAct.
 
         private readonly RunConfig _config;
         private readonly ContentDatabase _content;
@@ -91,6 +90,7 @@ namespace TowerDefense.Simulation
         public long EnemyMaxHp(EnemyDefinition definition, int globalWave)
         {
             long hp = definition.Hp * HpMultiplierPpm(globalWave) / 1_000_000;
+            hp = hp * (SimConstants.Permille + _config.EnemyHpBonusPermille) / SimConstants.Permille;
             return hp < SimConstants.HpScale ? SimConstants.HpScale : hp;
         }
 
@@ -180,7 +180,7 @@ namespace TowerDefense.Simulation
             int window = _config.SpawnWindowTicks - startOffset;
             int interval = groups.Count > 0 ? window / groups.Count : 0;
             int act = (globalWave - 1) / _config.WavesPerAct + 1;
-            int elites = act >= EliteFromAct && groups.Count > 0 ? 1 + _rng.NextInt(2) : 0;
+            int elites = act >= _config.EliteFromAct && groups.Count > 0 ? 1 + _rng.NextInt(2) : 0;
             for (int i = 0; i < groups.Count; i++)
             {
                 // Elites: single (non-group) enemies only, chosen among the first groups so the count is deterministic.

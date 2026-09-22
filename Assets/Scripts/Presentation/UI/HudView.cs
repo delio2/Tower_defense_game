@@ -93,6 +93,9 @@ namespace TowerDefense.Presentation.UI
         private readonly Button _optNumbers;
         private readonly Toggle _optHaptics;
         private readonly Button _optSpeed;
+        private readonly Button _optCore;
+        private readonly Button _optGrade;
+        private readonly Toggle _optEndless;
         private readonly VisualElement _summary;
         private readonly Label _summaryTitle;
         private readonly Label _summaryDamage;
@@ -157,6 +160,12 @@ namespace TowerDefense.Presentation.UI
             _optNumbers = root.Q<Button>("opt-numbers");
             _optHaptics = root.Q<Toggle>("opt-haptics");
             _optSpeed = root.Q<Button>("opt-speed");
+            _optCore = root.Q<Button>("opt-core");
+            _optGrade = root.Q<Button>("opt-grade");
+            _optEndless = root.Q<Toggle>("opt-endless");
+            _optCore.clicked += () => { PlayerOptions.Core = (CoreType)(((int)PlayerOptions.Core + 1) % 4); RefreshOptionLabels(); };
+            _optGrade.clicked += () => { PlayerOptions.Grade = (PlayerOptions.Grade + 1) % 4; RefreshOptionLabels(); };
+            _optEndless.RegisterValueChangedCallback(e => PlayerOptions.Endless = e.newValue);
             root.Q<Button>("options-open").clicked += OpenOptions;
             root.Q<Button>("options-close").clicked += CloseOptions;
             _optReduceMotion.RegisterValueChangedCallback(e => { PlayerOptions.ReduceMotion = e.newValue; OptionsChanged?.Invoke(); });
@@ -303,6 +312,7 @@ namespace TowerDefense.Presentation.UI
             _optReduceMotion.SetValueWithoutNotify(PlayerOptions.ReduceMotion);
             _optEffects.SetValueWithoutNotify(PlayerOptions.EffectIntensity);
             _optHaptics.SetValueWithoutNotify(PlayerOptions.Haptics);
+            _optEndless.SetValueWithoutNotify(PlayerOptions.Endless);
             RefreshOptionLabels();
             Show(_options, true);
         }
@@ -322,6 +332,8 @@ namespace TowerDefense.Presentation.UI
                 _ => "All",
             });
             SetText(_optSpeed, $"{PlayerOptions.DefaultSpeed}x");
+            SetText(_optCore, PlayerOptions.Core.ToString());
+            SetText(_optGrade, PlayerOptions.Grade == 0 ? "Grade 0" : $"Grade {PlayerOptions.Grade}");
         }
 
         private void SkipSummary()
@@ -425,7 +437,10 @@ namespace TowerDefense.Presentation.UI
 
             if (sim.IsOver)
             {
-                SetText(_gameOverTitle, sim.Phase == GamePhase.Victory ? "Victory" : $"Wave {sim.WavesCleared + 1} of {sim.TotalWaves}");
+                string title = sim.Phase == GamePhase.Victory ? "Victory"
+                    : sim.HasWon ? $"Endless · wave {sim.WavesCleared}"
+                    : $"Wave {sim.WavesCleared + 1} of {sim.TotalWaves}";
+                SetText(_gameOverTitle, title);
                 string stopped = sim.DefeatedBy.HasValue ? $"Stopped by: {sim.DefeatedBy.Value}\n" : string.Empty;
                 SetText(_gameOverStats, $"{stopped}Total damage {NumberFormat.CompactHundredths(sim.TotalDamage)}   Kills {sim.Kills}\nSeed {state.Seed}\n{state.ReplayStatus}");
             }
@@ -436,7 +451,8 @@ namespace TowerDefense.Presentation.UI
             long integrity = sim.Integrity / SimConstants.HpScale;
             SetText(_integrity, $"♥ {integrity}");
             _integrity.EnableInClassList("top-number--warning", sim.Integrity * 4 <= sim.MaxIntegrity);
-            SetText(_wave, sim.IsGuardianWave ? $"Guardian {sim.CurrentWave}/{sim.TotalWaves}" : $"Wave {sim.CurrentWave}/{sim.TotalWaves}");
+            string total = sim.Config.Endless && sim.HasWon ? "∞" : sim.TotalWaves.ToString();
+            SetText(_wave, sim.IsGuardianWave ? $"Guardian {sim.CurrentWave}/{total}" : $"Wave {sim.CurrentWave}/{total}");
             SetText(_credits, $"◈ {sim.Credits}");
         }
 

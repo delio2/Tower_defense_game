@@ -87,10 +87,10 @@ Deterministic simulation (60 ticks/s, integers), 7 modules, 3 enemies + Guardian
 - [x] **Missing modules** (`05` §6): Arc, Lance, Mortar, Echo, Salvage, Frost, Capacitor → 14, each with a behaviour test (`MechanicsTests`).
 - [x] **Missing enemies** (`05` §8): Dasher, Splitter, Warden; **elites** from act 2 (HP ×3, armor +1, one or two per wave); unlocks by global wave.
 - [x] **Acts 2 and 3:** 18 waves by default; Guardian escorts follow the act roster; themed waves. (Preview with icons: Phase 3 UI.)
-- [ ] **Core types** (Standard, Merchant, Bastion, Glass) as data; choice at run start.
-- [ ] **Grades 1–3** (the first three modifiers) and **Endless** after the win.
-- [ ] **Save and resume at every shop** (the save is seed + commands + version, i.e. the replay itself; resume = re-simulation). Test: save → reload → same hash.
-- [ ] **Replay `R2`:** + game version, mode, Core type, Grade. `R1` stays readable.
+- [x] **Core types** (Standard, Merchant, Bastion, Glass) in `RunSetup`; chosen for the next run from the options sheet until the Home exists.
+- [x] **Grades 1–3** (+10% HP, −1 Credit per wave, elites from act 1) and **Endless** (`RunMode.Endless`: victory is recorded, waves go on until defeat).
+- [x] **Save and resume at every shop** (`RunSave`: the replay text in PlayerPrefs, written on every `ShopOpened`; resume = re-simulation; discarded on another balance version). Verified in the editor: stop and re-enter Play resumes at the same shop with the same Credits.
+- [x] **Replay `R2`:** + game version, mode, Core type, Grade; `R1` still readable; verification rebuilds the config from the choices.
 - [x] **Balance v0.3** with the bot (first pass, `05` §18): HP growth ×1.12 → Naive 8% run / 95% act 1, MaxDps 56%, EconomyFirst 27%; about 7 minutes of combat. Grade targets pending the Grades.
 - [ ] Update `05` with the v0.3 numbers and `04` with the decisions taken.
 - [ ] **Start now** the **Google Play account** procedure (D13): it takes long and is needed for Phase 5.

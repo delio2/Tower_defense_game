@@ -83,6 +83,9 @@ namespace TowerDefense.Presentation
         private HudView _hud;
         private readonly List<FloatingLabel> _floatingLabels = new List<FloatingLabel>();
 
+        /// <summary>The first run of the session resumes a saved run if there is one; "Play again" starts fresh.</summary>
+        private bool _resumeOnStart = true;
+
         // ------------------------------------------------------------------ lifecycle
 
         private void Awake() => EnsureInitialized();
@@ -145,7 +148,20 @@ namespace TowerDefense.Presentation
             _replayStatus = null;
             _viewRadius = ShopViewRadius;
 
-            _sim = new GameSimulation(new RunConfig { Seed = (ulong)_seed }, ContentLoader.LoadPrototypeOrDefaults());
+            ContentDatabase content = ContentLoader.LoadPrototypeOrDefaults();
+            _sim = _resumeOnStart ? RunSave.TryResume(content) : null;
+            _resumeOnStart = false;
+            if (_sim != null)
+            {
+                _seed = (int)_sim.Config.Seed;
+                ShowMessage($"Resumed at wave {_sim.CurrentWave}");
+            }
+            else
+            {
+                RunMode mode = PlayerOptions.Endless ? RunMode.Endless : RunMode.Run;
+                _sim = new GameSimulation(RunSetup.Create((ulong)_seed, PlayerOptions.Core, PlayerOptions.Grade, mode), content);
+            }
+
             _root = new GameObject("Arena").transform;
             _root.SetParent(transform, false);
             BuildArena();
@@ -200,7 +216,7 @@ namespace TowerDefense.Presentation
             _hud.PulseTapped += TryPulse;
             _hud.SpeedTapped += () => _speed = _speed % 3 + 1;
             _hud.PauseTapped += () => _paused = !_paused;
-            _hud.PlayAgainTapped += () => { _seed++; StartRun(); };
+            _hud.PlayAgainTapped += () => { _seed++; RunSave.Clear(); StartRun(); };
         }
 
         private void ClearSelection()
@@ -309,6 +325,9 @@ namespace TowerDefense.Presentation
                     case SimEventType.CommandRejected:
                         ShowMessage(DescribeRejection((CommandResult)e.Extra));
                         break;
+                    case SimEventType.ShopOpened:
+                        RunSave.Save(_sim); // autosave at every shop (GDD v0.2 §2)
+                        break;
                 }
             }
         }
@@ -371,6 +390,8 @@ namespace TowerDefense.Presentation
             {
                 return;
             }
+
+            RunSave.Clear();
 
             // Every finished run is recorded and re-simulated: the same check the server will do (D19).
             string text = Replay.Record(_sim).Serialize();

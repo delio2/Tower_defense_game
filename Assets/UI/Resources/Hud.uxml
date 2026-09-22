@@ -67,6 +67,19 @@
                     <ui:Label class="option-row__label" text="Default speed" picking-mode="Ignore" />
                     <ui:Button name="opt-speed" class="btn btn-secondary option-row__button" text="1x" />
                 </ui:VisualElement>
+                <ui:Label class="sheet__subtitle" text="Next run" picking-mode="Ignore" />
+                <ui:VisualElement class="option-row">
+                    <ui:Label class="option-row__label" text="Core" picking-mode="Ignore" />
+                    <ui:Button name="opt-core" class="btn btn-secondary option-row__button" text="Standard" />
+                </ui:VisualElement>
+                <ui:VisualElement class="option-row">
+                    <ui:Label class="option-row__label" text="Grade" picking-mode="Ignore" />
+                    <ui:Button name="opt-grade" class="btn btn-secondary option-row__button" text="Grade 0" />
+                </ui:VisualElement>
+                <ui:VisualElement class="option-row">
+                    <ui:Label class="option-row__label" text="Endless after victory" picking-mode="Ignore" />
+                    <ui:Toggle name="opt-endless" class="option-row__control" />
+                </ui:VisualElement>
                 <ui:Button name="options-close" class="btn btn-primary sheet__close" text="Close" />
             </ui:VisualElement>
         </ui:VisualElement>

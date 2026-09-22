@@ -20,13 +20,19 @@ namespace TowerDefense.Simulation
     /// <summary>
     /// A full run in a few kilobytes: balance version + seed + every (tick, command). Re-simulating it must reproduce
     /// the same final state hash; this powers ghosts, duels and server-side score checks (D19).
-    /// Text format: <c>R1|balance|seed|hash|waves|damage|ticks|tick,type,a,b;tick,type,a,b;...</c>
+    /// Text format R2: <c>R2|game|balance|mode|core|grade|seed|hash|waves|damage|ticks|tick,type,a,b;...</c>.
+    /// R1 (<c>R1|balance|seed|hash|waves|damage|ticks|commands</c>) is still read as Standard Core, Grade 0, Run.
     /// </summary>
     public sealed class Replay
     {
-        public const string FormatTag = "R1";
+        public const string FormatTag = "R2";
+        private const string LegacyTag = "R1";
 
+        public string GameVersion { get; set; } = RunConfig.GameVersion;
         public string BalanceVersion { get; set; }
+        public RunMode Mode { get; set; }
+        public CoreType Core { get; set; }
+        public int Grade { get; set; }
         public ulong Seed { get; set; }
         public ulong FinalHash { get; set; }
         public int WavesCleared { get; set; }
@@ -38,7 +44,11 @@ namespace TowerDefense.Simulation
         {
             var replay = new Replay
             {
+                GameVersion = RunConfig.GameVersion,
                 BalanceVersion = RunConfig.BalanceVersion,
+                Mode = simulation.Config.Mode,
+                Core = simulation.Config.Core,
+                Grade = simulation.Config.Grade,
                 Seed = simulation.Config.Seed,
                 FinalHash = simulation.ComputeStateHash(),
                 WavesCleared = simulation.WavesCleared,
@@ -58,7 +68,11 @@ namespace TowerDefense.Simulation
         {
             var builder = new StringBuilder();
             builder.Append(FormatTag).Append('|')
+                .Append(GameVersion).Append('|')
                 .Append(BalanceVersion).Append('|')
+                .Append((int)Mode).Append('|')
+                .Append((int)Core).Append('|')
+                .Append(Grade).Append('|')
                 .Append(Seed.ToString(CultureInfo.InvariantCulture)).Append('|')
                 .Append(FinalHash.ToString(CultureInfo.InvariantCulture)).Append('|')
                 .Append(WavesCleared.ToString(CultureInfo.InvariantCulture)).Append('|')
@@ -85,27 +99,50 @@ namespace TowerDefense.Simulation
         public static Replay Deserialize(string text)
         {
             string[] parts = text.Split('|');
-            if (parts.Length != 8 || parts[0] != FormatTag)
+            Replay replay;
+            string commands;
+            if (parts.Length == 12 && parts[0] == FormatTag)
+            {
+                replay = new Replay
+                {
+                    GameVersion = parts[1],
+                    BalanceVersion = parts[2],
+                    Mode = (RunMode)int.Parse(parts[3], CultureInfo.InvariantCulture),
+                    Core = (CoreType)int.Parse(parts[4], CultureInfo.InvariantCulture),
+                    Grade = int.Parse(parts[5], CultureInfo.InvariantCulture),
+                    Seed = ulong.Parse(parts[6], CultureInfo.InvariantCulture),
+                    FinalHash = ulong.Parse(parts[7], CultureInfo.InvariantCulture),
+                    WavesCleared = int.Parse(parts[8], CultureInfo.InvariantCulture),
+                    TotalDamage = long.Parse(parts[9], CultureInfo.InvariantCulture),
+                    Ticks = long.Parse(parts[10], CultureInfo.InvariantCulture),
+                };
+                commands = parts[11];
+            }
+            else if (parts.Length == 8 && parts[0] == LegacyTag)
+            {
+                replay = new Replay
+                {
+                    GameVersion = "unknown",
+                    BalanceVersion = parts[1],
+                    Seed = ulong.Parse(parts[2], CultureInfo.InvariantCulture),
+                    FinalHash = ulong.Parse(parts[3], CultureInfo.InvariantCulture),
+                    WavesCleared = int.Parse(parts[4], CultureInfo.InvariantCulture),
+                    TotalDamage = long.Parse(parts[5], CultureInfo.InvariantCulture),
+                    Ticks = long.Parse(parts[6], CultureInfo.InvariantCulture),
+                };
+                commands = parts[7];
+            }
+            else
             {
                 throw new FormatException("Unknown replay format.");
             }
 
-            var replay = new Replay
-            {
-                BalanceVersion = parts[1],
-                Seed = ulong.Parse(parts[2], CultureInfo.InvariantCulture),
-                FinalHash = ulong.Parse(parts[3], CultureInfo.InvariantCulture),
-                WavesCleared = int.Parse(parts[4], CultureInfo.InvariantCulture),
-                TotalDamage = long.Parse(parts[5], CultureInfo.InvariantCulture),
-                Ticks = long.Parse(parts[6], CultureInfo.InvariantCulture),
-            };
-
-            if (parts[7].Length == 0)
+            if (commands.Length == 0)
             {
                 return replay;
             }
 
-            foreach (string item in parts[7].Split(';'))
+            foreach (string item in commands.Split(';'))
             {
                 string[] fields = item.Split(',');
                 var command = new Command(
@@ -150,6 +187,7 @@ namespace TowerDefense.Simulation
 
             RunConfig config = configFactory();
             config.Seed = replay.Seed;
+            RunSetup.Configure(config, replay.Core, replay.Grade, replay.Mode);
             GameSimulation simulation = Resimulate(replay, new GameSimulation(config, content));
             ulong actual = simulation.ComputeStateHash();
             bool valid = actual == replay.FinalHash

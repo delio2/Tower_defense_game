@@ -46,7 +46,7 @@
 | Run | about 10–15 min | 3 acts (18 waves). After a win you can continue in Endless |
 | Meta | weeks | Unlock modules and Cores with Blueprints, Grades, online modes |
 
-Automatic save **at every shop**, resumable at any time.
+Automatic save **at every shop**, resumable at any time: the save *is* the replay so far (`RunSave`), and resuming re-simulates it.
 
 ## 3. Arena and units (deterministic)
 - **Fixed tick: 60 per second.** No floats in game state (D11).
@@ -141,8 +141,8 @@ HP in game units at wave 1. Speed in units per second.
 - Swarmlets cost 0.3 points **each**, so a group of 5 costs 1.5.
 - **Preview:** the shop shows the next wave's composition (icons and quantities).
 - Integer or fixed-point maths, no `Math.Pow` (not deterministic across platforms): growth is computed by repeated multiplication.
-- **Grade** (Ascension): after the first win, Grades 1–10 unlock (a proposed list of rules is in `07` §2.2).
-- **Endless** after the win: growth continues, for leaderboards and wild builds.
+- **Grade** (Ascension): after the first win, Grades unlock one rule at a time. Implemented (v0.3): **1** enemies +10% HP · **2** −1 Credit per wave · **3** elites from act 1. Grades 4–10 follow the `07` §2.2 proposal.
+- **Endless** after the win (`RunMode.Endless`): the victory is recorded at wave 18 and waves keep coming (Guardian every 6th wave, HP growth continues) until defeat; the score is the waves cleared.
 
 ## 10. Economy and shop
 - **Starting Credits:** by Core type (Standard: 6).
@@ -178,7 +178,7 @@ Proposed secondary modes (Guardian Gauntlet, Surge): `10` §2.1. Gates for updat
 
 ## 13. Replay and verification (D19)
 - **Target format:** game version + balance version + mode + seed + Core type + Grade + list of (tick, command).
-- **Current prototype format (`R1`):** balance version + seed + final hash + waves + total damage + ticks + commands. **Missing:** game version, mode, Core type and Grade: to be added (format `R2`) when Core types and modes arrive.
+- **Current format (`R2`, v0.3):** `R2|game|balance|mode|core|grade|seed|hash|waves|damage|ticks|commands`. Verification rebuilds the run config from the choices (`RunSetup`), so a replay carries choices, never numbers. `R1` replays are still readable (Standard, Grade 0, Run).
 - **Commands:** `Buy(offerIndex, slot)` · `Sell(slot)` · `Move(from, to)` · `BuySlot(insertAt)` · `Undo` · `Reroll` · `StartWave` · `Pulse`. Pause and game speed are **not** commands: they do not change the outcome.
 - **`Undo`** restores the shop state before the last `Buy`, `Sell`, `Move` or `BuySlot` of the current visit (multi-level). `Reroll` and `StartWave` clear the stack: a reroll cannot be undone, otherwise future offers could be peeked for free. `Undo` does not use the RNG, so it stays deterministic and is recorded in the replay.
 - **Verification:** re-playing the replay must give the same final hash and score. Locally now (tests); on the server with Cloud Code C# (D23).

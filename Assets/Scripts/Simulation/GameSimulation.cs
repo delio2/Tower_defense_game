@@ -60,8 +60,11 @@ namespace TowerDefense.Simulation
 
         public int TotalWaves => _config.TotalWaves;
 
-        /// <summary>1-based index of the wave that is running or will run next.</summary>
-        public int CurrentWave => Math.Min(WavesCleared + 1, TotalWaves);
+        /// <summary>1-based index of the wave that is running or will run next (unbounded in Endless).</summary>
+        public int CurrentWave => _config.Endless ? WavesCleared + 1 : Math.Min(WavesCleared + 1, TotalWaves);
+
+        /// <summary>True once the last act is cleared (also in Endless, where play goes on).</summary>
+        public bool HasWon => WavesCleared >= TotalWaves;
 
         public bool IsOver => Phase == GamePhase.Victory || Phase == GamePhase.Defeat;
         public bool IsPulseReady => Phase == GamePhase.Wave && PulseCooldownRemaining == 0;
@@ -544,11 +547,16 @@ namespace TowerDefense.Simulation
             WavesCleared++;
             _events.Add(new SimEvent(SimEventType.WaveCleared, Tick, value: WavesCleared, extra: interest));
 
-            if (WavesCleared >= TotalWaves)
+            if (WavesCleared >= TotalWaves && !_config.Endless)
             {
                 Phase = GamePhase.Victory;
                 _events.Add(new SimEvent(SimEventType.Victory, Tick));
                 return;
+            }
+
+            if (WavesCleared == TotalWaves && _config.Endless)
+            {
+                _events.Add(new SimEvent(SimEventType.Victory, Tick)); // the run is won; Endless continues for the leaderboard
             }
 
             OpenShop();

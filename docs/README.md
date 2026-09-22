@@ -1,6 +1,6 @@
 # Design documentation — working title "TowerDefense"
 
-**Status (2026-09-21):** pre-production. Deterministic simulation v2, replay system and balance bots, ScriptableObject content and the extra ring slot are done (26 automated tests); a minimal playable presentation runs in the editor. Phase 1 (tactile prototype) is in progress: next steps in [06-development-plan.md](06-development-plan.md) §4.
+**Status (2026-09-21):** pre-production. Deterministic simulation v2, replay system and Phase 1 (tactile prototype: UI Toolkit HUD, drag with previews, options, haptics) and most of Phase 2 (14 modules, 7 enemies, 3 acts, Core types, Grades 1–3, Endless, save/resume, replay R2, balance v0.3) are done; 45 automated tests. Open: Gate 1/2 with testers and the Android build. Next steps in [06-development-plan.md](06-development-plan.md) §4.
 
 ## How these documents work
 - **One source of truth per topic.** Numbers and rules live in the GDD (`05`). Direction lives in `03`. Decisions live in `04`. The briefs (`07`–`10`) add detail for a phase; when a brief changes a rule, the change goes into `05` and the reason into `04`.
