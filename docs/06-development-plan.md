@@ -84,14 +84,14 @@ Deterministic simulation (60 ticks/s, integers), 7 modules, 3 enemies + Guardian
 ### Phase 2 — MVP content and full run (3–4 weeks)
 **Purpose:** the whole 3-act run, with every MVP element, balanced by the bot.
 
-- [ ] **Missing modules** (`05` §6): Arc, Lance, Mortar, Echo, Salvage, Frost, Capacitor → 14. Each with a behaviour test and a determinism test.
-- [ ] **Missing enemies** (`05` §8): Dasher, Splitter, Warden; **elites** from act 2; unlocks per act (not only per wave within the act).
-- [ ] **Acts 2 and 3:** Guardians with varied escorts; themed waves; preview with icons and quantities.
+- [x] **Missing modules** (`05` §6): Arc, Lance, Mortar, Echo, Salvage, Frost, Capacitor → 14, each with a behaviour test (`MechanicsTests`).
+- [x] **Missing enemies** (`05` §8): Dasher, Splitter, Warden; **elites** from act 2 (HP ×3, armor +1, one or two per wave); unlocks by global wave.
+- [x] **Acts 2 and 3:** 18 waves by default; Guardian escorts follow the act roster; themed waves. (Preview with icons: Phase 3 UI.)
 - [ ] **Core types** (Standard, Merchant, Bastion, Glass) as data; choice at run start.
 - [ ] **Grades 1–3** (the first three modifiers) and **Endless** after the win.
 - [ ] **Save and resume at every shop** (the save is seed + commands + version, i.e. the replay itself; resume = re-simulation). Test: save → reload → same hash.
 - [ ] **Replay `R2`:** + game version, mode, Core type, Grade. `R1` stays readable.
-- [ ] **Balance v0.3** with the bot: targets `(estimate)` — naive bot wins act 1 in 80–90% and the whole run in 10–20%; "max DPS" bot wins the run in 50–70% at Grade 0 and under 30% at Grade 3; no strategy above 85%; simulated run 8–12 minutes of combat (+ shops).
+- [x] **Balance v0.3** with the bot (first pass, `05` §18): HP growth ×1.12 → Naive 8% run / 95% act 1, MaxDps 56%, EconomyFirst 27%; about 7 minutes of combat. Grade targets pending the Grades.
 - [ ] Update `05` with the v0.3 numbers and `04` with the decisions taken.
 - [ ] **Start now** the **Google Play account** procedure (D13): it takes long and is needed for Phase 5.
 

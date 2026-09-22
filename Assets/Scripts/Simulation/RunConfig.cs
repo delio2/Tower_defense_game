@@ -23,7 +23,7 @@ namespace TowerDefense.Simulation
         public int CoreDamagePermille = SimConstants.Permille;
 
         // Wave growth (GDD v0.2 §9)
-        public int HpGrowthPermille = 1200;
+        public int HpGrowthPermille = 1120;
         public int BudgetGrowthPermille = 1100;
         public int FirstWaveBudgetMilli = 8000;
         public int SpawnWindowTicks = 20 * SimConstants.TicksPerSecond;

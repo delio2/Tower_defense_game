@@ -1,6 +1,6 @@
 # 05 — Game Design Document (GDD v0.2)
 
-> Version 0.2 · 2026-09-21 · Status: **source of truth** for rules, numbers and architecture. Balance values are **v0 starting values**, to be tuned with the prototype and the balance bot (D11, `06` Phase 2). Section numbers are referenced from code comments: **do not renumber**.
+> Version 0.3 · 2026-09-22 · Status: **source of truth** for rules, numbers and architecture. Balance values are **v0.3** (balance version `0.3.0`), tuned with the balance bot (D11, `06` Phase 2) and still to validate with testers. Section numbers are referenced from code comments: **do not renumber**.
 > **Working title:** open (D25) · **Genre:** roguelite core defense with a shop and combos · **Platform:** Android, then iOS · **Orientation:** portrait · **Audience:** adults 18–45 · **Model:** honest, *"never pay-to-win"* (`02`).
 > Rationale: `00`–`04` (especially D17–D21). In-game names are English, like the code.
 
@@ -71,7 +71,7 @@ Automatic save **at every shop**, resumable at any time.
 - **Neighbourhood:** every slot has 2 neighbours; the ring is circular.
 - In the shop modules **move freely** (drag or swap); during a wave they are locked.
 
-## 6. Modules (v0: 14 for the MVP; the prototype has 7 — Emitter, Scatter, Amplifier, Lens, Overclock, Bank, Bulwark)
+## 6. Modules (v0.3: all 14 MVP modules are implemented)
 Cost in Credits. Range in units, measured from the module's position on the ring. Cooldown in ticks (60 = 1 s). Rarity: C common · U uncommon · R rare.
 
 **Weapons**
@@ -135,7 +135,7 @@ HP in game units at wave 1. Speed in units per second.
 
 ## 9. Waves and difficulty
 - Global index **g = 1…18** (act a, wave w: g = 6(a−1) + w; w = 6 is the Guardian).
-- **HP:** `hp(g) = 1.20^(g−1)` (wave 18 ≈ 22×). **Budget:** `budget(g) = 8 × 1.10^(g−1)` points (wave 18 ≈ 40).
+- **HP:** `hp(g) = 1.12^(g−1)` (wave 18 ≈ 6.9×; v0.3, was 1.20 in v0.2: with ×1.20 no bot reached wave 13). **Budget:** `budget(g) = 8 × 1.10^(g−1)` points (wave 18 ≈ 40).
 - Enemies enter over **20 s**, at regular intervals, from **random but seeded directions**. Rules: a new type first enters **alone** (then a 2 s pause); at most 3 types per wave; wave 3 of every act is "themed" (one type).
 - **Guardian wave:** the Guardian enters first; after 3 s an escort arrives with **half the wave budget**.
 - Swarmlets cost 0.3 points **each**, so a group of 5 costs 1.5.
@@ -260,6 +260,15 @@ Reduce motion · effect intensity · damage numbers (all / big only / none) · h
   | MaxDps (greedy on the DPS previews) | **100%** | 23.0 | 8.1 | 3.8 | — |
   | EconomyFirst (Bank first, 25-Credit reserve) | 29% | 24.7 | 21.5 | 1.8 | wave 5: Brute 37, Swarmlet 14 |
   → Act 1 is an easy entry (good for the FTUE); a competent player is never challenged there, so **acts 2–3 must carry the difficulty**. Hoarding for interest does not pay in a 6-wave run: it must be re-tested on 18 waves in Phase 2. Rerolls are almost unused (4 offers from a 7-module pool).
+- [x] **Full-run probe (2026-09-22, 14 modules, 7 enemies, 3 acts):** with HP growth ×1.20 **no bot won** (MaxDps died at wave 12, the second Guardian, in 52% of runs). Sweep of the levers with 100–200 seeds per setting:
+  | HP growth | Naive win / act 1 | MaxDps win | EconomyFirst win |
+  |---|---|---|---|
+  | ×1.20 | 0% / 90% | 0% | 0% |
+  | ×1.15 | 1% | 17% | — |
+  | ×1.13 | 3% | 49% | 17% |
+  | **×1.12** (chosen) | **8% / 95%** | **56%** | **27%** |
+  | ×1.12 + 5 Credits/wave | 10% | 85% | 40% |
+  → **v0.3: HP growth ×1.12**, Credits per wave unchanged (4). Wave 12 remains the exam of the run. Next levers if testers find it too hard: 5 Credits per wave (MaxDps → 85%).
 
 ## 19. Prototype status
 1. ✅ **Simulation v2** (reuses RNG, hash and commands): radial arena, Core, 3 enemies (Drifter, Swarmlet, Brute) + Guardian, 7 modules (Emitter, Scatter, Amplifier, Lens, Overclock, Bank, Bulwark), shop with merge and undo, previews, Pulse, 1 act.

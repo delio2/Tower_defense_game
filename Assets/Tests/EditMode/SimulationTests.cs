@@ -316,7 +316,7 @@ namespace TowerDefense.Simulation.Tests
         public void WaveGrowth_MatchesGdd()
         {
             var director = new WaveDirector(new RunConfig(), ContentDatabase.CreatePrototypeDefaults(), new Pcg32(1, 1));
-            Assert.AreEqual(22.19, director.HpMultiplierPpm(18) / 1_000_000.0, 0.3);
+            Assert.AreEqual(6.87, director.HpMultiplierPpm(18) / 1_000_000.0, 0.1);
             Assert.AreEqual(8 * 5.05, director.BudgetMilli(18) / 1000.0, 0.5);
             Assert.IsTrue(director.IsGuardianWave(6));
         }
