@@ -92,7 +92,7 @@ Deterministic simulation (60 ticks/s, integers), 7 modules, 3 enemies + Guardian
 - [x] **Save and resume at every shop** (`RunSave`: the replay text in PlayerPrefs, written on every `ShopOpened`; resume = re-simulation; discarded on another balance version). Verified in the editor: stop and re-enter Play resumes at the same shop with the same Credits.
 - [x] **Replay `R2`:** + game version, mode, Core type, Grade; `R1` still readable; verification rebuilds the config from the choices.
 - [x] **Balance v0.3** with the bot (first pass, `05` §18): HP growth ×1.12 → Naive 8% run / 95% act 1, MaxDps 56%, EconomyFirst 27%; about 7 minutes of combat. Grade targets pending the Grades.
-- [ ] Update `05` with the v0.3 numbers and `04` with the decisions taken.
+- [x] `05` §4, §9, §18 carry the v0.3 numbers and probes; `04` D22, D26–D29 record the decisions.
 - [ ] **Start now** the **Google Play account** procedure (D13): it takes long and is needed for Phase 5.
 
 **Gate 2:** whole run playable on the phone; bot targets met; real duration with 3–5 testers between 10 and 15 minutes; at least **3 different winning builds** found by testers or the bot (otherwise the 6-slot ring is not enough: `05` §18).

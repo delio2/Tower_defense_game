@@ -29,7 +29,7 @@ namespace TowerDefense.Simulation.Tests
             Assert.AreEqual(ModuleKind.Bulwark, sim.Ring.At(0).Kind);
             Assert.AreEqual((150 + 25) * Hp, sim.MaxIntegrity, "150 base + Bulwark");
             Assert.AreEqual(900, sim.Config.PulseCooldownTicks, "-25%");
-            Assert.AreEqual(4, sim.Credits);
+            Assert.AreEqual(2, sim.Credits);
         }
 
         [Test]
@@ -38,9 +38,9 @@ namespace TowerDefense.Simulation.Tests
             GameSimulation sim = Start(CoreType.Glass);
             Assert.AreEqual(50 * Hp, sim.MaxIntegrity);
             Assert.AreEqual(ModuleKind.Emitter, sim.Ring.At(0).Kind);
-            Assert.AreEqual(ModuleKind.Amplifier, sim.Ring.At(1).Kind);
-            Assert.AreEqual(8 * Hp * 15 / 10 * 15 / 10, sim.Ring.At(0).EffectiveDamage, "8 x 1.5 (Amplifier) x 1.5 (Glass)");
-            Assert.AreEqual(2, sim.Credits);
+            Assert.IsNull(sim.Ring.At(1));
+            Assert.AreEqual(8 * Hp * 15 / 10, sim.Ring.At(0).EffectiveDamage, "8 x 1.5 (Glass)");
+            Assert.AreEqual(0, sim.Credits);
         }
 
         [Test]

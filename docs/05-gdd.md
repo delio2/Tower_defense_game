@@ -63,8 +63,8 @@ Automatic save **at every shop**, resumable at any time: the save *is* the repla
   |---|---|---|
   | **Standard** | — | Emitter in slot 0, 6 Credits |
   | **Merchant** | +1 interest cap, 5 slots | 10 Credits, no module |
-  | **Bastion** | integrity 150, Pulse cooldown −25% | Bulwark, 4 Credits |
-  | **Glass** | all damage ×1.5, integrity 50 | Emitter + Amplifier, 2 Credits |
+  | **Bastion** | integrity 150, Pulse cooldown −25% | Bulwark, 2 Credits *(v0.3: was 4)* |
+  | **Glass** | all damage ×1.5, integrity 50 | Emitter, 0 Credits *(v0.3: was Emitter + Amplifier, 2 Credits)* |
 
 ## 5. The Ring
 - **6 slots** at start, arranged as a hexagon. The **extra slot** (up to 8) is bought in the shop after the first Guardian, for 8 Credits: the command `BuySlot(insertAt)` opens an **empty** slot at the chosen position and the following modules shift by one (`09` §2.3); it can be undone like any shop action.
@@ -269,6 +269,8 @@ Reduce motion · effect intensity · damage numbers (all / big only / none) · h
   | **×1.12** (chosen) | **8% / 95%** | **56%** | **27%** |
   | ×1.12 + 5 Credits/wave | 10% | 85% | 40% |
   → **v0.3: HP growth ×1.12**, Credits per wave unchanged (4). Wave 12 remains the exam of the run. Next levers if testers find it too hard: 5 Credits per wave (MaxDps → 85%).
+- [x] **Core types and Grades (2026-09-22, 150 seeds, MaxDps / Naive win rates):** Standard 56 / 8 · Merchant 45 / 2 · Bastion 92 / 6 → tuned to **2 Credits**: 76 / 6 · Glass 92 / 41 → tuned to **Emitter only, 0 Credits**: 68 / 16 · Grade 1: 42 / 4 · Grade 2: 18 / 1 · Grade 3: 9 / 0. The Grade ladder is steep between 1 and 2 (−1 Credit per wave weighs a lot): to review with testers.
+- [x] **Winning builds (300 seeds, MaxDps, Grade 0, 59% wins):** 38 distinct weapon/booster sets among the wins; the most common are Arc+Emitter+Scatter with Amplifier+Lens(+Overclock), then Lance variants; Mortar and Echo are rare (rare rarity, act 2+). The greedy bot never buys economy modules, so "economy" builds are untested by bots. → The 6-slot ring supports at least three different winning weapon sets (Gate 2 criterion), pending human confirmation.
 
 ## 19. Prototype status
 1. ✅ **Simulation v2** (reuses RNG, hash and commands): radial arena, Core, 3 enemies (Drifter, Swarmlet, Brute) + Guardian, 7 modules (Emitter, Scatter, Amplifier, Lens, Overclock, Bank, Bulwark), shop with merge and undo, previews, Pulse, 1 act.

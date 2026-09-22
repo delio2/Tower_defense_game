@@ -53,13 +53,13 @@ namespace TowerDefense.Simulation
                     config.BaseIntegrity = 150 * SimConstants.HpScale;
                     config.PulseCooldownTicks = config.PulseCooldownTicks * 750 / SimConstants.Permille;
                     config.StartingModules = new[] { ModuleKind.Bulwark };
-                    config.StartingCredits = 4;
+                    config.StartingCredits = 2; // v0.3: 4 Credits made it the easiest Core (bots 92%)
                     break;
                 case CoreType.Glass:
                     config.CoreDamagePermille = 1500;
                     config.BaseIntegrity = 50 * SimConstants.HpScale;
-                    config.StartingModules = new[] { ModuleKind.Emitter, ModuleKind.Amplifier };
-                    config.StartingCredits = 2;
+                    config.StartingModules = new[] { ModuleKind.Emitter }; // v0.3: the free Amplifier made it trivial
+                    config.StartingCredits = 0;
                     break;
             }
 

@@ -948,6 +948,15 @@ namespace TowerDefense.Presentation
                 view.Body.transform.position = position;
                 view.Body.transform.rotation = Quaternion.Euler(0f, PlayerOptions.ReduceMotion ? 45f : 45f + Time.time * 12f, 0f);
 
+                if (view.Halo != null)
+                {
+                    SetCircle(view.Halo, position, view.HaloRadius);
+                    if (view.Halo2 != null)
+                    {
+                        SetCircle(view.Halo2, position, view.HaloRadius * 1.25f);
+                    }
+                }
+
                 float fraction = enemy.MaxHp > 0 ? (float)enemy.Hp / enemy.MaxHp : 0f;
                 float width = view.Size * 1.2f;
                 view.HpBar.position = position + new Vector3(-(1f - fraction) * width * 0.5f, 0.5f, view.Size * 0.9f);
@@ -965,39 +974,96 @@ namespace TowerDefense.Presentation
 
             foreach (int id in _staleIds)
             {
-                Destroy(_enemyViews[id].Body);
-                Destroy(_enemyViews[id].HpBar.gameObject);
+                EnemyView stale = _enemyViews[id];
+                Destroy(stale.Body);
+                Destroy(stale.HpBar.gameObject);
+                if (stale.Halo != null)
+                {
+                    Destroy(stale.Halo.gameObject);
+                }
+
+                if (stale.Halo2 != null)
+                {
+                    Destroy(stale.Halo2.gameObject);
+                }
+
                 _enemyViews.Remove(id);
             }
         }
 
+        /// <summary>
+        /// Simple-shape silhouettes per kind (docs/03 A5 with primitives): Drifter cube, Swarmlet small cube, Brute
+        /// squat wide cube, Dasher long thin cube (arrow-like), Splitter cube with a lighter core, Warden cube with a
+        /// halo ring showing its aura, Guardian large capsule with a halo. Elites: double halo and the rose tint.
+        /// </summary>
         private EnemyView CreateEnemyView(Enemy enemy)
         {
-            float size;
+            float size = 0.35f;
             Color color = Palette.Enemy;
+            Vector3 scale;
+            PrimitiveType shape = PrimitiveType.Cube;
+            float haloRadius = 0f;
             switch (enemy.Kind)
             {
                 case EnemyKind.Swarmlet:
                     size = 0.22f;
+                    scale = new Vector3(size, size * 0.6f, size);
                     break;
                 case EnemyKind.Brute:
                     size = 0.55f;
                     color = Palette.EnemyHeavy;
+                    scale = new Vector3(size, size * 0.45f, size);
+                    break;
+                case EnemyKind.Dasher:
+                    size = 0.35f;
+                    scale = new Vector3(size * 0.45f, size * 0.5f, size * 1.4f);
+                    break;
+                case EnemyKind.Splitter:
+                    size = 0.4f;
+                    color = Color.Lerp(Palette.Enemy, Palette.Core, 0.25f);
+                    scale = new Vector3(size, size * 0.6f, size);
+                    break;
+                case EnemyKind.Warden:
+                    size = 0.45f;
+                    color = Palette.EnemyHeavy;
+                    scale = new Vector3(size, size * 0.8f, size);
+                    haloRadius = enemy.Definition.ShieldRadiusMilli / 1000f;
                     break;
                 case EnemyKind.Guardian:
                     size = 1.0f;
                     color = Palette.EnemyHeavy;
+                    shape = PrimitiveType.Capsule;
+                    scale = new Vector3(size, size * 0.5f, size);
+                    haloRadius = size * 0.9f;
                     break;
                 default:
-                    size = 0.35f;
+                    scale = new Vector3(size, size * 0.6f, size);
                     break;
             }
 
-            GameObject body = CreatePrimitive(PrimitiveType.Cube, $"{enemy.Kind} #{enemy.Id}", _root, Vector3.zero,
-                new Vector3(size, size * 0.6f, size), color);
+            if (enemy.IsElite)
+            {
+                size *= 1.1f;
+                scale *= 1.1f;
+                color = Palette.EnemyHeavy;
+                haloRadius = Mathf.Max(haloRadius, size * 1.1f);
+            }
+
+            GameObject body = CreatePrimitive(shape, $"{enemy.Kind} #{enemy.Id}", _root, Vector3.zero, scale, color);
             GameObject bar = CreatePrimitive(PrimitiveType.Cube, "HP", _root, Vector3.zero, Vector3.one * 0.05f,
                 Color.Lerp(Palette.Core, Palette.Background, 0.3f));
-            return new EnemyView(body, bar.transform, size);
+            var view = new EnemyView(body, bar.transform, size);
+            if (haloRadius > 0f)
+            {
+                view.Halo = CreateLine("Halo", 0.025f, Palette.WithAlpha(color, enemy.IsElite ? 0.55f : 0.35f), true);
+                view.HaloRadius = haloRadius;
+                if (enemy.IsElite)
+                {
+                    view.Halo2 = CreateLine("Halo2", 0.02f, Palette.WithAlpha(color, 0.3f), true);
+                }
+            }
+
+            return view;
         }
 
         private void UpdateCore()
@@ -1257,6 +1323,11 @@ namespace TowerDefense.Presentation
             public readonly GameObject Body;
             public readonly Transform HpBar;
             public readonly float Size;
+
+            /// <summary>Aura ring (Warden, Guardian) or elite halo; a second ring marks elites.</summary>
+            public LineRenderer Halo;
+            public LineRenderer Halo2;
+            public float HaloRadius;
 
             public EnemyView(GameObject body, Transform hpBar, float size)
             {

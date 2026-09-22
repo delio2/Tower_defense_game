@@ -33,6 +33,9 @@ namespace TowerDefense.Simulation
         public EnemyKind? DefeatedBy;
         public ulong FinalHash;
 
+        /// <summary>The ring at the end, slot by slot ("Emitter3 Amplifier2 - ..."), to spot build archetypes.</summary>
+        public string FinalRing;
+
         /// <summary>Average combat seconds per wave played (the shop is timeless).</summary>
         public double SecondsPerWave => Ticks / (double)SimConstants.TicksPerSecond / (WavesCleared + (Won ? 0 : 1));
     }
@@ -90,7 +93,20 @@ namespace TowerDefense.Simulation
             result.CreditsLeft = sim.Credits;
             result.DefeatedBy = sim.DefeatedBy;
             result.FinalHash = sim.ComputeStateHash();
+            result.FinalRing = DescribeRing(sim.Ring);
             return result;
+        }
+
+        private static string DescribeRing(Ring ring)
+        {
+            var parts = new List<string>(ring.SlotCount);
+            for (int slot = 0; slot < ring.SlotCount; slot++)
+            {
+                ModuleInstance module = ring.At(slot);
+                parts.Add(module == null ? "-" : module.Kind + module.Level.ToString());
+            }
+
+            return string.Join(" ", parts);
         }
 
         // ---------------------------------------------------------------- wave policy

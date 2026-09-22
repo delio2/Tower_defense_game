@@ -128,12 +128,28 @@
 - **Data:** UGS is pay-as-you-go with a free tier per service (leaderboards, Cloud Save, Cloud Code in C#). **PlayFab** cut its free tier to **1,000 players** in March 2026 (−99%). **Nakama** costs about $10/month self-hosted but must be maintained.
 - **Decision:** UGS (integrated with Unity, Cloud Code C# to verify replays). To confirm with a cost estimate in month 4 (`10` §1.4). **Not needed for the offline launch** (D13). Fallback: sampled verification, then Nakama.
 
+### D22 — UI framework → **UI Toolkit** 🟢 *(2026-09-22, implemented)*
+- **Decision:** the HUD, cards, sheets and options are UI Toolkit (`Hud.uxml`, `Theme.uss` with the `09` §5 tokens, `HudView`). Dragging over the 3D arena works with one pointer path in the runner and hit tests from the HUD, so the uGUI fallback was not needed.
+
+### D26 — Balance v0.3: enemy HP growth ×1.12 per wave 🟡 *(2026-09-22, bot data)*
+- **Data:** with the GDD v0.2 value (×1.20) no bot passed the second Guardian on 100 seeds; a sweep (`05` §18) gave ×1.12 → Naive 8% (95% act 1), MaxDps 56%, EconomyFirst 27%, matching the `06` Phase 2 targets.
+- **Decision:** ×1.12, Credits per wave unchanged. Balance version `0.3.0`. To confirm with testers (Gate 2); next lever if too hard: 5 Credits per wave.
+
+### D27 — Core types tuned by bots 🟡 *(2026-09-22)*
+- **Data:** Bastion (Bulwark, 4 Credits) and Glass (Emitter + Amplifier, 2 Credits) reached 92% bot wins, above the "no strategy above 85%" rule.
+- **Decision:** Bastion starts with **2 Credits**; Glass starts with **Emitter only and 0 Credits**. Resulting bot wins: 76% and 68% (Glass stays the riskier Core for a naive player: 16% vs 8%). Merchant 45% is kept: its edge (interest) is one bots do not exploit.
+
+### D28 — Grades 1–3 implemented as proposed 🟡 *(2026-09-22)*
+- **Decision:** Grade 1 enemies +10% HP · Grade 2 −1 Credit per wave · Grade 3 elites from act 1 (`07` §2.2 proposal, first three). Bot wins: 42% / 18% / 9%. The step from Grade 1 to 2 is steep; Grades 4–10 remain proposals.
+
+### D29 — Save = replay, resume = re-simulation 🟢 *(2026-09-22, implemented)*
+- **Decision:** the run in progress is saved as its replay text at every shop (`RunSave`, PlayerPrefs for now); resuming re-simulates it, so a save can never disagree with the rules, and a save from another balance version is discarded. Replay format `R2` (game version, mode, Core, Grade) with `R1` still readable.
+
 ---
 
 ## Open decisions
 | # | Question | Proposal | Where |
 |---|---|---|---|
-| **D22** | UI: UI Toolkit or uGUI? | **UI Toolkit** (mature runtime in Unity 6, USS styles, good drag and text-scaling support). uGUI only if dragging over the 3D scene causes problems | `06` §5, `09` §5 |
 | **D23** | Server-side replay verification at launch? | Yes, with Cloud Code C#, if the UGS cost estimate is acceptable; otherwise sampled verification with replays kept for later checks | `10` §1.3–1.4 |
 | **D24** | Analytics: Firebase or GameAnalytics? | Decide in month 4: GameAnalytics is free and simple; Firebase adds Crashlytics and Remote Config | `10` §4 |
 | **D25** | Game name | Choose in month 5, after trademark and store checks (never references to other games, D20) | `10` §4 |
@@ -142,7 +158,7 @@
 | Topic | Proposal | Document |
 |---|---|---|
 | Pulse as a choice | P1 resonance (3+ enemies hit → next cooldown −25%); P2 as a rare "Resonator" booster; P3 "Focus" tap only if testers get bored | `07` §1.7 |
-| Difficulty | the ten Grades, one readable rule each | `07` §2.2 |
+| Difficulty | Grades 4–10 (1–3 are implemented, D28) | `07` §2.2 |
 | Defeat | one contextual tip after 3 defeats in the same act, never a hidden nerf | `07` §2.4 |
 | Typography | Nunito (SIL OFL) | `03` A8 |
 | Blueprints | +5 for the first win of the day, +3 for the Daily (even if lost), +2 for the top half | `08` §1.4, `10` §1.1 |
