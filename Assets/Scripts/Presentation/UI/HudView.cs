@@ -83,6 +83,21 @@ namespace TowerDefense.Presentation.UI
         private readonly VisualElement _gameOver;
         private readonly Label _gameOverTitle;
         private readonly Label _gameOverStats;
+        private readonly VisualElement _summary;
+        private readonly Label _summaryTitle;
+        private readonly Label _summaryDamage;
+        private readonly Label _summaryCredits;
+        private float _summaryStart = -1f;
+        private int _summaryWave;
+        private long _summaryDamageValue;
+        private int _summaryCreditsAfter;
+        private int _summaryCreditsGained;
+        private int _summaryInterest;
+
+        /// <summary>Summary timeline (docs/03 B4): damage rolls 0–0.8 s, coins add 0.8–1.6 s, closes at 2.2 s; a tap skips.</summary>
+        private const float SummaryDamageEnd = 0.8f;
+        private const float SummaryCoinsEnd = 1.6f;
+        private const float SummaryEnd = 2.2f;
         private readonly Label _previewEffect;
         private readonly VisualElement _sellZone;
         private readonly VisualElement _ghost;
@@ -125,6 +140,11 @@ namespace TowerDefense.Presentation.UI
             _gameOverTitle = root.Q<Label>("game-over-title");
             _gameOverStats = root.Q<Label>("game-over-stats");
             _previewEffect = root.Q<Label>("preview-effect");
+            _summary = root.Q<VisualElement>("wave-summary");
+            _summaryTitle = root.Q<Label>("summary-title");
+            _summaryDamage = root.Q<Label>("summary-damage");
+            _summaryCredits = root.Q<Label>("summary-credits");
+            _summary.RegisterCallback<PointerDownEvent>(_ => SkipSummary());
             _sellZone = root.Q<VisualElement>("sell-zone");
             _ghost = root.Q<VisualElement>("drag-ghost");
             _ghostName = root.Q<Label>("ghost-name");
@@ -165,7 +185,7 @@ namespace TowerDefense.Presentation.UI
         /// <summary>Offer card under a screen point, or -1. Sold cards do not count.</summary>
         public int CardAt(Vector2 screenPosition)
         {
-            if (_root.panel == null || _cards.ClassListContains("hidden") || _shop.ClassListContains("hidden"))
+            if (_root.panel == null || IsSummaryOpen || _cards.ClassListContains("hidden") || _shop.ClassListContains("hidden"))
             {
                 return -1;
             }
@@ -224,6 +244,53 @@ namespace TowerDefense.Presentation.UI
             _ghost.style.top = panelCentre.y - 100f;
         }
 
+        /// <summary>Opens the end-of-wave summary; the shop stays hidden until it closes or is tapped.</summary>
+        public void ShowWaveSummary(int wave, long waveDamage, int creditsAfter, int creditsGained, int interest)
+        {
+            _summaryStart = Time.time;
+            _summaryWave = wave;
+            _summaryDamageValue = waveDamage;
+            _summaryCreditsAfter = creditsAfter;
+            _summaryCreditsGained = creditsGained;
+            _summaryInterest = interest;
+            Show(_summary, true);
+        }
+
+        public bool IsSummaryOpen => _summaryStart >= 0f;
+
+        private void SkipSummary()
+        {
+            _summaryStart = -1f;
+            Show(_summary, false);
+        }
+
+        private void RefreshSummary(GameSimulation sim)
+        {
+            if (!IsSummaryOpen)
+            {
+                return;
+            }
+
+            float t = Time.time - _summaryStart;
+            if (t >= SummaryEnd)
+            {
+                SkipSummary();
+                return;
+            }
+
+            int gained = _summaryCreditsGained;
+            SetText(_summaryTitle, $"Wave {_summaryWave} ✓");
+            float damageT = Mathf.Clamp01(t / SummaryDamageEnd);
+            long shownDamage = (long)(_summaryDamageValue * EaseOut(damageT));
+            SetText(_summaryDamage, $"Damage {NumberFormat.CompactHundredths(shownDamage)}");
+            float coinT = Mathf.Clamp01((t - SummaryDamageEnd) / (SummaryCoinsEnd - SummaryDamageEnd));
+            int shownGain = Mathf.RoundToInt(gained * coinT);
+            string interest = _summaryInterest > 0 && coinT >= 1f ? $"  (+{_summaryInterest} interest)" : string.Empty;
+            SetText(_summaryCredits, $"◈ {_summaryCreditsAfter - gained + shownGain}   +{shownGain}{interest}");
+        }
+
+        private static float EaseOut(float t) => 1f - (1f - t) * (1f - t) * (1f - t);
+
         public void ShowToast(string text)
         {
             _toast.text = text;
@@ -275,8 +342,9 @@ namespace TowerDefense.Presentation.UI
                 _toast.RemoveFromClassList("toast--visible");
             }
 
+            RefreshSummary(sim);
             bool shop = sim.Phase == GamePhase.Shop;
-            Show(_shop, shop && !sim.IsOver);
+            Show(_shop, shop && !sim.IsOver && !IsSummaryOpen);
             Show(_waveControls, sim.Phase == GamePhase.Wave);
             Show(_gameOver, sim.IsOver);
 

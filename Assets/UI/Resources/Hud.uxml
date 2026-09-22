@@ -43,6 +43,15 @@
             </ui:VisualElement>
         </ui:VisualElement>
 
+        <ui:VisualElement name="wave-summary" class="summary hidden">
+            <ui:VisualElement class="summary__panel glass" picking-mode="Ignore">
+                <ui:Label name="summary-title" class="summary__title" text="Wave 1 ✓" picking-mode="Ignore" />
+                <ui:Label name="summary-damage" class="summary__line" text="" picking-mode="Ignore" />
+                <ui:Label name="summary-credits" class="summary__line summary__credits" text="" picking-mode="Ignore" />
+                <ui:Label class="summary__hint" text="tap to continue" picking-mode="Ignore" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
         <ui:VisualElement name="drag-ghost" class="drag-ghost hidden" picking-mode="Ignore">
             <ui:Label name="ghost-name" class="card__name" text="" picking-mode="Ignore" />
             <ui:Label name="ghost-cost" class="card__cost" text="" picking-mode="Ignore" />

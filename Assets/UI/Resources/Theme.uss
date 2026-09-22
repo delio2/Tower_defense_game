@@ -397,6 +397,47 @@
     height: 168px;
 }
 
+/* End-of-wave summary (docs/03 B4): progressive counting, tap anywhere to skip */
+.summary {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    justify-content: flex-end;
+    align-items: center;
+    padding-bottom: 260px;
+}
+
+.summary__panel {
+    width: 720px;
+    padding: 48px;
+    align-items: center;
+    background-color: rgba(20, 22, 48, 0.75);
+}
+
+.summary__title {
+    font-size: var(--font-title);
+    color: var(--ivory);
+    margin-bottom: 24px;
+}
+
+.summary__line {
+    font-size: var(--font-body);
+    color: var(--ivory-60);
+    margin-bottom: 12px;
+}
+
+.summary__credits {
+    color: var(--gold);
+}
+
+.summary__hint {
+    font-size: 28px;
+    color: var(--ivory-40);
+    margin-top: 24px;
+}
+
 /* Run end overlay (docs/09 §2.4) */
 .overlay {
     position: absolute;

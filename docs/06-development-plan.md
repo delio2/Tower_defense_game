@@ -70,8 +70,8 @@ Deterministic simulation (60 ticks/s, integers), 7 modules, 3 enemies + Guardian
 - [x] Dragging with the **object above the finger** (ghost +150 px), valid slots lit, **magnet** 0.45 units, 8 dp threshold (tap keeps the card-then-slot path); invalid release → soft return (250 ms). Cards → slots (buy/merge), modules → slots (move) or Sell zone.
 - [x] **Preview above the cards** while dragging, computed by `TryPreviewBuy/Move/Sell` ("DPS 16 → 36 (+125%)", "Level 2 · DPS …", "Sell: +2 · DPS …").
 - [x] **Sell zone** (appears only while dragging a module), **Undo** in the UI, tap-card-then-slot as the alternative.
-- [ ] Animated merge (attraction + soft glow, scale 1.15 → 1), combo lines that light up softly.
-- [ ] **Wave-end summary** with progressive counting, skippable with a tap.
+- [x] Animated merge (swell 1.15 → 1 in 150 ms + a faint golden ring; attraction from the card deferred), combo lines already shown in the shop.
+- [x] **Wave-end summary**: damage rolls (0.8 s), Credits add up (0.8–1.6 s, interest shown), closes at 2.2 s, tap anywhere to skip; the shop appears afterwards.
 - [ ] Haptics at 3 levels (Android `VibrationEffect`), can be disabled.
 - [ ] Basic options: reduce motion, effect intensity, damage numbers, haptics, speed. Stored in `PlayerPrefs` for now.
 - [ ] Cap on simultaneous effects and automatic attenuation with many enemies.
@@ -176,7 +176,7 @@ The operational calendar is in **`10` §4** (6-month roadmap, October 2026 → M
 3. ✅ `BuySlot` command + tests (2026-09-22).
 4. ✅ UI Toolkit instead of IMGUI (2026-09-22).
 5. ✅ Dragging with magnet and preview (2026-09-22) — manual check on the phone pending.
-6. Undo and Sell in the UI; animated merge; wave-end summary.
+6. ✅ Undo and Sell in the UI; animated merge; wave-end summary (2026-09-22).
 7. Basic options + haptics.
 8. Android development build on the phone → Gate 1 with 3–5 testers.
 

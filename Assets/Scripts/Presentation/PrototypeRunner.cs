@@ -69,6 +69,8 @@ namespace TowerDefense.Presentation
         private int _dragTargetSlot = -1;
         private bool _dragOverSell;
         private string _previewText;
+        private long _damageAtWaveStart;
+        private int _creditsAtWaveStart;
         private float _coreWarning;
         private float _viewRadius = ShopViewRadius;
         private string _replayStatus;
@@ -284,16 +286,37 @@ namespace TowerDefense.Presentation
                             Palette.WithAlpha(Palette.Core, 0.5f), 0.6f, 0.05f);
                         break;
                     case SimEventType.ModuleMerged:
-                        ShowMessage($"Merged: level {e.Value}");
+                        OnModuleMerged(e);
+                        break;
+                    case SimEventType.WaveStarted:
+                        _damageAtWaveStart = _sim.TotalDamage;
+                        _creditsAtWaveStart = _sim.Credits;
                         break;
                     case SimEventType.WaveCleared:
-                        ShowMessage(e.Extra > 0 ? $"Wave cleared  +{e.Extra} interest" : "Wave cleared");
+                        // Credits were just paid: base + interest (+ Guardian bonus); the summary counts them up.
+                        if (!_sim.IsOver)
+                        {
+                            _hud?.ShowWaveSummary((int)e.Value, _sim.TotalDamage - _damageAtWaveStart, _sim.Credits, _sim.Credits - _creditsAtWaveStart, e.Extra);
+                        }
+
                         break;
                     case SimEventType.CommandRejected:
                         ShowMessage(DescribeRejection((CommandResult)e.Extra));
                         break;
                 }
             }
+        }
+
+        /// <summary>Merge: the module swells softly and a faint ring expands from it (the "satisfying" moment, docs/03 B4).</summary>
+        private void OnModuleMerged(SimEvent e)
+        {
+            if (_moduleViews.TryGetValue(e.EntityId, out ModuleView view))
+            {
+                view.MergeAt = Time.time;
+                SpawnRing(view.Root.position, 0.3f, 1.1f, Palette.WithAlpha(Palette.Booster, 0.45f), 0.45f, 0.04f);
+            }
+
+            ShowMessage($"Level {e.Value}");
         }
 
         private void OnEnemyHit(SimEvent e)
@@ -778,7 +801,9 @@ namespace TowerDefense.Presentation
                 }
 
                 float levelScale = 1f + 0.18f * (module.Level - 1);
-                view.Root.localScale = view.BaseScale * levelScale;
+                float merge = view.MergeAt >= 0f ? Mathf.Clamp01((Time.time - view.MergeAt) / 0.15f) : 1f;
+                float swell = 1f + 0.15f * (1f - merge) * (1f - merge); // ease-out back to 1
+                view.Root.localScale = view.BaseScale * levelScale * swell;
                 view.Root.localPosition = Vector3.Lerp(view.Root.localPosition, SlotWorld(slot) + Vector3.up * 0.3f, 1f - Mathf.Exp(-Time.deltaTime * 12f));
 
                 // In the shop, boosters show soft links to their neighbours: the combos are visible.
@@ -1128,6 +1153,9 @@ namespace TowerDefense.Presentation
         {
             public readonly Transform Root;
             public readonly Vector3 BaseScale;
+
+            /// <summary>Time.time when a merge swelled this module (scale 1.15 → 1 over 0.15 s, docs/03 A7).</summary>
+            public float MergeAt = -1f;
 
             public ModuleView(Transform root, Vector3 baseScale)
             {
