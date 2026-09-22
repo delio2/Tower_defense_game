@@ -3,8 +3,8 @@ using TowerDefense.Simulation;
 namespace TowerDefense.Presentation.UI
 {
     /// <summary>
-    /// Player-facing strings of the prototype. To move to keyed localization (EN + IT) in Phase 3c; ASCII/Latin-1
-    /// only, device fonts lack symbols (presentation rules).
+    /// Player-facing sentences built from simulation state. Every word comes from the string table through
+    /// <see cref="Loc"/> (EN + IT); this class only chooses which key and fills the numbers in.
     /// </summary>
     internal static class UiText
     {
@@ -16,40 +16,23 @@ namespace TowerDefense.Presentation.UI
             string to = NumberFormat.CompactHundredths(after);
             if (before <= 0)
             {
-                return $"DPS {from} → {to}";
+                return Loc.T("shop.dps", from, to);
             }
 
             long percent = (after - before) * 100 / before;
             string sign = percent >= 0 ? "+" : string.Empty;
-            return $"DPS {from} → {to} ({sign}{percent}%)";
+            return Loc.T("shop.dps_change", from, to, sign + percent);
         }
 
-        public static string Describe(ModuleKind kind)
-        {
-            return kind switch
-            {
-                ModuleKind.Emitter => "Shoots the enemy closest to the core",
-                ModuleKind.Scatter => "Hits 3 enemies at once",
-                ModuleKind.Amplifier => "Neighbours deal x1.5 damage",
-                ModuleKind.Lens => "Neighbours: +1.5 range, +2 damage",
-                ModuleKind.Overclock => "Neighbours fire 25% faster",
-                ModuleKind.Arc => "Chains over 4 enemies, -10% per jump",
-                ModuleKind.Lance => "Pierces every enemy on a line",
-                ModuleKind.Mortar => "Explodes on the farthest enemy",
-                ModuleKind.Echo => "Neighbour hits echo at 50%",
-                ModuleKind.Bank => "+1 interest cap, +1 credit per wave",
-                ModuleKind.Salvage => "+1 credit per 10 kills",
-                ModuleKind.Bulwark => "+25 integrity, repairs 5 per wave",
-                ModuleKind.Frost => "Enemies near the core move 25% slower",
-                ModuleKind.Capacitor => "Pulse: -20% cooldown, +50% damage",
-                _ => kind.ToString(),
-            };
-        }
+        public static string Describe(ModuleKind kind) => Loc.T("module." + kind + ".desc");
+
+        private static string Seconds(int ticks) => (ticks / (float)SimConstants.TicksPerSecond).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
 
         /// <summary>Title of a module's tooltip: what it is and how far it has been levelled.</summary>
         public static string ModuleTitle(ModuleInstance module)
         {
-            return module.Level > 1 ? $"{module.Kind} L{module.Level}" : module.Kind.ToString();
+            string name = Loc.ModuleName(module.Kind);
+            return module.Level > 1 ? Loc.T("inspect.title_level", name, module.Level) : name;
         }
 
         /// <summary>
@@ -63,10 +46,8 @@ namespace TowerDefense.Presentation.UI
                 return Describe(module.Kind);
             }
 
-            string damage = NumberFormat.CompactHundredths(module.EffectiveDamage);
-            string every = (module.EffectiveCooldown / (float)SimConstants.TicksPerSecond).ToString("0.00");
-            string dealt = NumberFormat.CompactHundredths(module.DamageThisWave);
-            return $"{damage} every {every} s\nthis wave: {dealt}";
+            return Loc.T("inspect.weapon", NumberFormat.CompactHundredths(module.EffectiveDamage),
+                Seconds(module.EffectiveCooldown), NumberFormat.CompactHundredths(module.DamageThisWave));
         }
 
         /// <summary>
@@ -76,7 +57,7 @@ namespace TowerDefense.Presentation.UI
         public static string ModuleSheet(ModuleInstance module, Ring ring, int sellValue)
         {
             string head = module.Category == ModuleCategory.Weapon
-                ? $"{NumberFormat.CompactHundredths(module.EffectiveDamage)} every {(module.EffectiveCooldown / (float)SimConstants.TicksPerSecond):0.00} s"
+                ? Loc.T("inspect.weapon_head", NumberFormat.CompactHundredths(module.EffectiveDamage), Seconds(module.EffectiveCooldown))
                 : Describe(module.Kind);
 
             string neighbours = string.Empty;
@@ -85,49 +66,51 @@ namespace TowerDefense.Presentation.UI
                 ModuleInstance left = ring.At(ring.LeftOf(module.Slot));
                 ModuleInstance right = ring.At(ring.RightOf(module.Slot));
                 string lifted = Join(left, right);
-                neighbours = lifted.Length > 0 ? $"\nlifting {lifted}" : "\nno neighbours to lift";
+                neighbours = lifted.Length > 0 ? Loc.T("inspect.lifting", lifted) : Loc.T("inspect.no_neighbours");
             }
 
-            return $"{head}\nsells back for {sellValue}{neighbours}";
+            return Loc.T("inspect.sheet", head, sellValue, neighbours);
         }
 
         private static string Join(ModuleInstance left, ModuleInstance right)
         {
             if (left != null && right != null)
             {
-                return $"{left.Kind} and {right.Kind}";
+                return Loc.T("inspect.and", Loc.ModuleName(left.Kind), Loc.ModuleName(right.Kind));
             }
 
-            return left?.Kind.ToString() ?? right?.Kind.ToString() ?? string.Empty;
+            ModuleInstance only = left ?? right;
+            return only != null ? Loc.ModuleName(only.Kind) : string.Empty;
         }
 
         /// <summary>An offer card held down: what buying it would give and what it costs.</summary>
-        public static string OfferSheet(ModuleDefinition definition)
-        {
-            return $"{Describe(definition.Kind)}\ncosts {definition.Cost}";
-        }
+        public static string OfferSheet(ModuleDefinition definition) => Loc.T("inspect.offer", Describe(definition.Kind), definition.Cost);
 
-        public static string EnemyTitle(Enemy enemy) => enemy.IsElite ? $"{enemy.Kind} (elite)" : enemy.Kind.ToString();
+        public static string EnemyTitle(Enemy enemy)
+        {
+            string name = Loc.EnemyName(enemy.Kind);
+            return enemy.IsElite ? Loc.T("inspect.elite", name) : name;
+        }
 
         /// <summary>The enemy card: health left, what it shrugs off, and how fast it closes in.</summary>
         public static string EnemyCard(Enemy enemy)
         {
             string hp = NumberFormat.CompactHundredths(enemy.Hp);
             string maxHp = NumberFormat.CompactHundredths(enemy.MaxHp);
-            string speed = (enemy.Definition.SpeedMilli / 1000f).ToString("0.0");
-            string armour = enemy.Armor > 0 ? $"\narmour {NumberFormat.CompactHundredths(enemy.Armor)}" : string.Empty;
-            return $"{hp} / {maxHp}\n{speed} units per second{armour}";
+            string speed = (enemy.Definition.SpeedMilli / 1000f).ToString("0.0", System.Globalization.CultureInfo.InvariantCulture);
+            string armour = enemy.Armor > 0 ? Loc.T("inspect.armour", NumberFormat.CompactHundredths(enemy.Armor)) : string.Empty;
+            return Loc.T("inspect.enemy", hp, maxHp, speed, armour);
         }
 
         public static string DescribeRejection(CommandResult result)
         {
             return result switch
             {
-                CommandResult.NotEnoughCredits => "Not enough credits",
-                CommandResult.SlotOccupied => "That slot is taken",
-                CommandResult.PulseNotReady => "Pulse is recharging",
-                CommandResult.OfferAlreadyBought => "Already bought",
-                CommandResult.InvalidSlot => "Pick a slot on the ring",
+                CommandResult.NotEnoughCredits => Loc.T("reject.credits"),
+                CommandResult.SlotOccupied => Loc.T("reject.slot_taken"),
+                CommandResult.PulseNotReady => Loc.T("reject.pulse"),
+                CommandResult.OfferAlreadyBought => Loc.T("reject.bought"),
+                CommandResult.InvalidSlot => Loc.T("reject.slot"),
                 _ => result.ToString(),
             };
         }

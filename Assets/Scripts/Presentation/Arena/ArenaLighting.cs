@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using TowerDefense.Presentation.Settings;
 
 namespace TowerDefense.Presentation.Arena
 {
@@ -17,6 +18,7 @@ namespace TowerDefense.Presentation.Arena
         private readonly Light _key;
         private readonly VolumeProfile _profile;
         private readonly Vignette _vignette;
+        private readonly UniversalAdditionalCameraData _cameraData;
 
         public ArenaLighting(Transform parent, Camera camera)
         {
@@ -45,9 +47,19 @@ namespace TowerDefense.Presentation.Arena
             tonemapping.mode.Override(TonemappingMode.None);
             volume.sharedProfile = _profile;
 
-            UniversalAdditionalCameraData cameraData = camera.GetUniversalAdditionalCameraData();
-            cameraData.renderPostProcessing = true;
-            cameraData.renderShadows = true;
+            _cameraData = camera.GetUniversalAdditionalCameraData();
+            ApplyQuality();
+        }
+
+        /// <summary>
+        /// The Low level (<see cref="GraphicsQuality"/>) drops the post pass and the shadow pass entirely: its URP asset
+        /// has no shadows and no HDR, and skipping the passes here saves the full-screen blits as well.
+        /// </summary>
+        public void ApplyQuality()
+        {
+            _cameraData.renderPostProcessing = GraphicsQuality.PostProcessing;
+            _cameraData.renderShadows = GraphicsQuality.Shadows;
+            _key.shadows = GraphicsQuality.Shadows ? LightShadows.Soft : LightShadows.None;
         }
 
         public void ApplyTheme(in SkyTheme theme)

@@ -335,7 +335,7 @@ namespace TowerDefense.Presentation.Interaction
                     return;
                 }
 
-                hud.ShowGhost(offer.Value.ToString(), offer.Value, screen);
+                hud.ShowGhost(Loc.ModuleName(offer.Value), offer.Value, screen);
             }
             else
             {
@@ -346,7 +346,7 @@ namespace TowerDefense.Presentation.Interaction
                     return;
                 }
 
-                hud.ShowGhost(module.Level > 1 ? $"{module.Kind} L{module.Level}" : module.Kind.ToString(), module.Kind, screen);
+                hud.ShowGhost(UiText.ModuleTitle(module), module.Kind, screen);
             }
         }
 
@@ -472,13 +472,13 @@ namespace TowerDefense.Presentation.Interaction
                 }
 
                 ModuleInstance target = merges ? Sim.Ring.At(slot) : null;
-                string level = target != null ? $"Level {target.Level + 1} · " : string.Empty;
+                string level = target != null ? Loc.T("shop.preview_level", target.Level + 1) : string.Empty;
                 return level + UiText.DpsChange(before, after);
             }
 
             if (_dragOverSell && Sim.TryPreviewSell(_dragIndex, out long afterSell, out int refund))
             {
-                return $"Sell: +{refund} · " + UiText.DpsChange(before, afterSell);
+                return Loc.T("shop.preview_sell", refund) + UiText.DpsChange(before, afterSell);
             }
 
             if (_dragTargetSlot >= 0 && _dragTargetSlot != _dragIndex && Sim.TryPreviewMove(_dragIndex, _dragTargetSlot, out long afterMove))
@@ -506,7 +506,7 @@ namespace TowerDefense.Presentation.Interaction
 
             if (!Sim.Ring.HasFreeSlot())
             {
-                _showMessage("Ring full: sell a module first");
+                _showMessage(Loc.T("msg.ring_full"));
                 return;
             }
 
@@ -514,7 +514,7 @@ namespace TowerDefense.Presentation.Interaction
             SelectedSlot = -1;
             if (SelectedOffer >= 0)
             {
-                _showMessage("Tap a free slot on the ring");
+                _showMessage(Loc.T("msg.tap_slot"));
             }
         }
 

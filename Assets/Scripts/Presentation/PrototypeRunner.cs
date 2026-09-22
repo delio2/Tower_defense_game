@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using TowerDefense.Presentation.Arena;
 using TowerDefense.Presentation.Content;
+using TowerDefense.Presentation.Diagnostics;
 using TowerDefense.Presentation.Interaction;
+using TowerDefense.Presentation.Services;
 using TowerDefense.Presentation.Settings;
 using TowerDefense.Presentation.UI;
 using TowerDefense.Simulation;
@@ -54,6 +56,13 @@ namespace TowerDefense.Presentation
         private double _tickAccumulator;
         private int _speed = 1;
         private bool _paused;
+
+        /// <summary>Set when the app was started to benchmark itself (a bot plays; nothing is saved).</summary>
+        private AutoplayBenchmark _benchmark;
+
+        /// <summary>Session log for playtests (docs/13): real wave and shop times, idle stretches, the first-run funnel.</summary>
+        private SessionRecorder _session;
+
         private long _damageAtWaveStart;
         private int _creditsAtWaveStart;
         private string _replayStatus;
@@ -74,6 +83,15 @@ namespace TowerDefense.Presentation
             }
 
             Application.targetFrameRate = 60;
+            GraphicsQuality.Apply();
+            Loc.SetLanguage(Ui.ResolveLanguage(PlayerOptions.Language));
+            _benchmark = AutoplayBenchmark.TryCreate();
+            if (_benchmark != null)
+            {
+                QualitySettings.SetQualityLevel(_benchmark.QualityLevel, true);
+                _resumeOnStart = false;
+                _seed = (int)_benchmark.Seed;
+            }
 #if UNITY_EDITOR
             Application.runInBackground = true;
 #endif
@@ -91,6 +109,7 @@ namespace TowerDefense.Presentation
             }
 
             _lighting = new ArenaLighting(transform, _cameraRig.Camera); // after the cleanup: children are destroyed at frame end
+            _session ??= new SessionRecorder(new LocalAnalytics(), _benchmark != null);
             StartRun();
         }
 
@@ -127,7 +146,7 @@ namespace TowerDefense.Presentation
             _effects.Clear();
             _events.Clear();
             _tickAccumulator = 0;
-            _speed = PlayerOptions.DefaultSpeed;
+            _speed = _benchmark?.Speed ?? PlayerOptions.DefaultSpeed;
             _paused = false;
             _input.Reset();
             _replayStatus = null;
@@ -139,7 +158,12 @@ namespace TowerDefense.Presentation
             if (_sim != null)
             {
                 _seed = (int)_sim.Config.Seed;
-                ShowMessage($"Resumed at wave {_sim.CurrentWave}");
+                ShowMessage(Loc.T("msg.resumed", _sim.CurrentWave));
+            }
+            else if (_benchmark != null)
+            {
+                _sim = new GameSimulation(RunSetup.Create((ulong)_seed, CoreType.Standard), content);
+                _benchmark.Begin(_sim);
             }
             else
             {
@@ -153,6 +177,7 @@ namespace TowerDefense.Presentation
             _ring.Build(_kit);
             _core.Build(_kit);
             ApplyActTheme();
+            _session?.RunStarted(_sim, _sim.Tick > 0 || _sim.CurrentWave > 1);
         }
 
         private void Update()
@@ -161,9 +186,11 @@ namespace TowerDefense.Presentation
             float deltaTime = Time.deltaTime;
             _cameraRig.UpdateLayout(_sim.Phase, deltaTime, FurthestEnemyRadius());
             _input.HandlePointer();
+            _benchmark?.Tick(_sim, Time.unscaledDeltaTime);
             _sim.ApplyPendingCommandsNow();
             AdvanceSimulation(deltaTime);
             ProcessEvents();
+            _session?.Observe(_sim, _events, _paused);
             _ring.Sync(_kit, _input.IsHighlighted, deltaTime);
             _ring.ShowReach(_kit, _input.DragReach);
             _enemies.Sync(_kit, deltaTime);
@@ -188,6 +215,7 @@ namespace TowerDefense.Presentation
             }
 
             _hud = new HudView(document.rootVisualElement);
+            _hud.QualityChanged += () => { GraphicsQuality.Apply(); _lighting?.ApplyQuality(); };
             _hud.RerollTapped += () => { _sim.Enqueue(Command.Reroll()); _input.DeselectOffer(); };
             _hud.NextWaveTapped += () => { _sim.Enqueue(Command.StartWave()); _input.ClearSelection(); Haptics.Medium(); };
             _hud.UndoTapped += () => { _sim.Enqueue(Command.Undo()); _input.ClearSelection(); };
@@ -207,7 +235,7 @@ namespace TowerDefense.Presentation
             _hud.PulseTapped += TryPulse;
             _hud.SpeedTapped += () => _speed = _speed % 3 + 1;
             _hud.PauseTapped += () => _paused = !_paused;
-            _hud.PlayAgainTapped += () => { _seed++; RunSave.Clear(); StartRun(); };
+            _hud.PlayAgainTapped += () => { _session?.RunAbandoned(_sim); _seed++; RunSave.Clear(); StartRun(); };
         }
 
         private void SyncHud()
@@ -251,6 +279,7 @@ namespace TowerDefense.Presentation
             int steps = 0;
             while (_tickAccumulator >= 1.0 && steps < MaxStepsPerFrame && _sim.Phase == GamePhase.Wave)
             {
+                _benchmark?.BeforeStep(_sim);
                 _sim.Step();
                 _tickAccumulator -= 1.0;
                 steps++;
@@ -311,7 +340,11 @@ namespace TowerDefense.Presentation
                         ShowMessage(UiText.DescribeRejection((CommandResult)e.Extra));
                         break;
                     case SimEventType.ShopOpened:
-                        RunSave.Save(_sim); // autosave at every shop (GDD §2)
+                        if (_benchmark == null)
+                        {
+                            RunSave.Save(_sim); // autosave at every shop (GDD §2)
+                        }
+
                         break;
                 }
             }
@@ -326,7 +359,7 @@ namespace TowerDefense.Presentation
             }
 
             Haptics.Success();
-            ShowMessage($"Level {e.Value}");
+            ShowMessage(Loc.T("msg.level", e.Value));
         }
 
         /// <summary>
@@ -407,15 +440,22 @@ namespace TowerDefense.Presentation
                 return;
             }
 
-            RunSave.Clear();
+            if (_benchmark == null)
+            {
+                RunSave.Clear(); // a benchmark never touches the player's saved run
+            }
 
             // Every finished run is recorded and re-simulated: the same check the server will do (D19).
             string text = Replay.Record(_sim).Serialize();
             ReplayCheck check = ReplayVerifier.Verify(Replay.Deserialize(text), ContentLoader.LoadPrototypeOrDefaults(),
                 () => new RunConfig());
             _replayStatus = check.IsValid
-                ? $"Replay verified ({_sim.CommandLog.Count} commands, {text.Length} bytes)"
-                : $"Replay MISMATCH: {check.Reason}";
+                ? Loc.T("replay.verified", _sim.CommandLog.Count, text.Length)
+                : Loc.T("replay.mismatch", check.Reason);
+            if (_benchmark != null)
+            {
+                Debug.Log($"{AutoplayBenchmark.Tag} replay {_replayStatus}");
+            }
         }
 
         /// <summary>Sky of the current act (Endless stays in Night): floor gradient, rings, key light, ambient.</summary>
@@ -480,7 +520,7 @@ namespace TowerDefense.Presentation
             _hud.SetEdgeMarkers(_edgeMarkers);
             _hud.SetCoreArc(_sim.Phase == GamePhase.Wave ? _hud.WorldToPanel(_cameraRig.Camera, _core.Position) : (Vector2?)null,
                 _core.Integrity);
-            _hud.SetGuardian(guardian == null ? null : guardian.Kind.ToString(),
+            _hud.SetGuardian(guardian == null ? null : Loc.EnemyName(guardian.Kind),
                 guardian == null || guardian.MaxHp <= 0 ? 0f : guardian.Hp / (float)guardian.MaxHp);
         }
 
@@ -495,7 +535,7 @@ namespace TowerDefense.Presentation
             }
 
             ModuleDefinition definition = _sim.Content.Module(offer.Value);
-            _hud.ShowInspector(_hud.CardCentre(index), offer.Value.ToString(), UiText.OfferSheet(definition));
+            _hud.ShowInspector(_hud.CardCentre(index), Loc.ModuleName(offer.Value), UiText.OfferSheet(definition));
         }
 
         /// <summary>How far out the furthest living enemy is, in world units, for the wave framing.</summary>

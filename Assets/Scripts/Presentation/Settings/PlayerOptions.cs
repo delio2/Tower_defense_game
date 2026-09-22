@@ -3,6 +3,13 @@ using UnityEngine;
 
 namespace TowerDefense.Presentation.Settings
 {
+    public enum LanguageChoice : byte
+    {
+        Auto = 0,
+        English = 1,
+        Italian = 2,
+    }
+
     public enum DamageNumbersMode : byte
     {
         All = 0,
@@ -97,6 +104,22 @@ namespace TowerDefense.Presentation.Settings
             set => PlayerPrefs.SetInt(HighContrastKey, value ? 1 : 0);
         }
 
+        /// <summary>Graphics quality level (<see cref="GraphicsQuality"/>); Auto chooses from the device memory.</summary>
+        public static QualityChoice Quality
+        {
+            get => (QualityChoice)Mathf.Clamp(PlayerPrefs.GetInt(QualityKey, 0), 0, 3);
+            set => PlayerPrefs.SetInt(QualityKey, (int)value);
+        }
+
+        /// <summary>Interface language; Auto follows the phone (English when the phone speaks neither).</summary>
+        public static LanguageChoice Language
+        {
+            get => (LanguageChoice)Mathf.Clamp(PlayerPrefs.GetInt(LanguageKey, 0), 0, 2);
+            set => PlayerPrefs.SetInt(LanguageKey, (int)value);
+        }
+
+        private const string LanguageKey = "opt.language";
+        private const string QualityKey = "opt.quality";
         private const string LargeTextKey = "opt.largeText";
         private const string HighContrastKey = "opt.highContrast";
     }

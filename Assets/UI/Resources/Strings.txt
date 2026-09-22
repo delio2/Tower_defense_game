@@ -1,0 +1,151 @@
+# Player-facing strings (Loc.cs): key<TAB>english<TAB>italian. \n = new line, {0} = argument.
+# ASCII/Latin-1 only (the font atlases hold nothing else). Keep button labels <= 12 characters (docs/09 section 6).
+
+# Top bar and wave
+hud.wave	Wave {0}/{1}	Ondata {0}/{1}
+hud.guardian	Guardian {0}/{1}	Guardiano {0}/{1}
+hud.wave_endless	Wave {0} (endless)	Ondata {0} (infinita)
+hud.guardian_endless	Guardian {0} (endless)	Guardiano {0} (infinita)
+hud.pulse	Pulse	Impulso
+hud.pulse_wait	...	...
+
+# Shop
+shop.sell_zone	Sell	Vendi
+shop.sell	Sell	Vendi
+shop.sell_value	Sell\n+{0}	Vendi\n+{0}
+shop.move	Move	Sposta
+shop.move_pick	Tap a\nslot	Tocca\nuno slot
+shop.close	Close	Chiudi
+shop.next	Next	Avanti
+shop.module_head	{0}  L{1}\n{2}	{0}  L{1}\n{2}
+shop.module_weapon	damage {0} x{1}\nrange {2} - every {3} s	danno {0} x{1}\ngittata {2} - ogni {3} s
+shop.preview_level	Level {0} - 	Livello {0} - 
+shop.preview_sell	Sell: +{0} - 	Vendi: +{0} - 
+shop.dps	DPS {0} → {1}	DPS {0} → {1}
+shop.dps_change	DPS {0} → {1} ({2}%)	DPS {0} → {1} ({2}%)
+
+# Messages
+msg.ring_full	Ring full: sell a module first	Anello pieno: vendi prima un modulo
+msg.tap_slot	Tap a free slot on the ring	Tocca uno slot libero sull'anello
+msg.resumed	Resumed at wave {0}	Ripresa all'ondata {0}
+msg.level	Level {0}	Livello {0}
+msg.same_seed_later	Same seed arrives with the Daily (Phase 4)	Lo stesso seed arriva con la Daily (Fase 4)
+msg.share_later	Replay codes arrive in Phase 4	I codici replay arrivano nella Fase 4
+reject.credits	Not enough credits	Crediti insufficienti
+reject.slot_taken	That slot is taken	Quello slot è occupato
+reject.pulse	Pulse is recharging	L'impulso si sta ricaricando
+reject.bought	Already bought	Già comprato
+reject.slot	Pick a slot on the ring	Scegli uno slot sull'anello
+replay.verified	Replay verified ({0} commands, {1} bytes)	Replay verificato ({0} comandi, {1} byte)
+replay.mismatch	Replay MISMATCH: {0}	Replay NON valido: {0}
+
+# Wave summary
+summary.title	Wave {0} cleared	Ondata {0} superata
+summary.damage	Damage {0}	Danni {0}
+summary.credits	Credits {0}   +{1}{2}	Crediti {0}   +{1}{2}
+summary.interest	  (+{0} interest)	  (+{0} interessi)
+summary.tap	tap to continue	tocca per continuare
+
+# Run end
+runend.victory	Victory	Vittoria
+runend.endless	Endless: wave {0}	Infinita: ondata {0}
+runend.wave	Wave {0} of {1}	Ondata {0} di {1}
+runend.stopped	Stopped by {0}	Fermato da {0}
+runend.damage	Damage {0}	Danni {0}
+runend.kills	Kills {0}	Eliminati {0}
+runend.stats	Seed {0}\n{1}	Seed {0}\n{1}
+runend.same_seed	Same seed	Stesso seed
+runend.share	Share	Condividi
+runend.play_again	Play again	Gioca ancora
+
+# Pause
+pause.title	Paused	In pausa
+pause.info	Wave {0} of {1}\n{2}, grade {3}\nSeed {4}	Ondata {0} di {1}\n{2}, grado {3}\nSeed {4}
+pause.speed	Speed	Velocità
+pause.abandon	Hold to abandon	Tieni per abbandonare
+pause.abandon_progress	Hold to abandon  {0}%	Tieni per abbandonare  {0}%
+pause.abandoned	Abandoned	Abbandonata
+pause.resume	Resume	Riprendi
+
+# Options
+options.title	Options	Opzioni
+options.reduce_motion	Reduce motion	Riduci movimento
+options.effects	Effect intensity	Intensità effetti
+options.numbers	Damage numbers	Numeri dei danni
+options.haptics	Haptics	Vibrazione
+options.default_speed	Default speed	Velocità iniziale
+options.graphics	Graphics	Grafica
+options.language	Language	Lingua
+options.large_text	Large text	Testo grande
+options.contrast	High contrast	Alto contrasto
+options.next_run	Next run	Prossima partita
+options.core	Core	Nucleo
+options.grade	Grade	Grado
+options.grade_value	Grade {0}	Grado {0}
+options.endless	Endless after victory	Infinita dopo la vittoria
+options.close	Close	Chiudi
+options.auto	Auto: {0}	Auto: {0}
+numbers.all	All	Tutti
+numbers.big	Big only	Solo grandi
+numbers.none	None	Nessuno
+quality.low	Low	Bassa
+quality.medium	Medium	Media
+quality.high	High	Alta
+language.English	English	English
+language.Italian	Italiano	Italiano
+
+# Inspector bubbles and sheets
+inspect.title_level	{0} L{1}	{0} L{1}
+inspect.weapon	{0} every {1} s\nthis wave: {2}	{0} ogni {1} s\nquesta ondata: {2}
+inspect.weapon_head	{0} every {1} s	{0} ogni {1} s
+inspect.lifting	\nlifting {0}	\npotenzia {0}
+inspect.no_neighbours	\nno neighbours to lift	\nnessun vicino da potenziare
+inspect.and	{0} and {1}	{0} e {1}
+inspect.sheet	{0}\nsells back for {1}{2}	{0}\nsi rivende per {1}{2}
+inspect.offer	{0}\ncosts {1}	{0}\ncosta {1}
+inspect.elite	{0} (elite)	{0} (élite)
+inspect.enemy	{0} / {1}\n{2} units per second{3}	{0} / {1}\n{2} unità al secondo{3}
+inspect.armour	\narmour {0}	\narmatura {0}
+
+# Names (proper names: kept in English for now; docs/11 §1 proposes renames)
+module.Emitter	Emitter	Emitter
+module.Scatter	Scatter	Scatter
+module.Arc	Arc	Arc
+module.Lance	Lance	Lance
+module.Mortar	Mortar	Mortar
+module.Amplifier	Amplifier	Amplifier
+module.Lens	Lens	Lens
+module.Overclock	Overclock	Overclock
+module.Echo	Echo	Echo
+module.Bank	Bank	Bank
+module.Salvage	Salvage	Salvage
+module.Bulwark	Bulwark	Bulwark
+module.Frost	Frost	Frost
+module.Capacitor	Capacitor	Capacitor
+enemy.Drifter	Drifter	Drifter
+enemy.Swarmlet	Swarmlet	Swarmlet
+enemy.Brute	Brute	Brute
+enemy.Dasher	Dasher	Dasher
+enemy.Splitter	Splitter	Splitter
+enemy.Warden	Warden	Warden
+enemy.Guardian	Guardian	Guardiano
+core.Standard	Standard	Standard
+core.Merchant	Merchant	Merchant
+core.Bastion	Bastion	Bastion
+core.Glass	Glass	Glass
+
+# What a module does (card sheet, module panel)
+module.Emitter.desc	Shoots the enemy closest to the core	Colpisce il nemico più vicino al nucleo
+module.Scatter.desc	Hits 3 enemies at once	Colpisce 3 nemici alla volta
+module.Arc.desc	Chains over 4 enemies, -10% per jump	Rimbalza su 4 nemici, -10% a salto
+module.Lance.desc	Pierces every enemy on a line	Trafigge tutti i nemici in linea
+module.Mortar.desc	Explodes on the farthest enemy	Esplode sul nemico più lontano
+module.Amplifier.desc	Neighbours deal x1.5 damage	I vicini fanno danni x1.5
+module.Lens.desc	Neighbours: +1.5 range, +2 damage	Vicini: +1.5 gittata, +2 danni
+module.Overclock.desc	Neighbours fire 25% faster	I vicini sparano il 25% più veloce
+module.Echo.desc	Neighbour hits echo at 50%	I colpi dei vicini si ripetono al 50%
+module.Bank.desc	+1 interest cap, +1 credit per wave	+1 tetto interessi, +1 credito a ondata
+module.Salvage.desc	+1 credit per 10 kills	+1 credito ogni 10 eliminazioni
+module.Bulwark.desc	+25 integrity, repairs 5 per wave	+25 integrità, ripara 5 a ondata
+module.Frost.desc	Enemies near the core move 25% slower	I nemici vicini al nucleo rallentano del 25%
+module.Capacitor.desc	Pulse: -20% cooldown, +50% damage	Impulso: -20% ricarica, +50% danni
