@@ -397,6 +397,64 @@
     height: 168px;
 }
 
+/* Options sheet (docs/09 §2.7): one list, immediate effect */
+.gear {
+    width: 96px;
+    height: 96px;
+    margin: 0;
+    padding: 0;
+    border-radius: 48px;
+    border-width: 0;
+    background-color: rgba(0, 0, 0, 0);
+    color: var(--ivory-40);
+    font-size: var(--font-number);
+    -unity-text-align: middle-center;
+}
+
+.sheet {
+    width: 900px;
+    padding: 48px;
+    background-color: rgba(20, 22, 48, 0.9);
+}
+
+.sheet__title {
+    font-size: var(--font-title);
+    color: var(--ivory);
+    -unity-text-align: middle-center;
+    margin-bottom: 36px;
+}
+
+.option-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    height: 132px;
+}
+
+.option-row__label {
+    font-size: var(--font-body);
+    color: var(--ivory);
+}
+
+.option-row__control {
+    margin: 0;
+}
+
+.option-row__slider {
+    width: 360px;
+    margin: 0;
+}
+
+.option-row__button {
+    width: 300px;
+    height: 108px;
+    font-size: var(--font-caption);
+}
+
+.sheet__close {
+    margin-top: 36px;
+}
+
 /* End-of-wave summary (docs/03 B4): progressive counting, tap anywhere to skip */
 .summary {
     position: absolute;
@@ -472,4 +530,30 @@
 
 .hidden {
     display: none;
+}
+
+/* Default-theme controls sized for the thumb (48 dp = 144 px) */
+.option-row__control .unity-toggle__checkmark {
+    width: 72px;
+    height: 72px;
+    border-radius: 18px;
+    border-width: 3px;
+    border-color: var(--ivory-40);
+    background-color: rgba(0, 0, 0, 0);
+    -unity-background-image-tint-color: var(--ivory);
+}
+
+.option-row__slider .unity-base-slider__tracker {
+    height: 12px;
+    border-radius: 6px;
+    background-color: var(--ivory-40);
+}
+
+.option-row__slider .unity-base-slider__dragger {
+    width: 60px;
+    height: 60px;
+    border-radius: 30px;
+    margin-top: -24px;
+    background-color: var(--ivory);
+    border-width: 0;
 }

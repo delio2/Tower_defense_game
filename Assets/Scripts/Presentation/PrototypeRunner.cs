@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using TowerDefense.Presentation.Content;
+using TowerDefense.Presentation.Settings;
 using TowerDefense.Presentation.UI;
 using TowerDefense.Simulation;
 using UnityEngine;
@@ -32,6 +33,10 @@ namespace TowerDefense.Presentation
 
         private enum DragKind : byte { None, Offer, Module }
         private const int MaxStepsPerFrame = 240;
+
+        /// <summary>Clutter control (docs/03 A8): cap on live line effects, attenuation above this many enemies.</summary>
+        private const int MaxLineEffects = 32;
+        private const int AttenuateAboveEnemies = 20;
 
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
 
@@ -131,6 +136,7 @@ namespace TowerDefense.Presentation
             _petals.Clear();
             _links.Clear();
             _tickAccumulator = 0;
+            _speed = PlayerOptions.DefaultSpeed;
             _paused = false;
             _selectedOffer = -1;
             _selectedSlot = -1;
@@ -176,7 +182,7 @@ namespace TowerDefense.Presentation
 
             _hud = new HudView(document.rootVisualElement);
             _hud.RerollTapped += () => { _sim.Enqueue(Command.Reroll()); _selectedOffer = -1; };
-            _hud.NextWaveTapped += () => { _sim.Enqueue(Command.StartWave()); ClearSelection(); };
+            _hud.NextWaveTapped += () => { _sim.Enqueue(Command.StartWave()); ClearSelection(); Haptics.Medium(); };
             _hud.UndoTapped += () => { _sim.Enqueue(Command.Undo()); ClearSelection(); };
             _hud.BuySlotTapped += () => _sim.Enqueue(Command.BuySlot(_sim.Ring.SlotCount));
             _hud.SellTapped += () =>
@@ -272,7 +278,7 @@ namespace TowerDefense.Presentation
                         OnEnemyHit(e);
                         break;
                     case SimEventType.EnemyKilled:
-                        if (_enemyViews.TryGetValue(e.EntityId, out EnemyView killed))
+                        if (ShowsNumber(e) && _enemyViews.TryGetValue(e.EntityId, out EnemyView killed))
                         {
                             _numbers.Add(new FloatingNumber(killed.Body.transform.position, FormatDamage(e.Value), e.Extra == 0));
                         }
@@ -316,12 +322,33 @@ namespace TowerDefense.Presentation
                 SpawnRing(view.Root.position, 0.3f, 1.1f, Palette.WithAlpha(Palette.Booster, 0.45f), 0.45f, 0.04f);
             }
 
+            Haptics.Success();
+
             ShowMessage($"Level {e.Value}");
+        }
+
+        private static bool ShowsNumber(SimEvent kill)
+        {
+            switch (PlayerOptions.DamageNumbers)
+            {
+                case DamageNumbersMode.None:
+                    return false;
+                case DamageNumbersMode.BigOnly:
+                    return kill.Extra == 0 || kill.Value >= 20 * SimConstants.HpScale; // Pulse kills and heavy hits
+                default:
+                    return true;
+            }
         }
 
         private void OnEnemyHit(SimEvent e)
         {
             if (e.Extra == 0 || !_enemyViews.TryGetValue(e.EntityId, out EnemyView enemy))
+            {
+                return;
+            }
+
+            // Clutter control: a cap on simultaneous tracers, and fainter tracers when the arena is crowded.
+            if (_effects.Count >= Mathf.RoundToInt(MaxLineEffects * PlayerOptions.EffectScale))
             {
                 return;
             }
@@ -334,7 +361,8 @@ namespace TowerDefense.Presentation
 
             // Soft, low-alpha tracer that fades over 0.25 s (calm; at most ~2 per second per module).
             Vector3 from = SlotWorld(module.Slot) + Vector3.up * 0.3f;
-            SpawnBeam(from, enemy.Body.transform.position, Palette.WithAlpha(Palette.Weapon, 0.35f), 0.04f);
+            float crowd = Mathf.Min(1f, AttenuateAboveEnemies / (float)Mathf.Max(1, _sim.Enemies.Count));
+            SpawnBeam(from, enemy.Body.transform.position, Palette.WithAlpha(Palette.Weapon, 0.35f * crowd * PlayerOptions.EffectScale), 0.04f);
         }
 
         private void CheckGameOver()
@@ -465,10 +493,17 @@ namespace TowerDefense.Presentation
 
                 _dragKind = _pendingKind;
                 ClearSelection();
+                Haptics.Light();
             }
 
             Vector3 world = ScreenToWorld(screen);
+            int previousTarget = _dragTargetSlot;
             _dragTargetSlot = NearestSlot(world, MagnetRadius);
+            if (_dragTargetSlot >= 0 && _dragTargetSlot != previousTarget)
+            {
+                Haptics.Light(); // magnet tick
+            }
+
             _dragOverSell = _dragKind == DragKind.Module && _hud != null && _hud.IsOverSellZone(screen);
             _previewText = BuildPreview();
             if (_hud == null)
@@ -549,6 +584,7 @@ namespace TowerDefense.Presentation
 
             if (dropped)
             {
+                Haptics.Medium();
                 _hud?.HideGhost();
             }
             else
@@ -663,6 +699,7 @@ namespace TowerDefense.Presentation
             if (result == CommandResult.Ok)
             {
                 _sim.Enqueue(Command.Pulse());
+                Haptics.Medium();
             }
             else
             {
@@ -871,7 +908,7 @@ namespace TowerDefense.Presentation
                 enemy.GetPosition(out long x, out long y);
                 Vector3 position = new Vector3(x / (float)SimConstants.Micro, 0.25f, y / (float)SimConstants.Micro);
                 view.Body.transform.position = position;
-                view.Body.transform.rotation = Quaternion.Euler(0f, 45f + Time.time * 12f, 0f);
+                view.Body.transform.rotation = Quaternion.Euler(0f, PlayerOptions.ReduceMotion ? 45f : 45f + Time.time * 12f, 0f);
 
                 float fraction = enemy.MaxHp > 0 ? (float)enemy.Hp / enemy.MaxHp : 0f;
                 float width = view.Size * 1.2f;
@@ -929,7 +966,7 @@ namespace TowerDefense.Presentation
         {
             // Slow breathing and a soft warning tint when hit: no flashing.
             _coreWarning *= Mathf.Exp(-Time.deltaTime * 1.5f);
-            float breath = 1.3f + 0.03f * Mathf.Sin(Time.time * 1.2f);
+            float breath = PlayerOptions.ReduceMotion ? 1.3f : 1.3f + 0.03f * Mathf.Sin(Time.time * 1.2f);
             _core.localScale = Vector3.one * breath;
             SetColor(_coreRenderer, Color.Lerp(Palette.Core, Palette.Enemy, 0.55f * _coreWarning));
         }
@@ -938,6 +975,12 @@ namespace TowerDefense.Presentation
 
         private void SpawnRing(Vector3 centre, float fromRadius, float toRadius, Color color, float duration, float width)
         {
+            color.a *= PlayerOptions.EffectScale;
+            if (PlayerOptions.ReduceMotion)
+            {
+                duration *= 0.5f;
+            }
+
             LineRenderer line = RentLine(width, color, true);
             _effects.Add(new LineEffect(line, centre, fromRadius, toRadius, color, duration, true));
         }

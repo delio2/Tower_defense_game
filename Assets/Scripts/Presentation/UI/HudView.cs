@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using TowerDefense.Presentation.Settings;
 using TowerDefense.Simulation;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -55,6 +56,9 @@ namespace TowerDefense.Presentation.UI
         public event Action PauseTapped;
         public event Action PlayAgainTapped;
 
+        /// <summary>Raised after any option changes (values are already saved in <see cref="PlayerOptions"/>).</summary>
+        public event Action OptionsChanged;
+
         private const float ToastSeconds = 2f;
 
         private readonly VisualElement _root;
@@ -83,6 +87,12 @@ namespace TowerDefense.Presentation.UI
         private readonly VisualElement _gameOver;
         private readonly Label _gameOverTitle;
         private readonly Label _gameOverStats;
+        private readonly VisualElement _options;
+        private readonly Toggle _optReduceMotion;
+        private readonly SliderInt _optEffects;
+        private readonly Button _optNumbers;
+        private readonly Toggle _optHaptics;
+        private readonly Button _optSpeed;
         private readonly VisualElement _summary;
         private readonly Label _summaryTitle;
         private readonly Label _summaryDamage;
@@ -140,6 +150,29 @@ namespace TowerDefense.Presentation.UI
             _gameOverTitle = root.Q<Label>("game-over-title");
             _gameOverStats = root.Q<Label>("game-over-stats");
             _previewEffect = root.Q<Label>("preview-effect");
+            _options = root.Q<VisualElement>("options");
+            _optReduceMotion = root.Q<Toggle>("opt-reduce-motion");
+            _optEffects = root.Q<SliderInt>("opt-effects");
+            _optNumbers = root.Q<Button>("opt-numbers");
+            _optHaptics = root.Q<Toggle>("opt-haptics");
+            _optSpeed = root.Q<Button>("opt-speed");
+            root.Q<Button>("options-open").clicked += OpenOptions;
+            root.Q<Button>("options-close").clicked += CloseOptions;
+            _optReduceMotion.RegisterValueChangedCallback(e => { PlayerOptions.ReduceMotion = e.newValue; OptionsChanged?.Invoke(); });
+            _optEffects.RegisterValueChangedCallback(e => { PlayerOptions.EffectIntensity = e.newValue; OptionsChanged?.Invoke(); });
+            _optHaptics.RegisterValueChangedCallback(e => { PlayerOptions.Haptics = e.newValue; OptionsChanged?.Invoke(); });
+            _optNumbers.clicked += () =>
+            {
+                PlayerOptions.DamageNumbers = (DamageNumbersMode)(((int)PlayerOptions.DamageNumbers + 1) % 3);
+                RefreshOptionLabels();
+                OptionsChanged?.Invoke();
+            };
+            _optSpeed.clicked += () =>
+            {
+                PlayerOptions.DefaultSpeed = PlayerOptions.DefaultSpeed % 3 + 1;
+                RefreshOptionLabels();
+                OptionsChanged?.Invoke();
+            };
             _summary = root.Q<VisualElement>("wave-summary");
             _summaryTitle = root.Q<Label>("summary-title");
             _summaryDamage = root.Q<Label>("summary-damage");
@@ -185,7 +218,7 @@ namespace TowerDefense.Presentation.UI
         /// <summary>Offer card under a screen point, or -1. Sold cards do not count.</summary>
         public int CardAt(Vector2 screenPosition)
         {
-            if (_root.panel == null || IsSummaryOpen || _cards.ClassListContains("hidden") || _shop.ClassListContains("hidden"))
+            if (_root.panel == null || IsSummaryOpen || IsOptionsOpen || _cards.ClassListContains("hidden") || _shop.ClassListContains("hidden"))
             {
                 return -1;
             }
@@ -257,6 +290,34 @@ namespace TowerDefense.Presentation.UI
         }
 
         public bool IsSummaryOpen => _summaryStart >= 0f;
+
+        public bool IsOptionsOpen => !_options.ClassListContains("hidden");
+
+        private void OpenOptions()
+        {
+            _optReduceMotion.SetValueWithoutNotify(PlayerOptions.ReduceMotion);
+            _optEffects.SetValueWithoutNotify(PlayerOptions.EffectIntensity);
+            _optHaptics.SetValueWithoutNotify(PlayerOptions.Haptics);
+            RefreshOptionLabels();
+            Show(_options, true);
+        }
+
+        private void CloseOptions()
+        {
+            PlayerOptions.Save();
+            Show(_options, false);
+        }
+
+        private void RefreshOptionLabels()
+        {
+            SetText(_optNumbers, PlayerOptions.DamageNumbers switch
+            {
+                DamageNumbersMode.BigOnly => "Big only",
+                DamageNumbersMode.None => "None",
+                _ => "All",
+            });
+            SetText(_optSpeed, $"{PlayerOptions.DefaultSpeed}x");
+        }
 
         private void SkipSummary()
         {

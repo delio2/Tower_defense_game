@@ -72,9 +72,9 @@ Deterministic simulation (60 ticks/s, integers), 7 modules, 3 enemies + Guardian
 - [x] **Sell zone** (appears only while dragging a module), **Undo** in the UI, tap-card-then-slot as the alternative.
 - [x] Animated merge (swell 1.15 → 1 in 150 ms + a faint golden ring; attraction from the card deferred), combo lines already shown in the shop.
 - [x] **Wave-end summary**: damage rolls (0.8 s), Credits add up (0.8–1.6 s, interest shown), closes at 2.2 s, tap anywhere to skip; the shop appears afterwards.
-- [ ] Haptics at 3 levels (Android `VibrationEffect`), can be disabled.
-- [ ] Basic options: reduce motion, effect intensity, damage numbers, haptics, speed. Stored in `PlayerPrefs` for now.
-- [ ] Cap on simultaneous effects and automatic attenuation with many enemies.
+- [x] Haptics at 3 levels (`Haptics`: Android `VibrationEffect` one-shot/waveform, silent elsewhere): light on pick-up and magnet, medium on drop/Pulse/Next wave, success on merge; never on errors; option to disable.
+- [x] Basic options (`PlayerOptions` in `PlayerPrefs`, sheet from the ⚙ button): reduce motion (breathing and enemy rotation off, effects halved), effect intensity (alpha and caps), damage numbers all/big/none, haptics, default speed.
+- [x] Cap on simultaneous tracers (32 × intensity) and automatic attenuation above 20 enemies.
 - [x] Replace IMGUI with **UI Toolkit** (D22): `HudView` + `Hud.uxml` + `Theme.uss` (tokens of `09` §5) loaded from `Assets/UI/Resources`, `PanelSettings` 1080×1920; top bar, offer cards with rarity/merge badge, module panel, Undo/Reroll/Next/Slot +1, Pulse with cooldown fill, speed/pause, run-end overlay, toasts and floating numbers. Options screen still to do.
 
 **Gate 1 (`05` §19):** 3–5 testers, muted, on the phone (Android development build). At least 3 out of 5 ask to play again; they understand the neighbourhood without explanations by the second shop; nobody is stuck more than 10 s; real wave and shop durations measured (targets 25–30 s and 10–20 s). The naive bot stays below 95% wins in act 1 (above that, act 1 is too easy).
@@ -177,7 +177,7 @@ The operational calendar is in **`10` §4** (6-month roadmap, October 2026 → M
 4. ✅ UI Toolkit instead of IMGUI (2026-09-22).
 5. ✅ Dragging with magnet and preview (2026-09-22) — manual check on the phone pending.
 6. ✅ Undo and Sell in the UI; animated merge; wave-end summary (2026-09-22).
-7. Basic options + haptics.
+7. ✅ Basic options + haptics (2026-09-22).
 8. Android development build on the phone → Gate 1 with 3–5 testers.
 
 ## 5. Open decisions

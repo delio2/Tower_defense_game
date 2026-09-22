@@ -7,6 +7,7 @@
             <ui:Label name="integrity" class="top-number" text="♥ 100" />
             <ui:Label name="wave" class="top-number" text="Wave 1/6" />
             <ui:Label name="credits" class="top-number" text="◈ 6" />
+            <ui:Button name="options-open" class="gear" text="⚙" />
         </ui:VisualElement>
 
         <ui:Label name="toast" class="toast" picking-mode="Ignore" text="" />
@@ -40,6 +41,33 @@
             <ui:VisualElement name="side-buttons" class="side-buttons column" picking-mode="Ignore">
                 <ui:Button name="speed" class="btn btn-secondary" text="1x" />
                 <ui:Button name="pause" class="btn btn-secondary" text="Pause" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="options" class="overlay hidden">
+            <ui:VisualElement class="sheet glass" picking-mode="Ignore">
+                <ui:Label class="sheet__title" text="Options" picking-mode="Ignore" />
+                <ui:VisualElement class="option-row">
+                    <ui:Label class="option-row__label" text="Reduce motion" picking-mode="Ignore" />
+                    <ui:Toggle name="opt-reduce-motion" class="option-row__control" />
+                </ui:VisualElement>
+                <ui:VisualElement class="option-row">
+                    <ui:Label class="option-row__label" text="Effect intensity" picking-mode="Ignore" />
+                    <ui:SliderInt name="opt-effects" class="option-row__slider" low-value="0" high-value="100" value="100" />
+                </ui:VisualElement>
+                <ui:VisualElement class="option-row">
+                    <ui:Label class="option-row__label" text="Damage numbers" picking-mode="Ignore" />
+                    <ui:Button name="opt-numbers" class="btn btn-secondary option-row__button" text="All" />
+                </ui:VisualElement>
+                <ui:VisualElement class="option-row">
+                    <ui:Label class="option-row__label" text="Haptics" picking-mode="Ignore" />
+                    <ui:Toggle name="opt-haptics" class="option-row__control" />
+                </ui:VisualElement>
+                <ui:VisualElement class="option-row">
+                    <ui:Label class="option-row__label" text="Default speed" picking-mode="Ignore" />
+                    <ui:Button name="opt-speed" class="btn btn-secondary option-row__button" text="1x" />
+                </ui:VisualElement>
+                <ui:Button name="options-close" class="btn btn-primary sheet__close" text="Close" />
             </ui:VisualElement>
         </ui:VisualElement>
 
