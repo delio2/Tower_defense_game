@@ -152,7 +152,7 @@ Never other games' names, never fake UI: **real gameplay only** (`02` §5), the 
 
 Each month = a `06` phase, a **gate** and an "if it fails" line. Work inside a month runs in parallel; the order is logical, not rigid.
 
-> **Progress note (2026-09-22):** Phases 1 and 2 were completed in code on 2026-09-21/22, ahead of this calendar; the tester gates and the Android build are the open items. Month 2 (art) can start early; the month labels below stay as the original plan.
+> **Progress note (2026-09-22):** Phases 1 and 2 were completed in code on 2026-09-21/22, ahead of this calendar, and the Android build runs on a Pixel. **Phase 2.5 — visual overhaul** (D30) was inserted and its design is done; content v2 (`11`) and run structure (`12`) are proposed. The month labels below stay as the original plan; the **revised mapping** is in §4.2.
 
 ### Month 1 — October 2026 · Core mechanics and tactile prototype (= Phase 1)
 - ✅ Bot runner + CSV (2026-09-21) · ✅ ScriptableObject `ContentLoader` (2026-09-22) · ✅ `BuySlot` (2026-09-22) · ✅ compact notation (2026-09-22).
@@ -228,3 +228,15 @@ Each month = a `06` phase, a **gate** and an "if it fails" line. Work inside a m
 
 ## 5. Decisions to confirm (then in `04`)
 Daily +2 for the top half · Weekly with 3 attempts · Guardian Gauntlet and Surge · Play Integrity only if evidence shows the need · WebGL demo on itch.io · the three multiplayer gates (§2.4) · the three compression choices (§4.0) and a release at the **end of March 2027** with a possible slip to April.
+
+### 4.2 Revised mapping (2026-09-22)
+Same end date, same gates; the work moved to fit Phase 2.5 and the larger content of `11`–`12`. Detail of each phase in `06`.
+| When | `06` phase | Gate | Notes |
+|---|---|---|---|
+| late Sep → mid Oct | **2.5** foundations + restyle of Wave, Shop, Wave end | 2.5 (+ Gate 1/2 testers on the new look) | design ✅, mood shot v1 ✅ |
+| mid Oct → end Nov | **3a** content and systems v2 (gates, economy, path, Charms, affinities, allies, 22+3 modules, 8 enemies, 2 Guardians) | 3a (bot: ≥ 5 winning archetypes) | needs approval of `11`–`12` first |
+| Dec | **3b** art completion + **3c** FTUE, audio, EN/IT, profiling | 3 | the old "month 2" art work |
+| Jan | **4** meta, Daily, replay codes + **5a** backend | 4, 5a | as the original months 3–4, compressed |
+| Feb | **5b** closed test | 5 | unchanged |
+| Mar | **6–7** soft launch → release | 6 | unchanged |
+**Risk:** content v2 roughly doubles the roster. If 3a slips past November, launch with 24 modules and 10 enemies (one batch less per family) and move the rest to update 1 — never compress the closed test.

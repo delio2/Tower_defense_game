@@ -1,6 +1,6 @@
 # 07 — Gameplay brief (Phase 1)
 
-> Version 1 · 2026-09-21 · Status: brief. The *executable* specification of Phase 1 (`06`) from the game-design side: gesture, second and frame level. Numbers stay in `05`; visuals and interaction feel in `03`; screens in `09`. **PROPOSAL** items extend the GDD and are listed in `04` §Open decisions.
+> Version 1.1 · 2026-09-22 · Status: brief (HP curve aligned with v0.3; P2 now proposed as the Resonator module in `11` §2.3). The *executable* specification of Phase 1 (`06`) from the game-design side: gesture, second and frame level. Numbers stay in `05`; visuals and interaction feel in `03`; screens in `09`. **PROPOSAL** items extend the GDD and are listed in `04` §Open decisions.
 
 ---
 
@@ -96,7 +96,7 @@ Recommendation: P1 first (zero cost, no new gesture), P2 as a module (**Resonato
 ## 2. Difficulty and learning curve
 
 ### 2.1 Inside the run: two curves that must cross at the right moment
-- **Enemy curve:** HP ×1.20 per wave (wave 18 ≈ ×22), budget ×1.10 (wave 18 ≈ 40 points = about 40 Drifters or 13 Brutes). New types one at a time, each introduced **alone** with a 2 s pause.
+- **Enemy curve:** HP ×1.12 per wave since balance v0.3 (wave 18 ≈ ×6.9; ×1.20 in v0 made the run unwinnable, `05` §18), budget ×1.10 (wave 18 ≈ 40 points = about 40 Drifters or 13 Brutes). New types one at a time, each introduced **alone** with a 2 s pause.
 - **Player curve (estimate with an average build):**
   | Wave | Typical build | Estimated DPS | Drifter HP | Hits to kill |
   |---|---|---|---|---|

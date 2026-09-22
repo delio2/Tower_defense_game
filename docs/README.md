@@ -1,6 +1,6 @@
 # Design documentation — working title "TowerDefense"
 
-**Status (2026-09-22):** pre-production. Phases 1 and 2 of [06-development-plan.md](06-development-plan.md) are done in code (deterministic simulation with the full MVP roster, UI Toolkit HUD with magnetic drag, options, save/resume, balance v0.3 tuned by bots; 45 automated tests). Open: Android build and tester gates, then Phase 3 (art). **Start from `06` §4.**
+**Status (2026-09-22):** pre-production. Phases 1 and 2 of [06-development-plan.md](06-development-plan.md) are done in code (deterministic simulation with the full MVP roster, UI Toolkit HUD with magnetic drag, options, save/resume, balance v0.3 tuned by bots; 45 automated tests). Now in **Phase 2.5 — visual overhaul** (D30): design system and mood shot v1 done and approved by the user; Unity build (2.5-A foundations) next; tester gates still open. Proposals under review: `11`, `12`. **Start from `06` §4.**
 
 ## How these documents work
 - **One source of truth per topic.** Numbers and rules live in the GDD (`05`). Direction lives in `03`. Decisions live in `04`. The briefs (`07`–`10`) add detail for a phase; when a brief changes a rule, the change goes into `05` and the reason into `04`.
@@ -23,6 +23,10 @@
 | [08-economy-brief.md](08-economy-brief.md) | Phase 2/4 brief: the two economies, merge yield, Archive tree, what is sold and what never is, season pass, anti-frustration |
 | [09-ui-ux.md](09-ui-ux.md) | UI rules, navigation map, wireframes per screen, progressive disclosure, components, design tokens |
 | [10-liveops-and-roadmap.md](10-liveops-and-roadmap.md) | Daily challenge, leaderboards and anti-cheat, secondary modes, multiplayer gates, launch marketing and store listing, **6-month roadmap** |
+| [11-content-and-systems-brief.md](11-content-and-systems-brief.md) | **PROPOSAL** (D31): simpler names, shape grammar, 36 modules, 14 enemies + 3 Guardians, spawn gates and sectors, act rhythm, rewards, economy v2 |
+| [12-run-structure-and-synergies-brief.md](12-run-structure-and-synergies-brief.md) | **PROPOSAL** (D32): rings as range bands (decided), act path, Charms, affinities, Nests and allied Sprites, rare and special petals, editions, the Pouch |
+| [art/](art/) | Mood shot v1 renders, transparent module/enemy renders, the 47 SVG icons (source: `Art/Blender/moodshot.blend`) |
+| [Dusk Garden design system](https://claude.ai/artifact/5aKRr9H8e3WJsMui64MNnu) | **Living visual reference** (private artifact): tokens for 4 themes, icons, components and every screen as an interactive mockup, research, screen map |
 | [setup/NEW-PC-SETUP.md](setup/NEW-PC-SETUP.md) | How to set up a new PC: software, clone, Unity, MCP, Claude Code, Git |
 
 ## Working with Claude Code

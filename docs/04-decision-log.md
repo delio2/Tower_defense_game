@@ -1,6 +1,6 @@
 # 04 — Decision log
 
-> Version 3 · 2026-09-21 · Status: living document. Format per decision: **question → data → what the best do → decision → confidence**.
+> Version 4 · 2026-09-22 · Status: living document. Format per decision: **question → data → what the best do → decision → confidence**.
 > Confidence: 🟢 high · 🟡 medium, to confirm in the prototype · 🔴 low, hypothesis.
 > Decisions are numbered in the order they were taken. **Superseded** decisions are kept as one-line history. The D17 pivot (2026-09-21) replaced the "musical maze defense" concept with "central Core + modules with combos + asynchronous multiplayer" (D17–D21).
 
@@ -142,8 +142,29 @@
 ### D28 — Grades 1–3 implemented as proposed 🟡 *(2026-09-22)*
 - **Decision:** Grade 1 enemies +10% HP · Grade 2 −1 Credit per wave · Grade 3 elites from act 1 (`07` §2.2 proposal, first three). Bot wins: 42% / 18% / 9%. The step from Grade 1 to 2 is steep; Grades 4–10 remain proposals.
 
+### D30 — Phase 2.5: redesign the whole look before producing art 🟢 *(user decision, 2026-09-22)*
+- **Question:** the prototype's visuals "are bad" (user); do we polish them inside Phase 3 or stop and redesign first?
+- **Decision:** insert **Phase 2.5 — Visual overhaul** before Phase 3 (`06`): research the best-looking games and their criticised weaknesses, design every window (current and future) with interaction and animation rules, and make a real mood shot in Blender. Output: the "Dusk Garden" design system ([artifact](https://claude.ai/artifact/5aKRr9H8e3WJsMui64MNnu)), mood shot v1 (`docs/art/`), `03` v4.
+- **What changes (to approve with the mood shot):** one sky per act (dusk / twilight / night) with enemy contrast ≥ 3:1 checked per theme; `rose` lightened to `#E8709A` for that reason; typography Outfit (numbers, display) + Nunito (words); a drawn 47-icon set; card art rendered from the 3D models; a new in-run information layer (Integrity arc, wave progress, spawn compass, module tooltip, enemy card, edge markers, Guardian banner, combo inspector, damage share); new screens Codex, History, Replay, Run setup, act card.
+- **Confidence:** 🟢 on doing it. **The user approved the design direction** (2026-09-22: "design molto bello", concept liked; asked to simplify names). 🟡 on each visual choice until testers confirm at Gate 2.5.
+
 ### D29 — Save = replay, resume = re-simulation 🟢 *(2026-09-22, implemented)*
 - **Decision:** the run in progress is saved as its replay text at every shop (`RunSave`, PlayerPrefs for now); resuming re-simulates it, so a save can never disagree with the rules, and a save from another balance version is discarded. Replay format `R2` (game version, mode, Core, Grade) with `R1` still readable.
+
+### D31 — Content and systems v2 before production 🟡 *(2026-09-22, user request; content awaiting approval)*
+- **Question:** the user approved the look but asked for simpler names, defined shapes, many more modules and enemies before launch, a clear answer to where enemies come from, and clear wave/reward/economy rules.
+- **Proposal:** `11` (brief) + the *Roster* and *Systems* cards in the design system: renames (Health, Petal, Attack/Boost/Support, Coins, Seeds/Garden, Refresh, ★ stars, Mite, Shard); a shape grammar (family → role → stars); **36 modules** (22 new) and **14 enemies + 3 distinct Guardians** (8 + 2 new); **gates and sectors** instead of per-enemy random directions; a six-beat act rhythm with mutators; Flawless and elite rewards, the Leech; **run pool of 16**, owned-module weighting and free Lock in the shop; **Boons** after each Guardian (Petal +1 among them).
+- **Why now:** a 36-module pool would dilute merges and random directions make placement meaningless; both must be solved before modelling 40 assets.
+- **Next:** user approval of §1 names and §3/§5/§6 systems → simulation work and a bot probe (balance `0.4.0`) → modules and enemies in batches → Blender family scripts.
+
+### D33 — Build by vertical slices on shared foundations 🟢 *(2026-09-22, recommended to the user)*
+- **Question:** develop graphics and mechanics screen by screen?
+- **Decision:** yes, but as **vertical slices of the loop** (Wave, Shop, Wave end, Between acts, Meta), each shipping mechanics + tests + bot probe + visuals + UI + feedback together and checked against its design-system mockup — **after** one shared foundation step (camera, light, shader, UI theme, model pipeline, screen architecture) so screens do not diverge. A slice starts only when its mechanics are approved (`11`, `12`). Detail in `06` Phase 2.5 and Phase 3.
+
+### D32 — Rings = range bands; run structure and synergies 🟢/🟡 *(2026-09-22)*
+- **Decided (user) 🟢:** the concentric arena rings are **range bands** — ring I 3.0 (Pulse reach), II 5.5 (short), III 7.5 (mid), edge 9.0 (gates); cards show reach as ●○○/●●○/●●● (`12` §1).
+- **Proposed 🟡 (`12`):** asked to take inspiration from Balatro and the best roguelites and to add allies ("barracks"), a path on the map and rare extra petals: an **act path** (Wave, Elite, Market, Grove, Mystery, Guardian); **Charms** in 4 slots (replace the Boons of `11` §6.3); **affinities** Sun/Storm/Thorn/Frost/Bloom with breakpoints 2/4; **Nests, Keep, Queen** releasing allied **Sprites** that block enemies (new `ally` colour); rare and **special petals** (Golden, Deep, Twin, Mirror); card **editions** (Radiant, Gilded, Echoing); the **Pouch** (the deck behind the shop, editable after 5 wins, fixed in competitive modes); **Outposts** on rings II–III for Update 1.
+- **Card mastery** (cosmetics + variants) was offered and set aside by the user in favour of these systems.
 
 ---
 
@@ -160,19 +181,29 @@
 | Pulse as a choice | P1 resonance (3+ enemies hit → next cooldown −25%); P2 as a rare "Resonator" booster; P3 "Focus" tap only if testers get bored | `07` §1.7 |
 | Difficulty | Grades 4–10 (1–3 are implemented, D28) | `07` §2.2 |
 | Defeat | one contextual tip after 3 defeats in the same act, never a hidden nerf | `07` §2.4 |
-| Typography | Nunito (SIL OFL) | `03` A8 |
+| Typography | Outfit for numbers and display + Nunito for text (both SIL OFL), replacing Nunito alone (D30) | `03` A8 |
 | Blueprints | +5 for the first win of the day, +3 for the Daily (even if lost), +2 for the top half | `08` §1.4, `10` §1.1 |
 | Blueprint packs | cap of 400 per 7 days | `08` §2.2 |
 | Shop bad-luck protection | 2 shops without a booster → the third guarantees one (deterministic); a rare guaranteed in the first shop of acts 2 and 3 | `08` §4.2 |
 | Calm Mode | accessibility option (−20% enemy HP, −25% Pulse cooldown), outside leaderboards, never sold | `08` §4.3 |
 | Streaks | "days played this month", never a chain that breaks | `08` §3.3 |
-| Integrity display | also as an arc around the Core | `09` §2.2 |
+| Integrity display | also as an arc around the Core — drawn this way in the Phase 2.5 screens, to confirm with testers | `09` §2.2 |
 | Archive | "try before you unlock" in a 3-wave trial run | `09` §2.5 |
 | Confirmations | hold 1 s as the only confirmation for irreversible actions | `09` §0 |
 | Pass | automatic reward claiming | `09` §2.6 |
 | Weekly | up to 3 attempts, best counts | `10` §1.1 |
 | Modes | Guardian Gauntlet (boss rush) and Surge (mutating endless) | `10` §2.1 |
 | Anti-cheat | Play Integrity API only if evidence shows it is needed | `10` §1.3 |
+| Act palettes | one sky theme per act, switched only at the act card | `03` A4 |
+| Spawn compass | wave preview shows from which sides the next wave comes | `09` §2.3 |
+| Codex | encyclopedia of met enemies and modules, unlocked by seeing them | `09` §2.9 |
+| Names v2 | Health, Petal, Attack/Boost/Support, Coins, Seeds/Garden, Refresh, ★ stars, Mite, Shard | `11` §1 |
+| Roster v2 | 36 modules and 14 enemies + 3 Guardians at launch; at most one legendary on the ring | `11` §2, §4 |
+| Gates and sectors | 1–4 visible spawn gates per wave, a persistent main gate per act, 3 bursts; petal sectors | `11` §3 |
+| Act rhythm and mutators | Opening, Swarm, Themed, Siege, Crest, Guardian; one mutator on Siege/Crest from act II | `11` §5 |
+| Economy v2 | Flawless +1, elite +1, Leech −3; run pool of 16; owned ×1.5; free Lock; Boons after Guardians | `11` §6 |
+| Run structure v2 | act path, Charms (replace Boons), affinities, Nests/Sprites, special petals, editions, Pouch; Outposts in Update 1 | `12` |
+| In-run mini windows | module tooltip, enemy card, edge markers, combo inspector; none pauses the game | `09` §2.2 |
 | Marketing | WebGL demo of act 1 on itch.io | `10` §3.2 |
 | Schedule | the three compression choices and a release at the end of March 2027 (possible slip to April) | `10` §4.0 |
 

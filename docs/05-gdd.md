@@ -1,6 +1,6 @@
 # 05 — Game Design Document (GDD v0.2)
 
-> Version 0.3 · 2026-09-22 · Status: **source of truth** for rules, numbers and architecture. Balance values are **v0.3** (balance version `0.3.0`), tuned with the balance bot (D11, `06` Phase 2) and still to validate with testers. Section numbers are referenced from code comments: **do not renumber**.
+> Version 0.3 · 2026-09-22 · Status: **source of truth** for rules, numbers and architecture. Balance values are **v0.3** (balance version `0.3.0`), tuned with the balance bot (D11, `06` Phase 2) and still to validate with testers. Section numbers are referenced from code comments: **do not renumber**. Pending proposals that would change this document: `11` (names, roster, gates, economy — D31) and `12` (path, Charms, affinities, allies — D32); decided on 2026-09-22 and reflected here: rings as range bands (§15).
 > **Working title:** open (D25) · **Genre:** roguelite core defense with a shop and combos · **Platform:** Android, then iOS · **Orientation:** portrait · **Audience:** adults 18–45 · **Model:** honest, *"never pay-to-win"* (`02`).
 > Rationale: `00`–`04` (especially D17–D21). In-game names are English, like the code.
 
@@ -198,7 +198,7 @@ At most **one line of text** per hint. Second-by-second script: `07` §1.5. Prog
 
 ## 15. Interface (portrait, one hand)
 - **Top:** Core integrity · wave X/18 · Credits.
-- **Centre:** the circular arena with the Core and the ring.
+- **Centre:** the circular arena with the Core and the ring. The concentric rings are **range bands** (D32): I 3.0 = Pulse reach, II 5.5 = short, III 7.5 = mid, edge 9.0 = spawn edge; offer cards show a module's reach as ●○○/●●○/●●● (exact ranges stay in §6).
 - **Bottom, during a wave:** a large **Pulse** button with visible cooldown · speed 1x/2x/3x · pause.
 - **Bottom, in the shop:** 4 **offer cards** (icon, name, cost, short effect) · Reroll · **Undo** · **Next wave**. Active combos are shown as **soft lines** between neighbours.
 - Buttons of at least 48 dp, very little text, icons. Screens and components: `09`.

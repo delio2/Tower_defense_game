@@ -1,6 +1,6 @@
 # 08 — Economy, progression and non-pay-to-win monetization (Phase 2/4 brief)
 
-> Version 1 · 2026-09-21 · Status: brief. The economic specification implemented in Phase 2 (`06`) and completed in Phase 4 (meta) and Phase 6 (soft launch).
+> Version 1.1 · 2026-09-22 · Status: brief. Under review: Flawless/elite rewards, Leech, run pool, Lock (`11` §6), Charms, Groves and the Pouch (`12`); proposed renames Credits → Coins, Blueprints → Seeds, Archive → Garden (`11` §1). The economic specification implemented in Phase 2 (`06`) and completed in Phase 4 (meta) and Phase 6 (soft launch).
 > Fixed principle (`02`): *"you pay to get there sooner or for convenience, never to win"*. **PROPOSAL** items are listed in `04` §Open decisions.
 > All numbers are **v0, to validate with the bot** (`06` Phase 2) and with the meta simulator (§1.4).
 

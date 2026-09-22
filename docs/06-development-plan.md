@@ -1,6 +1,6 @@
 # 06 — Development plan by phases
 
-> Version 1 · 2026-09-21 · Status: active. The month-by-month calendar is in `10` §4; this document defines the **phases, deliverables and exit gates**.
+> Version 3 · 2026-09-22 · Status: active. v2 inserted **Phase 2.5 — Visual overhaul** (D30); v3 details Phase 2.5 and Phase 3 as task lists with estimates and "done" criteria, and adopts **vertical slices on shared foundations** (D33). The month-by-month calendar is in `10` §4; this document defines the **phases, deliverables and exit gates**.
 > **Golden rule (`01` §11):** if the shop with the ring is not fun with simple shapes, we do not move on to art.
 > Rules and numbers: `05`. Direction: `03`. This file says **in what order** to build things and **why**.
 
@@ -13,6 +13,7 @@
 4. **Real testers at every gate** (3–5 people in early phases, 12+ in the closed test), **muted first** (D1).
 5. **Calm by default** (`03` A1) and **honest by construction** (`02` §1): these are constraints from the first line, not final polish.
 6. **Everything is a replay** (D19): every function that touches game state is a recordable command, or it does not exist.
+7. **Vertical slices on shared foundations** (D33). First the foundations every screen shares (camera, light, shader, UI theme, model pipeline, screen architecture); then one **slice** per moment of the loop, each shipping mechanics + tests + bot probe + visuals + UI + feedback together. A slice is **done** when: (a) its simulation tests pass and the bot probe is recorded in `05` §18; (b) its screens match the design-system mockup side by side (screenshot in `Temp/Screenshots`); (c) it respects calm/readability rules and the options (reduce motion, intensity, text size); (d) it runs on the Pixel at 60 fps and on the low quality level; (e) `05`/`04` are updated. A slice whose mechanics are still a PROPOSAL does not start.
 
 ---
 
@@ -99,20 +100,103 @@ Deterministic simulation (60 ticks/s, integers), 7 modules, 3 enemies + Guardian
 
 ---
 
-### Phase 3 — Mood shot and vertical slice (4–6 weeks)
-**Purpose:** the "Dusk Garden" identity (`03`) on a real run, with audio, at 30 fps on a 4 GB phone.
+### Phase 2.5 — Visual overhaul: art direction v2 and every screen designed (2–3 weeks) 🔄
+**Purpose:** the prototype plays well but looks like a prototype (flat unlit shapes on one navy, text-heavy cards, a system font, emoji icons, no information layer during waves). Before producing art in Phase 3, redesign the **whole** look and interaction — every window, including future ones — against the best-looking games and their criticised weaknesses, and prove it with a first real mood shot. User decision, 2026-09-22 (D30).
 
-- [ ] **Mood shot** (`03` A9): one carefully made screen, shown to someone **before** producing the rest. Includes the tilted-orthographic vs top-down comparison (D5).
-- [ ] Models in **Blender via MCP**: Core with petals, 14 module silhouettes, 6 enemy shards + Guardian, all low-poly, exported to `Assets/Models/`.
-- [ ] URP: warm key + cool ambient light, soft shadows at medium/high quality, light bloom only on hits and Pulse; **quality levels** with shadows and bloom off; test on a low-end phone (D4).
-- [ ] Final effects (`03` A7): faint lines, Pulse wave, "flake" death, soft numbers.
-- [ ] Final UI (rounded typography, soft glass cards, icons). Complete options (`03` B7): text size 100–200%, colour-blind (3 presets + shapes), high contrast.
-- [ ] **FTUE** (`05` §14, `07` §1.5): guided act, one line per hint, the "aha" moments within 90 s. Measured with a tester who has never seen the game.
-- [ ] **Audio** (`03` Part C): layered ambient (shop / wave / Guardian), interaction sounds, cap on simultaneous sounds. Clearly licensed loops and SFX for now; composer decision deferred to soft launch.
-- [ ] Localization: key-based system, **EN + IT** now; text reduced to the minimum (D7).
-- [ ] On-device profiling: 30 fps budget with 60 enemies and all effects.
+**Design (done 2026-09-22, to be approved)**
+- [x] Research: what Monument Valley, Alto's Odyssey, Thronefall, Balatro, Mini Motorways, Marvel Snap, Kingdom Rush, Hades, Sky, Dorfromantik and Infinitode 2 do well, and what their players criticise (`03` Part D).
+- [x] **Design system "Dusk Garden"** ([artifact](https://claude.ai/artifact/5aKRr9H8e3WJsMui64MNnu)): tokens for four themes (one sky per act + high contrast, enemy contrast checked per theme), Outfit + Nunito type scale, 47-icon line set, 16 components with live previews, **22 screens** as interactive mockups (Shop with real magnetic drag, Wave with tooltips and Pulse, Summary, Run end, Home, Archive, Daily, Codex, Replay, Leagues, Pass…), screen map with phases, research.
+- [x] **Mood shot v1 in Blender via MCP** (`Art/Blender/moodshot.blend`, renders in `docs/art/`): Core with petals, five modules, six enemy types + Guardian, tilted 35° orthographic camera, warm key + cool ambient, soft shadows, light bloom; act 2/3 sky variants; transparent module and enemy renders used as card art.
+- [x] **Content and systems v2** (`11`, D31): simpler names, shape grammar, 36 modules, 14 enemies + 3 Guardians with silhouettes in the design system, spawn gates and sectors, act rhythm, rewards and economy.
+- [x] **Run structure and synergies** (`12`, D32): rings as range bands (decided), act path, Charms, affinities, Nests/Sprites, special petals, editions, Pouch — with interactive cards in the design system.
+- [ ] **Approve** `11` and `12` (names and systems first) with the user.
+- [ ] **Approve** the mood shot and the screens with 3–5 people (direct question: "calm but attractive, or prototype?") and record the verdict in `04` D30.
 
-**Gate 3:** mood shot approved; 5 testers say the visuals are "calm but attractive", not "prototype" (direct question); stable 30 fps on the reference phone; FTUE completed by 100% of testers without help.
+**Build in Unity — tasks** (estimates in working days for one person with AI, `(estimate)`)
+
+*2.5-A · Foundations (shared by every screen, ~5 d)*
+| # | Task | Done when |
+|---|---|---|
+| A1 | **Screen architecture:** split `PrototypeRunner` (1,420 lines) into `ArenaView` (sky, rings, Core, petals), `ModuleView`/`EnemyView` pools, `EffectsView` (lines, flakes, Pulse, numbers), `CameraRig`, and one controller per screen state (`ShopScreen`, `WaveScreen`, `SummaryScreen`, `RunEndScreen`, `PauseScreen`) driven by a small state machine | behaviour identical to today; all 45 tests green; no file over ~400 lines — 🔄 **2026-09-22:** runner split into `Arena/` (`ArenaKit`, `CameraRig`, `CoreView`, `RingView`, `EnemyViews`, `EffectsView`), `Interaction/ShopInput`, `UI/UiText`; runner 1,420 → 371 lines; 45/45 tests, Play mode checked (shop, wave). Still to do: per-screen controllers (arrive with slices B–D) and splitting `HudView` (599 lines) during the UI restyle |
+| A2 | **Camera rig:** orthographic, 35° tilt; wave framing fills the width to the edge ring; shop framing puts the whole ring in the upper half; 600 ms ease-in-out between them | screenshots match the mood shot framing |
+| A3 | **Light and post:** warm key `#FFE2BC` from the upper left, gradient ambient, soft shadows (medium/high), post volume (bloom 1.1 / 0.3, vignette 0.25, tone mapping None); quality levels Low (no shadows, no bloom) / Medium / High | side-by-side with `docs/art/moodshot-wave.png`; Low level ≥ 60 fps on the Pixel |
+| A4 | **Three-surface shader** (Shader Graph, URP Lit): body + fresnel rim (category colour) + emissive; materials Core, petal, teal, gold, mint, coral, rose, ally as assets in `Resources/Materials`; SRP Batcher compatible | ≤ 40 draw calls with 60 enemies; works in a player build (no stripping) |
+| A5 | **Sky and rings:** per-act gradient background (dusk/twilight/night) + range-band rings at 3.0 / 5.5 / 7.5 / 9.0 as thin line meshes; act theme switch API | colours equal `tokens.json`; rings at 15–20% |
+| A6 | **Model pipeline:** Blender family script v1 generating the **14 existing modules** and **7 enemies + Guardian** (from the `11` silhouettes), exported as glTF to `Assets/Models/`; prefab per model; `ModuleAsset`/`EnemyAsset` reference a prefab; `PrimitiveMesh` fallback | every current module/enemy shows its own silhouette in game |
+| A7 | **UI foundations:** `Tools/tokens_to_uss.py` generates `Theme.uss` variables from `tokens.json`; Outfit + Nunito font assets (Latin-1 atlas); the 60 icons rasterised to 96 px sprites (Blender render of the SVGs) as UI Toolkit backgrounds; card renders for the 14 modules | the HUD uses no hard-coded colour or system font; no missing-glyph box on device |
+
+*2.5-B · Wave slice (~4 d)* — mockups *Wave*, *Guardian fight*, *Arena feedback*, *Threat alerts*, *Module tooltip*, *Enemy card*
+| # | Task |
+|---|---|
+| B1 | Models on petals with idle float; enemies with float + slow self-rotation; spawn fade |
+| B2 | Hit lines (≤ 2 repeats/s rule), flake deaths (cap 12), Pulse ring + Core emissive, Core-hit coral tint, knockback interpolation |
+| B3 | Top bar with drawn icons + **wave progress hairline**; **Integrity arc** around the Core; damage numbers restyle (kills and > 25% only) |
+| B4 | Pulse button with cooldown ring and ready halo; speed and pause rounds |
+| B5 | **Module tooltip** (tap) and **enemy card** (tap, 48 dp hit area) — needs a read-only per-module "damage this wave" counter in the simulation (event data, test) |
+| B6 | **Edge markers** for off-screen elites/Guardian; **Guardian title card → HP bar** |
+| B7 | Act palette switch between acts (temporary: at the first wave of the act, until the act card of Phase 3) |
+
+*2.5-C · Shop slice (~4 d)* — mockups *Shop*, *Offer card*, *Drag feedback*, *Combo inspector*, *Module sheet*, *Wave preview*
+| # | Task |
+|---|---|
+| C1 | Offer cards v2: render, name, cost, category glyph, **reach dots** (range bands, D32), rarity border, merge badge, unaffordable/bought states |
+| C2 | Drag v2: ghost of the real model 48 dp above the finger, valid petals breathe, magnet, **reach band wedge** of the dragged module, preview bubble at the top, sell zone |
+| C3 | Merge fx (swell + gold glow), placement settle, combo links in gold |
+| C4 | **Combo inspector** (long-press a booster) and **module sheet** (long-press card/module, ★ levels side by side, hold to sell) |
+| C5 | **Wave preview** panel: threat chips + "new enemy" strip + spawn compass fed by the simulation's next-wave preview (directions histogram; becomes gates in Phase 3a) |
+| C6 | Camera shop ⇄ wave with cards dropping/rising 40 ms apart |
+
+*2.5-D · Wave end and overlays (~3 d)* — mockups *Wave summary*, *Run end*, *Pause*, *Options*
+| # | Task |
+|---|---|
+| D1 | Wave summary v2 with **damage share per module** (uses B5's counter), rolling Credits, tap to skip, animation speed option |
+| D2 | Run end v2 (defeat/victory, "stopped by", rolling totals, same-seed and share placeholders) |
+| D3 | Pause v2 (run info with seed, four quick options, hold to abandon); options sheet restyle with text size and high contrast (the `contrast` theme) |
+
+*2.5-E · Device and gate (~2 d)*
+| # | Task |
+|---|---|
+| E1 | Android build; fps on the Pixel and on one 4 GB phone at all quality levels; fix stripping issues |
+| E2 | Side-by-side sheet: mood shot vs Unity (wave and shop) → `docs/art/compare-*.png` |
+| E3 | **Testers (3–5, muted):** Gate 1 + Gate 2 questions + "calm but attractive, or prototype?" on the new build |
+
+**Gate 2.5:** the Unity build matches the mood shot side by side (camera, light, palette); the new information layer passes the Gate 1 questions (neighbourhood understood by the second shop, nobody stuck > 10 s); ≥ 3 of 5 testers say "attractive", not "prototype"; 30 fps on the 4 GB phone at Low, 60 fps on the Pixel at High.
+
+---
+
+### Phase 3 — Content, run structure and vertical slice (8–10 weeks)
+**Purpose:** turn the approved proposals (`11`, `12`) into the launch game, slice by slice, then finish art, FTUE, audio and languages. Phase 2.5 delivered direction, screens and mood shot v1.
+**Entry condition:** the user approves `11` (names and systems) and `12` (which layers are in the launch scope); decisions logged in `04`.
+
+*3a · Content and systems v2 (~5–6 weeks)* — each step = simulation + tests + bot probe + its UI slice
+| # | Step | Simulation | UI slice (mockup) | Bot probe |
+|---|---|---|---|---|
+| 1 | Names | rename player-facing strings (keys), keep code identifiers until a rename commit | all screens | — |
+| 2 | Range bands | ranges re-tuned to land on rings II/III/edge | reach dots, band wedge (done in 2.5-C) | balance unchanged ±5% |
+| 3 | **Gates + bursts + act rhythm + mutators** | `WaveDirector`: gates, main gate, drift, bursts, beats, mutators | *Spawn gates* rifts, compass, "Next · Siege" | win rates by bot vs 0.3 |
+| 4 | **Economy v2** | Flawless, elite reward, Lock command, owned ×1.5, run pool / default Pouch | *Coins, run pool*, lock icon on cards | coin margin 10–50 |
+| 5 | **Path + Grove + Mystery** | act path generation, `ChooseNode`, Grove actions, 6–8 Mysteries | *Path map*, *Grove*, Mystery card | safe vs greedy path bots |
+| 6 | **Charms** (replace fixed extra slot) | 4 slots, hooks, `PickCharm`/`SellCharm`, ~15 Charms first | *Charms* row, picker, long-press | no Charm > +15% win rate alone |
+| 7 | **Affinities** | tags, breakpoints 2/4 | affinity line above cards | every affinity wins with some build |
+| 8 | **Modules batch A–D** (22 + Nests) | 6 per batch, behaviour test each | roster renders (3b) | batch probe |
+| 9 | **Enemies batch A–B** (8) + **Twins, Eclipse** | behaviours, act pools | Codex entries, "new enemy" | Guardian exam per act |
+| 10 | **Allies** (Nest, Keep, Queen) | Sprites: intercept, block, respawn | *Nests and Sprites* | vs rush waves |
+| 11 | Special petals, editions, Pouch editor | petal types, editions in offers, Pouch edit/Prune/Plant | *Special petals*, *Pouch* | — |
+| 12 | **Balance `0.4.0`** | replay format `R3` | — | ≥ 5 archetypes win at Grade 0 |
+**Gate 3a:** all approved systems in; ≥ 5 archetypes win for the bot at Grade 0 and none above 85%; a full run still lasts 10–15 minutes.
+
+*3b · Art completion (~2 weeks)*
+- [ ] Blender family scripts v2 (Attack, Boost, Support, Enemy, Guardian, Sprite) generating **every** silhouette of `11`/`12` with ★/★★/★★★ faces; glTF export; card and Codex renders generated by script.
+- [ ] Final effects per module family (lines, blasts, chains, burns) within the calm rules; per-act sky variants.
+- [ ] Meta and between-act screens: **act card**, **Home**, **Run setup**, **Codex**, **History** (mockups exist).
+
+*3c · FTUE, audio, languages, performance (~1–2 weeks)*
+- [ ] **FTUE** (`05` §14, `07` §1.5): guided first run without path/Charms; one line per hint; the three "aha" moments within 90 s; measured with a first-time tester.
+- [ ] **Audio** (`03` Part C): layered ambient (shop / wave / Guardian), one sound per UI component, cap on simultaneous sounds; licensed loops and SFX.
+- [ ] Localization: key-based strings, **EN + IT**.
+- [ ] On-device profiling with 60 enemies, Sprites and all effects: 30 fps on 4 GB (Low), 60 fps mid-range.
+
+**Gate 3:** 5 testers call the visuals "calm but attractive"; stable fps targets; FTUE completed by 100% of testers without help; runs 10–15 minutes.
 
 ---
 
@@ -166,22 +250,22 @@ Deterministic simulation (60 ticks/s, integers), 7 modules, 3 enemies + Guardian
 ---
 
 ## 3. Calendar
-The operational calendar is in **`10` §4** (6-month roadmap, October 2026 → March 2027, one month per phase with gates and a "if it fails" line). The phases in this file stay; the dates in `10` apply to them. The compression to 6 months rests on three explicit choices (`10` §4.0): continuous balancing with the bot, art in parallel with content from month 2, and Pass/Leagues/Duel/Siege/iOS outside the release. Durations are for one person with AI; **the gate matters more than the date**.
+The operational calendar is in **`10` §4** (revised mapping in **§4.2**) (6-month roadmap, October 2026 → March 2027, one month per phase with gates and a "if it fails" line). The phases in this file stay; the dates in `10` apply to them. The compression to 6 months rests on three explicit choices (`10` §4.0): continuous balancing with the bot, art in parallel with content from month 2, and Pass/Leagues/Duel/Siege/iOS outside the release. Durations are for one person with AI; **the gate matters more than the date**.
 
 ---
 
 ## 4. Where we are and next steps
-**Status (2026-09-22):** Phase 0 ✅ · Phase 1 ✅ (all deliverables; Gate 1 with testers pending) · Phase 2 ✅ in code (Gate 2 with testers pending) · Phase 3 ⬜ next. 45 automated tests, balance `0.3.0`.
+**Status (2026-09-22):** Phase 0 ✅ · Phase 1 ✅ (Gate 1 with testers pending) · Phase 2 ✅ in code (Gate 2 with testers pending) · **Phase 2.5 🔄** (design ✅ and approved by the user, mood shot v1 ✅; Unity build 2.5-A next) · Phase 3 ⬜ (waits for approval of `11`–`12`). 45 automated tests, balance `0.3.0`.
 
 **Done in order:** bot runner → ScriptableObject content → `BuySlot` → compact notation → UI Toolkit HUD → magnetic drag with previews → merge animation and wave summary → options and haptics → 14 modules, 7 enemies, 3 acts, elites → balance v0.3 → Core types, Grades 1–3, Endless → replay R2 → save/resume → Core tuning, enemy silhouettes.
 
 **Next, in order:**
-1. ✅ **Android development build** (2026-09-22, Pixel 10, Android 17): runs, touch works, save/resume works across installs. Fixed on the device: stripped shaders (materials as assets), stripped Physics (no colliders), missing glyphs (ASCII text + drawn icons), non-blending panel alpha (opaque tints). Still to check by hand: dragging feel, haptics, fps on a 4 GB phone.
-2. **Gate 1 + Gate 2 with 3–5 testers** (muted): the criteria are in Phase 1 and Phase 2 above. Record durations, whether the neighbourhood is understood by the second shop, and which builds win.
-3. **Google Play account** (the user; long lead time, D13).
-4. **Phase 3 — mood shot** (`03` A9) in Blender via MCP: Core with petals, one module of each category, two enemies, a card; then the tilted 35° camera and URP lighting; then models for the 14 modules and 7 enemies.
-5. Phase 3 continued: final UI (icons rendered from the models, wave preview with icons), FTUE (`07` §1.5), audio, EN/IT strings, on-device profiling.
-6. Phase 4: Blueprints and Archive, Daily/Weekly with local leaderboard, replay codes and ghosts, `Services` fakes.
+1. ✅ **Android development build** (2026-09-22, Pixel 10, Android 17). Still to check by hand: dragging feel, haptics, fps on a 4 GB phone.
+2. **Phase 2.5-A — foundations**: A1 view split ✅ (screen controllers come with the slices); next A2 camera rig, A3 light and post, A4 three-surface shader, A5 sky and rings, A6 model pipeline, A7 UI foundations.
+3. **2.5-B Wave → 2.5-C Shop → 2.5-D Wave end and overlays → 2.5-E device + testers** (Gate 1, 2 and 2.5 together, on the new look).
+4. In parallel, the user: approve `11` (names, gates, economy) and choose the launch scope of `12`; open the **Google Play account** (D13).
+5. **Phase 3a** in the order of its table; then 3b art completion and 3c FTUE, audio, languages, profiling.
+6. Phase 4: Garden (Archive), Daily/Weekly with local leaderboard, replay codes and ghosts, `Services` fakes.
 
 **Known open points:** the Grade ladder is steep between 1 and 2; Mortar and Echo rarely appear (rare + act 2); the greedy bot never buys economy modules, so economy builds are untested by bots; the state hash gained fields (slot count, elites, dash timing) under balance version 0.3.0 — no replays from 0.2.0 exist.
 
@@ -197,3 +281,5 @@ D22–D25 and the open proposals are listed in **`04` §Open decisions**.
 | Google Play account timing | procedure not closed by Phase 4 | start it in Phase 1–2 |
 | UGS costs above forecast | estimate in Phase 5 | sampled verification; Nakama as plan B (D21) |
 | Looking like a copy (D20) | tester feedback | one hour with the IP lawyer before the store; different visual identity from the mood shot on |
+| Scope creep from `11`–`12` | 3a past November | launch with one batch less per family (24 modules, 10 enemies); Outposts and editions to update 1 (`10` §4.2) |
+| Screens drift apart visually | mockup comparisons fail | every slice is checked against its design-system mockup; tokens are generated, never typed |

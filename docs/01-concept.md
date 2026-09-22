@@ -1,6 +1,6 @@
 # 01 — Concept (v2)
 
-> Version 2 · 2026-09-21 · Status: decided (D17–D21). Working title; the game name is open decision D25.
+> Version 2.1 · 2026-09-22 · Status: decided (D17–D21). Working title; the game name is open decision D25. Extensions under review: roster, gates and economy v2 (`11`, D31) and run structure — path, Charms, affinities, allies (`12`, D32).
 >
 > **In one sentence:** defend a Core at the centre of the screen from enemies coming from every side by **mounting modules on the ring around it**: neighbouring modules combine and damage grows to enormous numbers. Runs of 10–15 minutes, **no waiting, no pay-to-win**, offline. And you challenge other players' recorded runs.
 >

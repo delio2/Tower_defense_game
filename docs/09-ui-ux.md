@@ -1,6 +1,6 @@
 # 09 — Mobile UI/UX (Phase 1 and 3 brief)
 
-> Version 1 · 2026-09-21 · Status: brief. Screen structure, navigation, components and interface micro-interactions.
+> Version 2 · 2026-09-22 · Status: brief; every screen below is now mocked up, interactive, in the **Dusk Garden design system** (https://claude.ai/artifact/5aKRr9H8e3WJsMui64MNnu) — the mockups are the visual reference, this file keeps the rules. Screen structure, navigation, components and interface micro-interactions.
 > Does not repeat: the second-by-second FTUE (`07` §1.5), the **game** micro-animation catalogue (`03` A7), in-arena readability (`03` A8), the drag rules (`03` B3). It references them.
 > Layout reference: **1080 × 1920 (9:16)**, measures in **dp** (1 dp ≈ 3 px at this density). **PROPOSAL** items are listed in `04` §Open decisions.
 
@@ -116,10 +116,10 @@
 │ └──────┘ └──────┘ └────────┘│
 └──────────────────────────────┘
 ```
-- **Card anatomy** (about 80 × 100 dp): icon rendered from the 3D model (same light as the game), name (16 sp), cost with the Credits icon (20 sp), one effect line (12 sp, e.g. "neighbours ×1.5"), rarity border, "⇧ L2" badge when buying would merge.
+- **Card anatomy** (78 × 108 dp, v2): render of the 3D model (same light as the game), name, cost with the Credits icon, category glyph in the corner, **reach dots ●○○/●●○/●●●** (range bands, D32), rarity border, "⇧ L2" (★★ if `11` §1 is approved) badge when buying would merge. The effect sentence moved to the drag preview and the module sheet: at card width it wrapped to four lines.
 - **Card states:** normal · lifted (while dragging) · unaffordable (60% alpha, cost in faint coral) · bought (fades out and the others **do not shift**: the gap stays, so card positions are stable).
 - **Module sheet** (long press on a card or module, 250 ms): rises to half screen: large 3D model, stats at L1/L2/L3 with the current one highlighted, "affected by: Amplifier (left), Lens (right)". Closes by dragging down. From here: **Sell** (hold 1 s) as an alternative to the Sell zone.
-- **Extra slot** (after the first Guardian): appears as a special **fifth card** "Slot +1 · 8", draggable onto the ring where you want to insert it (the ring opens with a 300 ms animation).
+- **Extra slot** (current rule, `05` §5; `12` proposes making it rare via Grove/Charm): appears as a special **fifth card** "Slot +1 · 8", draggable onto the ring where you want to insert it (the ring opens with a 300 ms animation).
 
 ### 2.4 Run end — victory and defeat (same structure)
 ```
@@ -187,10 +187,32 @@ One list, grouped, with **immediate preview** (changes are visible behind the ve
 - **Account and privacy:** consent (reviewable), restore purchases, delete data (hold 1 s).
 - The four most requested options (reduce motion, intensity, numbers, haptics) are also reachable **from pause** in one tap.
 
+### 2.2b In-run mini windows (v2, Phase 2.5)
+Overlays that inform without pausing; one at a time; each closes by itself.
+| Window | Trigger | Content | Closes |
+|---|---|---|---|
+| Module tooltip | tap a module during a wave | render, name, level, live DPS, what boosts it, share of this wave's damage | 2 s or next tap |
+| Enemy card | tap an enemy (48 dp hit area) | name, elite tag, HP bar and numbers, armour, "weak to" modules | 2 s or next tap |
+| Edge marker | elite, Guardian or large group outside the view | glyph + count + chevron on the screen edge (rose / coral) | when on screen |
+| Guardian banner | Guardian wave starts | eyebrow, name, one trait line → collapses to a rose HP bar under the top bar | end of the fight |
+| Wave preview + spawn compass | top of the shop (ⓘ for detail) | threat chips, arcs showing the sides the wave comes from, "new enemy" strip | stays; fades while dragging |
+| Combo inspector | long-press a booster on the ring | gold links to neighbours labelled with their gain, half sheet with the numbers | on release |
+| Module sheet | long-press a card or module (250 ms) | large render, L1/L2/L3 side by side, range, affected by, hold to sell | drag down / tap outside |
+The top bar gains a 3 dp **wave progress** hairline under the wave number; Integrity is also an arc around the Core (PROPOSAL, drawn this way in the mockups).
+
 ### 2.8 Pause (veil over the wave)
 Dark veil at 60%, the arena stays visible but still. Three buttons: **Resume** (primary), Quick options, **Abandon** (secondary, **hold 1 s**: the ring fills, then confirms). Tapping outside the veil resumes.
 
 ---
+
+### 2.9 New screens (v2)
+- **Run setup** (sheet from Play once a second Core or Grade is unlocked): Core tiles, Grade, mode; remembers the last choice.
+- **Act card** (after each Guardian): the sky cross-fades to the next act's palette; act name and the new enemies; 3.2 s, tap to skip.
+- **Codex**: every enemy and module met, render + one line + counter-play; unmet entries as silhouettes; unlocked by seeing, never bought.
+- **History and records**: best wave, best damage, wins; last 50 runs with a generated build name; each run can be watched or replayed (unranked).
+- **Replay and ghost**: timeline with wave and Guardian ticks, scrub, ghost overlay, "Challenge this seed".
+- **Share card**: the 9:16 image with the ring, the big number and the replay code.
+- **Leagues and Duel** (Update 1) and **Pass** (model B) are mocked up so the layout rules hold when they arrive.
 
 ## 3. First impression and the first minutes
 The FTUE is specified second by second in `07` §1.5 and the first 10 seconds in `07` §3. Here the **interface** rules that make it possible:
@@ -263,6 +285,7 @@ Never lateral slides between screens (they imply a hierarchy that does not exist
 ---
 
 ## 5. Design tokens (for UI Toolkit, D22)
+> **v2:** the source of truth is now `tokens.json` in the design system (https://claude.ai/artifact/5aKRr9H8e3WJsMui64MNnu): 4 themes (Act I Dusk, Act II Twilight, Act III Night, High contrast), sky tokens, `surface-glass`/`surface-raised`, `ally`, Outfit + Nunito type styles, shadows and sizes. `Theme.uss` is to be regenerated from it (Phase 2.5-A). The block below is the v1 summary kept for history.
 ```
 Grid            8 dp · gutter 16 dp · thumb zone = bottom third
 Radii           cards 16 · buttons 24 · sheets 32 (top corners only)
@@ -288,6 +311,7 @@ Everything lives in one USS file (`Assets/UI/Theme.uss`) with variables: seasona
 ---
 
 ## 7. What enters which phase
+- **Phase 2.5** (visual overhaul): restyle of everything built in Phase 1 from the design-system tokens; §2.2b mini windows; wave summary damage share; pause run info. Full list in the design system's *Screen map*.
 - **Phase 1** (simple shapes, UI Toolkit): §2.2, §2.3, §2.4 (without Blueprints), §2.8, §4 (components, breathing, haptics), §5 (tokens), minimal progressive disclosure (Undo/Reroll after the first drag).
 - **Phase 3** (final art): §2.1 Home, 3D icons on cards, interface sounds, §2.7 complete options, §6 complete.
 - **Phase 4:** §2.5 Archive, "next unlock" bar, Daily on the Home, sharing, §3.2 complete.

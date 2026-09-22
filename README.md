@@ -5,7 +5,8 @@ Roguelite core defense for mobile (Android, then iOS): the Core at the centre, e
 **offline** and with **asynchronous** multiplayer built on deterministic replays. Never pay-to-win.
 
 - **Engine:** Unity 6 (6000.6.2f1), URP, C#
-- **Status:** pre-production; simulation v2 and replays done, minimal playable prototype in the editor (September 2026)
+- **Status:** pre-production (2026-09-22): deterministic simulation with 14 modules, 7 enemies, 3 acts and replays; UI Toolkit prototype running on Android; **Phase 2.5 visual overhaul** in progress — see the plan in [docs/06](docs/06-development-plan.md) §4
+- **Visual reference:** the Dusk Garden design system (link in [docs/README.md](docs/README.md)) and the mood shot in [docs/art/](docs/art/)
 
 ## Documentation
 - [docs/README.md](docs/README.md) — index and conventions: market research, concept, monetization, art bible, decisions, **GDD**, development plan, briefs, **roadmap**

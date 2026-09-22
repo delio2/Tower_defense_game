@@ -36,5 +36,6 @@ Roguelite core defense for Android (Unity 6, URP, C#). Deterministic simulation 
 - Keep `docs/05-gdd.md` section numbers stable: code comments cite them.
 
 ## Where things are documented
-- `docs/05-gdd.md` — rules and numbers (source of truth) · `docs/03-art-and-audio-direction.md` — art bible · `docs/04-decision-log.md` — decisions and open proposals · `docs/06` + `docs/10` §4 — plan and calendar · `docs/07`–`09` — phase briefs.
+- `docs/05-gdd.md` — rules and numbers (source of truth) · `docs/03-art-and-audio-direction.md` — art bible · `docs/04-decision-log.md` — decisions and open proposals · `docs/06` + `docs/10` §4.2 — plan and calendar · `docs/07`–`09` — phase briefs · `docs/11`–`12` — content and run-structure **proposals** (not rules until approved).
+- **Dusk Garden design system** (https://claude.ai/artifact/5aKRr9H8e3WJsMui64MNnu, private artifact): tokens (`tokens.json`), icons, silhouettes and interactive mockups of every screen — the visual reference for any UI or art work. `docs/art/` holds the mood shot, renders and SVG icons; `Art/Blender/moodshot.blend` is the model source.
 - Read the relevant document before working on gameplay, UI, audio or monetization; propose changes to numbers as **PROPOSAL** and record decisions in `docs/04`.

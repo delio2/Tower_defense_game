@@ -1,6 +1,6 @@
 # 03 — Art and audio direction ("Dusk Garden")
 
-> Version 3 · 2026-09-21 · Status: direction decided; palette and shapes to be validated in the mood shot (§A9). This is the **art bible**: every visual or audio rule lives here. UI screens and components are in `09`.
+> Version 4 · 2026-09-22 · Status: direction v2 (Phase 2.5, D30): mood shot v1 done, to approve. This is the **art bible**: every visual or audio rule lives here. UI screens and components are in `09`; the living tokens, icons, components and interactive screen mockups are in the **Dusk Garden design system** (https://claude.ai/artifact/5aKRr9H8e3WJsMui64MNnu). Where the two disagree, the design system's tokens win and this file is updated.
 > **Feeling to convey:** a geometric garden at dusk. Calm, soft, elegant; the numbers grow but the screen stays serene.
 > **Anti-copy rule (D20):** the identity must be **clearly different** from The Tower (neon on black, square tower, range circle).
 
@@ -20,7 +20,7 @@
 ### A2. Visual identity
 | Element | Choice | Different from The Tower because |
 |---|---|---|
-| Background | **Dusk blue-violet gradient** with soft vignette and barely visible concentric rings | theirs: solid black |
+| Background | **Dusk blue-violet gradient** with soft vignette and faint concentric rings that mark the **range bands** (D32) | theirs: solid black |
 | Core | **A geometric seed or flower**: a soft sphere with **6 petals (up to 8)**, which are the ring slots | theirs: square tower |
 | Modules | Small rounded objects resting on the petals, each with **its own silhouette** (Emitter = gem, Amplifier = ring, Bank = coin…) | theirs: stats in a panel, not objects |
 | Enemies | **Angular fragments** (shards, prisms) in coral and rose, floating slowly | theirs: squares and flat shapes |
@@ -44,8 +44,9 @@ No painted textures: materials, colour and light do everything. This keeps weigh
 | Boosters | soft gold | `#E9B872` |
 | Economy | mint | `#9AD9A1` |
 | Enemies | coral | `#F07A6A` |
-| Elites and Guardians | deep rose | `#C8507A` |
+| Elites and Guardians | rose (lightened in v4 for contrast on the far sky) | `#E8709A` |
 | Text | ivory | `#F3E9D7` |
+| Allies (Sprites, `12` §5) | pale lavender | `#C9C2FF` |
 
 Rules of use:
 - **60 / 30 / 10:** 60% background, 30% player elements (ivory, teal, gold, mint), 10% accents (enemy coral, combo gold, boss rose).
@@ -53,6 +54,15 @@ Rules of use:
 - **Shape + colour always together** (colour blindness): round = yours, angular = enemy; the three module categories have three silhouettes as well as three colours. Alternative palettes in the options.
 - **Text contrast ≥ 4.5:1** on its panel; in-arena numbers ≥ 3:1 with a soft halo.
 - **Night tints, never pure black:** darkest value `#141630`, lightest `#F3E9D7`. Bloom stays soft and the screen never "burns".
+
+**Act skies (v4).** Each act has its own sky theme; only the sky, arena rings, panel surfaces and the key-light colour change. Enemy colours are nudged so they keep **≥ 3:1 on the lightest sky** in every act (checked by script; Alto's Odyssey lesson, Part D).
+| Theme | Sky far → mid → near | Key light | Enemy coral |
+|---|---|---|---|
+| Act I · Dusk | `#3B3F7A` → `#1C2050` → `#0E1030` | `#FFD9A8` warm | `#F07A6A` |
+| Act II · Twilight | `#224A60` → `#12324A` → `#081A26` | `#E8F0FF` cool | `#F5846F` |
+| Act III · Night | `#27265A` → `#10123A` → `#06071A` | `#C9D4FF` moonlight | `#FF8A78` |
+| High contrast | `#1A1C3A` → `#0C0D22` → `#07081A` | white | `#FF9A8A` |
+The palette switches only at the act card, never during a wave. Endless stays in Night.
 
 ### A5. Shape catalogue (for Blender via MCP)
 | Element | Shape | Size (units) | Note |
@@ -74,10 +84,12 @@ Rules of use:
 Module levels: L1 = base shape · L2 = a **second, brighter face** · L3 = **three faces** and a golden edge. Readable from afar without numbers.
 
 ### A6. Lighting and rendering (URP, mobile)
-- **Camera:** orthographic, tilted **35°**; size 9.4 units during waves, 3.4 in the shop, 0.6 s ease-in-out transition. No camera motion during a wave.
+- **Camera:** orthographic, tilted **35°**; during waves the arena fills the screen width (edge ring 9.0 visible); in the shop the whole ring sits in the upper half (about 4 units, the prototype's 3.4 cropped the petals); 0.6 s ease-in-out transition. No camera motion during a wave.
+- **Tone mapping:** none/Standard (sRGB). AgX and filmic curves grey the ivory Core and shift the palette (mood shot v1 lesson).
 - **Lights:** one warm directional light (`#FFD9A8`, 35° elevation, from the upper left) + gradient ambient (sky `#3B3F72`, ground `#141630`). Soft shadows only at medium/high quality (1 cascade, 1024 resolution).
 - **Post-processing:** bloom threshold 1.1, intensity 0.3 (light: visible only on emissive); vignette 0.25; **no** chromatic aberration, grain or CRT (motion sickness, Balatro lesson); one "dusk" LUT (shadows towards blue, warm highlights).
 - **Background:** gradient + concentric rings at 15–20% + vignette. **Still.** Only the Core breathes. **No continuous rotation** of background or ring.
+- **The rings are range bands (v4, D32):** ring I 3.0 (Pulse reach; glows softly when the Pulse is ready), II 5.5, III 7.5, edge 9.0 (gates). The band a module reaches lights in its sector while dragging. Allied Sprites (`12` §5) use the `ally` pale lavender `#C9C2FF`, never coral.
 - **Budget:** ≤ 40 draw calls, ≤ 60k triangles on screen, 4 materials (one per category + enemies) with the SRP Batcher; shadows and bloom off in the "low" quality level. Target: 30 fps on 4 GB phones with 60 enemies, 60 fps on mid-range (D4).
 - **Motion:** enemies move only because they advance, with a slow self-rotation and a light vertical float (±0.03 units, 2 s). All decorative motion turns off with "reduce motion".
 
@@ -106,14 +118,21 @@ Module levels: L1 = base shape · L2 = a **second, brighter face** · L3 = **thr
 **Global rules:** never more than 2 repeats per second in one spot; no full-screen flash; with "reduce motion" only functional animations remain (fire, deaths, Pulse), shortened by 50%; "effect intensity" scales alpha and flake count.
 
 ### A8. On-screen readability
-- **Three depth planes:** background (rings at 15–20%), arena (Core, modules, enemies, effects), interface (dark glass: ivory at 6%, 1 px border at 12%).
+- **Three depth planes:** background (range-band rings at 15–20%), arena (Core, modules, enemies, effects), interface (dark glass: ivory at 6%, 1 px border at 12%).
 - **Scale hierarchy:** Core 1.4 > Guardian 1.0 > Brute 0.55 > modules 0.5 > Drifter 0.35 > Swarmlet 0.2. Bigger = more important.
-- **Typography:** one rounded open-licence font (**PROPOSAL:** Nunito, SIL OFL), three weights. Minimum 14 sp for in-game numbers, 16 sp in the interface, 20 sp for Credits and wave. Text size option 100–200%.
+- **Typography (v4, PROPOSAL):** **Outfit** (SIL OFL) for every number and for act/Guardian titles, **Nunito** (SIL OFL) for words; tabular figures for counters. Minimum 14 sp for in-game numbers, 16 sp in the interface, 20 sp for Credits and wave. Text size option 100–200%. Styles are the design system's type tokens.
 - **Numbers:** compact notation above 9,999 (12.3K · 4.5M · 6.7B), ivory; important hits at 150% in gold, without flash; can be hidden.
 - **Clutter control** (for exploding numbers): cap on simultaneous effects; numbers **only for kills** and important hits, a summary at wave end for the rest; effects **attenuate automatically** with many enemies.
 
-### A9. Next step: the mood shot
+### A9. The mood shot
 One carefully made screen (Core with petals, 3 modules, some enemies, shop cards), shown to someone **before** producing any other art. It also settles D5 (tilted orthographic 3D vs top-down) and validates the palette.
+
+**v1 (2026-09-22, Blender 5.2 via MCP, EEVEE):** `docs/art/moodshot-wave.png` (wave view) and `docs/art/moodshot-shop.png` (shop close-up); source `Art/Blender/moodshot.blend`; transparent module/enemy renders in `docs/art/renders/`. What it taught:
+- the three-surface material works: lit body + fresnel rim + low emissive reads as "finished" with no textures;
+- modules must be about **1.7× larger** than the first guess (0.5 → ~0.85 units) to read on the petals; petals need a lighter body (`#6A6FB0`) and an ivory-lavender rim or they turn to mud;
+- the AgX view transform greys the ivory Core: use **Standard** (sRGB) so the palette matches the UI;
+- warm key light on a violet floor drifts brown: keep the floor blue-violet (`#1C2050` mid) and the key slightly paler (`#FFE2BC`);
+- arena rings at 16% alpha are enough; the combo link reads well as a thin gold arc.
 
 ### A10. Production with AI
 - **Blender via MCP:** parametric scripts for petals, gems, rings, shards (one `.blend` per family); glTF export to `Assets/Models/<family>/`; 1 unit = 1 m.
@@ -207,6 +226,25 @@ Music **is not a mechanic** (D17): it is **atmosphere**. No game information is 
 | **Composer** | Identity and clear ownership | Cost |
 
 **Recommended choice:** AI or free loops for the prototype; clearly licensed loops or a composer for the final version. Sound effects (ElevenLabs SFX, fal.ai via Unity MCP) **after checking the commercial licence**.
+
+## Part D — Visual overhaul v2 (Phase 2.5)
+
+**Why:** the prototype looked like a prototype: flat unlit shapes on one uniform navy, a Core that filled half the shop while modules were small blobs, cards made of four wrapped lines of text with clipped names, a generic system font and an off-palette emoji pause icon, and no way to read the fight (no wave progress, no inspection of modules or enemies).
+
+**Research summary** (full tables with sources in the design system's *Research* section):
+| Take from | What | Their criticised weakness → our rule |
+|---|---|---|
+| Monument Valley | every screen works as a poster | thin, familiar atmosphere → act skies, named Guardians |
+| Alto's Odyssey | impressionistic layers, palettes by time of day | night scenes where obstacles vanish → enemy contrast ≥ 3:1 per act, checked |
+| Thronefall | silhouette carries information; small layered placement feedback | units hard to tell apart → one silhouette per module, L1–L3 faces |
+| Balatro | rolling numbers, colour-coded values, lift and magnet | motion sickness, unskippable scoring → still sky, tap-to-skip, speed 1×/2×/instant |
+| Mini Motorways | minimal, per-map palettes, soft sounds | one-recolour colour-blind mode → shapes carry meaning in every preset |
+| Marvel Snap | premium cards, curated haptics, thumb-zone UI | fireworks spectacle → glow fades, nothing explodes |
+| Kingdom Rush | wave preview icons, "new enemy", encyclopedia | — → wave preview with "new enemy", Codex |
+| Sky | light as emotion | floaty touch, heavy on phones → ≤ 100 ms response, quality levels |
+| Infinitode 2 | depth with a minimal look | "square tiles and little icons" → three-surface materials, renders |
+
+**What v2 adds:** one sky per act (A4), Outfit + Nunito (A8), a drawn icon set, card art rendered from the models, and an **information layer** that never pauses the game: Integrity arc around the Core, wave progress hairline, wave preview with spawn compass and "new enemy", module tooltip and enemy card on tap, edge markers for off-screen elites and Guardians, a Guardian title card that becomes a health bar, combo inspector on long-press, damage share per module in the wave summary. Every screen (current and future) is mocked up, interactive, in the design system; `09` §2 lists them.
 
 ## Sources
 - Photosensitivity guidelines (WCAG 2.3.1, three flashes): https://www.w3.org/WAI/WCAG21/Understanding/three-flashes-or-below-threshold.html
