@@ -348,7 +348,10 @@ namespace TowerDefense.Presentation.Diagnostics
             }
 
             _lastShot = id;
-            ScreenCapture.CaptureScreenshot(Path.Combine(ShotFolder, name + ".png"));
+            // On phones Unity puts the file under persistentDataPath by itself: an absolute path would be doubled.
+            ScreenCapture.CaptureScreenshot(Application.isMobilePlatform
+                ? "bench/" + name + ".png"
+                : Path.Combine(ShotFolder, name + ".png"));
             Log($"shot {name}");
         }
 
