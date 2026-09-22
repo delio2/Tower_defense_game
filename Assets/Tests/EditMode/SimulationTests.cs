@@ -409,6 +409,26 @@ namespace TowerDefense.Simulation.Tests
             }
         }
 
+        [Test]
+        public void NumberFormat_IsCompactAboveTenThousand()
+        {
+            Assert.AreEqual("0", NumberFormat.Compact(0));
+            Assert.AreEqual("950", NumberFormat.Compact(950));
+            Assert.AreEqual("9999", NumberFormat.Compact(9_999));
+            Assert.AreEqual("10K", NumberFormat.Compact(10_000));
+            Assert.AreEqual("12.3K", NumberFormat.Compact(12_345));
+            Assert.AreEqual("123K", NumberFormat.Compact(123_456));
+            Assert.AreEqual("999K", NumberFormat.Compact(999_999));
+            Assert.AreEqual("1M", NumberFormat.Compact(1_000_000));
+            Assert.AreEqual("1.2M", NumberFormat.Compact(1_234_567));
+            Assert.AreEqual("5.6B", NumberFormat.Compact(5_600_000_000));
+            Assert.AreEqual("1.5T", NumberFormat.Compact(1_500_000_000_000));
+            Assert.AreEqual("1200T", NumberFormat.Compact(1_200_000_000_000_000));
+            Assert.AreEqual("-12.3K", NumberFormat.Compact(-12_345));
+            Assert.AreEqual("8", NumberFormat.CompactHundredths(8 * Hp));
+            Assert.AreEqual("24.6K", NumberFormat.CompactHundredths(24_600 * Hp));
+        }
+
         private static GameSimulation PlayWithBot(ulong seed, BotStrategy strategy = BotStrategy.Naive)
         {
             GameSimulation sim = Create(seed);

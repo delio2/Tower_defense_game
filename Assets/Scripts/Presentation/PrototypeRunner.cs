@@ -962,25 +962,7 @@ namespace TowerDefense.Presentation
             _messageUntil = Time.time + 2f;
         }
 
-        /// <summary>Compact number notation (GDD v0.2 §7): 950 · 1.2K · 3.4M · 5.6B. Input in hundredths of HP.</summary>
-        private static string FormatDamage(long hundredths)
-        {
-            double value = hundredths / (double)SimConstants.HpScale;
-            if (value < 1000)
-            {
-                return value.ToString("0");
-            }
-
-            string[] suffixes = { "K", "M", "B", "T" };
-            int index = -1;
-            while (value >= 1000 && index < suffixes.Length - 1)
-            {
-                value /= 1000;
-                index++;
-            }
-
-            return value.ToString("0.#") + suffixes[index];
-        }
+        private static string FormatDamage(long hundredths) => NumberFormat.CompactHundredths(hundredths);
 
         private static string Describe(ModuleKind kind)
         {

@@ -266,7 +266,7 @@ Reduce motion · effect intensity · damage numbers (all / big only / none) · h
 2. ✅ **Replay:** recording, playback and hash verification (automated test, including tampering).
 2b. ✅ **Balance bots** (`BalanceBot`, `BalanceRunner`, editor menu `TowerDefense/Balance`): three strategies, CSV + console summary; first results in §18.
 2c. ✅ **Content in ScriptableObjects** (`Assets/Content/Resources`, `ContentLoader`): the prototype reads balance data from assets equal to the code defaults.
-2d. ✅ **Extra slot** (`BuySlot`, ring 6 → 8, undo, preview, bots buy it when the ring is full). **25 automated tests** in total.
+2d. ✅ **Extra slot** (`BuySlot`, ring 6 → 8, undo, preview, bots buy it when the ring is full). **26 automated tests** in total (compact notation `NumberFormat` included).
 3. 🔄 **Calm presentation** with simple shapes and a provisional interface, **with tactile interaction** (§15.1). *Done:* `Prototype` scene, simple shapes, tap card → tap slot, Sell/Move, Reroll, Next wave, Pulse, speed 1x/2x/3x, pause, damage numbers, combo lines. *Missing:* magnetic drag, **Undo in the UI** (the command exists), **previews in the UI** (the `TryPreview*` functions exist but are unused), drag-to-sell, animated merge, wave-end summary, haptics, basic options.
 4. ⬜ **Test with 3–5 people** (muted first).
 5. ⬜ Decision: go on, fix, or change.

@@ -64,7 +64,7 @@ Deterministic simulation (60 ticks/s, integers), 7 modules, 3 enemies + Guardian
 - [x] `BuySlot(insertAt)` command (extra slot for 8 Credits after the first Guardian, `05` §5): ring 6 → 8, insertion opens an empty slot, undo, `TryPreviewBuySlot`, bots buy it when the ring is full; nearest-direction rounding for 7 slots.
 - [x] **Bot runner** (`BalanceBot`, `BalanceRunner` in `Simulation`; menu `TowerDefense/Balance/Run bots`): N seeds × strategies (Naive, MaxDps, EconomyFirst); wins, defeat wave and cause, seconds per wave, unused Credits, rerolls, merges, Pulse uses. CSV in `Temp/Balance/`, summary in the console. First results in `05` §18.
 - [x] **Content in ScriptableObjects** (`Assets/Content/Resources/`): `ModuleAsset`, `EnemyAsset`, `ContentCatalog` in `Presentation` (integers only), `ContentLoader` fills `ContentDatabase`; the prototype loads the catalog from Resources. Menu *TowerDefense → Content → Generate…* creates the assets from `CreatePrototypeDefaults()`, which stays the reference. Tests: lossless round trip and asset ≡ defaults (same hash). `RunConfigAsset` deferred to Phase 2 (Core types).
-- [ ] **Compact number notation** table (1.2K · 3.4M · 5.6B) in the simulation (integer, deterministic) with a test.
+- [x] **Compact number notation** (`NumberFormat`, integer, invariant: 9999 · 12.3K · 123K · 1.2M · 5.6B · 1.5T) with a test; the prototype uses it.
 
 **Presentation (`05` §15.1, `03` Part B, `07` §1.2, `09`)**
 - [ ] Dragging with the **object above the finger**, valid slots lit, **magnet**; invalid release → soft return.
