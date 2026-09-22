@@ -255,7 +255,7 @@ The operational calendar is in **`10` §4** (revised mapping in **§4.2**) (6-mo
 ---
 
 ## 4. Where we are and next steps
-**Status (2026-09-22):** Phase 0 ✅ · Phase 1 ✅ (Gate 1 with testers pending) · Phase 2 ✅ in code (Gate 2 with testers pending) · **Phase 2.5 🔄** (design ✅ and approved by the user, mood shot v1 ✅; Unity build 2.5-A next) · Phase 3 ⬜ (waits for approval of `11`–`12`). 45 automated tests, balance `0.3.0`.
+**Status (2026-09-22):** Phase 0 ✅ · Phase 1 ✅ (Gate 1 with testers pending) · Phase 2 ✅ in code (Gate 2 with testers pending) · **Phase 2.5 🔄** (design ✅ approved by the user, mood shot v1 ✅; Unity foundations A1–A6 ✅, A7 🔄) · Phase 3 ⬜ (waits for approval of `11`–`12`). 45 automated tests, balance `0.3.0`.
 
 **Done in order:** bot runner → ScriptableObject content → `BuySlot` → compact notation → UI Toolkit HUD → magnetic drag with previews → merge animation and wave summary → options and haptics → 14 modules, 7 enemies, 3 acts, elites → balance v0.3 → Core types, Grades 1–3, Endless → replay R2 → save/resume → Core tuning, enemy silhouettes.
 
@@ -266,6 +266,12 @@ The operational calendar is in **`10` §4** (revised mapping in **§4.2**) (6-mo
 4. In parallel, the user: approve `11` (names, gates, economy) and choose the launch scope of `12`; open the **Google Play account** (D13).
 5. **Phase 3a** in the order of its table; then 3b art completion and 3c FTUE, audio, languages, profiling.
 6. Phase 4: Garden (Archive), Daily/Weekly with local leaderboard, replay codes and ghosts, `Services` fakes.
+
+**Resume here (handoff, 2026-09-22):**
+- *Waiting on the user:* (1) permission to download the Outfit + Nunito fonts (SIL OFL, Google Fonts GitHub `ofl/outfit`, `ofl/nunito`) into `Assets/UI/Fonts/`; (2) approval of `11` names and systems and the launch scope of `12` — Phase 3 does not start before; (3) Google Play account.
+- *Next task:* finish A7 (font assets with a Latin-1 atlas; drawn icons in the HUD, rasterised from `docs/art/icons/*.svg`), then 2.5-B Wave slice (task table above).
+- *Where things are:* design system (tokens, icons, all screen mockups) — artifact linked in `docs/README.md`; tokens copy `Tools/design/tokens.json` → `python Tools/tokens_to_uss.py` regenerates `Theme.uss`; models — run `Tools/blender/build_models_v1.py` in Blender (source `Art/Blender/models_v1.blend`, FBX to `Assets/Content/Resources/Models`, card art to `Assets/UI/Resources/Cards`); arena code in `Assets/Scripts/Presentation/Arena/`, shaders in `Assets/Shaders/`.
+- *Working notes:* portrait captures = render the camera into a 1080 × 2220 render texture and set `PanelSettings.targetTexture` for the UI (always restore it to null afterwards: it is an asset); Unity sometimes drops `InputSystem_Actions` from `preloadedAssets` in `ProjectSettings.asset` after Play mode — revert that line; USS reloads during Play leave a stale HUD in the editor (restart Play).
 
 **Known open points:** the Grade ladder is steep between 1 and 2; Mortar and Echo rarely appear (rare + act 2); the greedy bot never buys economy modules, so economy builds are untested by bots; the state hash gained fields (slot count, elites, dash timing) under balance version 0.3.0 — no replays from 0.2.0 exist.
 

@@ -1,6 +1,6 @@
 # Design documentation — working title "TowerDefense"
 
-**Status (2026-09-22):** pre-production. Phases 1 and 2 of [06-development-plan.md](06-development-plan.md) are done in code (deterministic simulation with the full MVP roster, UI Toolkit HUD with magnetic drag, options, save/resume, balance v0.3 tuned by bots; 45 automated tests). Now in **Phase 2.5 — visual overhaul** (D30): design system and mood shot v1 done and approved by the user; Unity build (2.5-A foundations) next; tester gates still open. Proposals under review: `11`, `12`. **Start from `06` §4.**
+**Status (2026-09-22):** pre-production. Phases 1 and 2 of [06-development-plan.md](06-development-plan.md) are done in code (deterministic simulation with the full MVP roster, UI Toolkit HUD with magnetic drag, options, save/resume, balance v0.3 tuned by bots; 45 automated tests). Now in **Phase 2.5 — visual overhaul** (D30): design system and mood shot v1 done and approved by the user; Unity foundations A1–A6 done (tilted camera, lighting, three-surface shader, act skies, range-band rings, Blender models), A7 in progress; tester gates still open. Proposals under review: `11`, `12`. **Start from `06` §4.**
 
 ## How these documents work
 - **One source of truth per topic.** Numbers and rules live in the GDD (`05`). Direction lives in `03`. Decisions live in `04`. The briefs (`07`–`10`) add detail for a phase; when a brief changes a rule, the change goes into `05` and the reason into `04`.
