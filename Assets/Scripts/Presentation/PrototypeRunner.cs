@@ -29,7 +29,10 @@ namespace TowerDefense.Presentation
         private GameSimulation _sim;
         private Material _unlit;
         private Material _lineMaterial;
+        private Material _surfaceTemplate;
         private ArenaKit _kit;
+        private ArenaLighting _lighting;
+        private ArenaBackdrop _backdrop;
         private CameraRig _cameraRig;
         private readonly CoreView _core = new CoreView();
         private readonly RingView _ring = new RingView();
@@ -69,8 +72,10 @@ namespace TowerDefense.Presentation
 #endif
             _unlit = LoadMaterial("Materials/PrototypeUnlit", "Universal Render Pipeline/Unlit");
             _lineMaterial = LoadMaterial("Materials/PrototypeLines", "Sprites/Default");
-            _kit = new ArenaKit(_unlit, _lineMaterial);
+            _surfaceTemplate = LoadMaterial("Materials/ThreeSurface", "TowerDefense/ThreeSurface");
+            _kit = new ArenaKit(_unlit, _lineMaterial, _surfaceTemplate);
             _cameraRig = new CameraRig();
+            _backdrop = new ArenaBackdrop(LoadMaterial("Materials/SkyGround", "TowerDefense/SkyGround"));
             _input = new ShopInput(_kit, _cameraRig, () => _hud, ShowMessage, TryPulse);
             SetupHud();
             for (int i = transform.childCount - 1; i >= 0; i--)
@@ -78,6 +83,7 @@ namespace TowerDefense.Presentation
                 Destroy(transform.GetChild(i).gameObject);
             }
 
+            _lighting = new ArenaLighting(transform, _cameraRig.Camera); // after the cleanup: children are destroyed at frame end
             StartRun();
         }
 
@@ -102,6 +108,10 @@ namespace TowerDefense.Presentation
         {
             Destroy(_unlit);
             Destroy(_lineMaterial);
+            Destroy(_surfaceTemplate);
+            _kit?.DestroyOwnedMaterials();
+            _lighting?.Dispose();
+            _backdrop?.Dispose();
         }
 
         private void StartRun()
@@ -132,8 +142,10 @@ namespace TowerDefense.Presentation
 
             _kit.Sim = _sim;
             _kit.ResetRoot(transform);
+            _backdrop.Build(_kit, _cameraRig.Camera);
             _ring.Build(_kit);
             _core.Build(_kit);
+            ApplyActTheme();
         }
 
         private void Update()
@@ -148,7 +160,7 @@ namespace TowerDefense.Presentation
             _ring.Sync(_kit, _input.IsHighlighted, deltaTime);
             _enemies.Sync(_kit);
             _effects.Update(deltaTime);
-            _core.Update(_kit, deltaTime);
+            _core.Update(deltaTime);
             CheckGameOver();
             SyncHud();
         }
@@ -263,6 +275,7 @@ namespace TowerDefense.Presentation
                         OnModuleMerged(e);
                         break;
                     case SimEventType.WaveStarted:
+                        ApplyActTheme(); // temporary: the act card of Phase 3 will own this switch (docs/06 2.5-B7)
                         _damageAtWaveStart = _sim.TotalDamage;
                         _creditsAtWaveStart = _sim.Credits;
                         break;
@@ -350,6 +363,14 @@ namespace TowerDefense.Presentation
             _replayStatus = check.IsValid
                 ? $"Replay verified ({_sim.CommandLog.Count} commands, {text.Length} bytes)"
                 : $"Replay MISMATCH: {check.Reason}";
+        }
+
+        /// <summary>Sky of the current act (Endless stays in Night): floor gradient, rings, key light, ambient.</summary>
+        private void ApplyActTheme()
+        {
+            int act = Mathf.Clamp((_sim.CurrentWave - 1) / 6, 0, Palette.Acts.Length - 1);
+            _lighting.ApplyTheme(Palette.Acts[act]);
+            _backdrop.ApplyTheme(Palette.Acts[act]);
         }
 
         private void TryPulse()

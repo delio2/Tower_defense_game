@@ -6,11 +6,19 @@ using UnityEngine;
 namespace TowerDefense.Presentation.Arena
 {
     /// <summary>
-    /// The ring: guide circles, petals (slots), module views and the booster links shown in the shop. Module views
+    /// The ring: petals (slots), module views (Blender models, primitive fallback) and the booster links shown in the shop. Module views
     /// follow module ids, so they glide to a new slot after a Move instead of popping.
     /// </summary>
     internal sealed class RingView
     {
+        /// <summary>Primitive placeholders are centred; Blender models sit on their base, on the petal's top.</summary>
+        private const float PrimitiveHeight = 0.55f;
+        private const float ModelHeight = 0.18f;
+        private const float ModelScale = 1.25f;
+
+        /// <summary>Modules sit a little further out than the slot centre so the Core never hides them (visual only).</summary>
+        private const float ModuleRadialOffset = 1.12f;
+
         private readonly List<Renderer> _petals = new List<Renderer>();
         private readonly List<LineRenderer> _links = new List<LineRenderer>();
         private readonly Dictionary<int, ModuleView> _modules = new Dictionary<int, ModuleView>();
@@ -21,21 +29,21 @@ namespace TowerDefense.Presentation.Arena
             _petals.Clear();
             _links.Clear();
             _modules.Clear();
+            _petalMaterial = kit.Surface(Palette.PetalSurface);
+            _petalLitMaterial = kit.Surface(Palette.PetalLitSurface);
 
-            foreach (float radius in new[] { 3f, 6f, 9f })
-            {
-                LineRenderer guide = kit.CreateLine("Guide", 0.02f, Palette.WithAlpha(Palette.ArenaLine, 0.7f), true);
-                ArenaKit.SetCircle(guide, Vector3.zero, radius);
-            }
-
+            // Petals: flattened ellipsoids, long axis pointing away from the Core (mood shot v1).
             for (int slot = 0; slot < Ring.MaxSlots; slot++)
             {
-                GameObject petal = kit.CreatePrimitive(PrimitiveType.Cylinder, $"Slot {slot}", Vector3.zero,
-                    new Vector3(0.9f, 0.02f, 0.9f), Palette.Petal);
+                GameObject petal = kit.CreateSurface(PrimitiveType.Sphere, $"Slot {slot}", Vector3.zero,
+                    new Vector3(0.84f, 0.2f, 1.24f), _petalMaterial);
                 _petals.Add(petal.GetComponent<Renderer>());
                 _links.Add(kit.CreateLine("Link", 0.05f, Palette.WithAlpha(Palette.Booster, 0.5f), false));
             }
         }
+
+        private Material _petalMaterial;
+        private Material _petalLitMaterial;
 
         /// <summary>Marks a merge: the module swells 1.15 → 1 over 0.15 s (docs/03 A7). False if the view is not known.</summary>
         public bool TryMarkMerged(int moduleId, out Vector3 position)
@@ -65,8 +73,11 @@ namespace TowerDefense.Presentation.Arena
                     continue;
                 }
 
-                _petals[slot].transform.localPosition = kit.SlotWorld(slot);
-                kit.SetColor(_petals[slot], isHighlighted(slot) ? Palette.PetalSelected : Palette.Petal);
+                Vector3 slotPosition = kit.SlotWorld(slot);
+                Transform petal = _petals[slot].transform;
+                petal.localPosition = slotPosition * 1.05f + Vector3.up * 0.1f;
+                petal.localRotation = Quaternion.LookRotation(new Vector3(slotPosition.x, 0f, slotPosition.z));
+                _petals[slot].sharedMaterial = isHighlighted(slot) ? _petalLitMaterial : _petalMaterial;
             }
 
             _staleIds.Clear();
@@ -102,7 +113,12 @@ namespace TowerDefense.Presentation.Arena
                 float merge = view.MergeAt >= 0f ? Mathf.Clamp01((Time.time - view.MergeAt) / 0.15f) : 1f;
                 float swell = 1f + 0.15f * (1f - merge) * (1f - merge); // ease-out back to 1
                 view.Root.localScale = view.BaseScale * levelScale * swell;
-                view.Root.localPosition = Vector3.Lerp(view.Root.localPosition, kit.SlotWorld(slot) + Vector3.up * 0.3f, 1f - Mathf.Exp(-deltaTime * 12f));
+                Vector3 target = kit.SlotWorld(slot) * ModuleRadialOffset;
+                view.Root.localPosition = Vector3.Lerp(view.Root.localPosition, target + Vector3.up * view.Height, 1f - Mathf.Exp(-deltaTime * 12f));
+                if (view.IsModel)
+                {
+                    view.Root.localRotation = FacingOutward(target);
+                }
 
                 // In the shop, boosters show soft links to their neighbours: the combos are visible.
                 if (kit.Sim.Phase == GamePhase.Shop && module.Category == ModuleCategory.Booster)
@@ -125,49 +141,69 @@ namespace TowerDefense.Presentation.Arena
 
         private static ModuleView CreateModuleView(ArenaKit kit, ModuleInstance module)
         {
+            SurfaceStyle style = module.Category switch
+            {
+                ModuleCategory.Weapon => Palette.WeaponSurface,
+                ModuleCategory.Booster => Palette.BoosterSurface,
+                _ => Palette.EconomySurface,
+            };
+            Material material = kit.Surface(style);
+            Vector3 slot = kit.SlotWorld(module.Slot) * ModuleRadialOffset;
+            string objectName = $"{module.Kind} #{module.Id}";
+
+            GameObject model = kit.CreateModel($"Models/Modules/{module.Kind}", objectName, slot + Vector3.up * ModelHeight, ModelScale, material);
+            if (model != null)
+            {
+                model.transform.localRotation = FacingOutward(slot);
+                return new ModuleView(model.transform, Vector3.one * ModelScale, ModelHeight, true);
+            }
+
+            // Fallback placeholder shapes (a model is missing); sized ~1.7x the v1 guess (mood shot lesson).
             PrimitiveType shape;
             Vector3 scale;
-            Color color;
             switch (module.Category)
             {
                 case ModuleCategory.Weapon:
                     shape = PrimitiveType.Sphere;
-                    scale = module.Kind == ModuleKind.Scatter ? new Vector3(0.55f, 0.35f, 0.55f) : Vector3.one * 0.5f;
-                    color = Palette.Weapon;
+                    scale = module.Kind == ModuleKind.Scatter ? new Vector3(0.85f, 0.55f, 0.85f) : Vector3.one * 0.75f;
                     break;
                 case ModuleCategory.Booster:
                     shape = PrimitiveType.Cylinder;
-                    scale = new Vector3(0.55f, 0.08f, 0.55f);
-                    color = Palette.Booster;
+                    scale = new Vector3(0.85f, 0.12f, 0.85f);
                     break;
                 default:
                     shape = PrimitiveType.Cube;
-                    scale = Vector3.one * 0.38f;
-                    color = Palette.Economy;
+                    scale = Vector3.one * 0.58f;
                     break;
             }
 
-            GameObject go = kit.CreatePrimitive(shape, $"{module.Kind} #{module.Id}", kit.SlotWorld(module.Slot) + Vector3.up * 0.3f, scale, color);
-            if (module.Category == ModuleCategory.Economy)
-            {
-                go.transform.rotation = Quaternion.Euler(0f, 45f, 0f);
-            }
+            GameObject go = kit.CreateSurface(shape, objectName, slot + Vector3.up * PrimitiveHeight, scale, material);
+            return new ModuleView(go.transform, scale, PrimitiveHeight, false);
+        }
 
-            return new ModuleView(go.transform, scale);
+        /// <summary>Models look along local −Z: point that away from the Core (Lance aims outward).</summary>
+        private static Quaternion FacingOutward(Vector3 slot)
+        {
+            Vector3 outward = new Vector3(slot.x, 0f, slot.z);
+            return outward.sqrMagnitude > 1e-6f ? Quaternion.LookRotation(-outward.normalized) : Quaternion.identity;
         }
 
         private sealed class ModuleView
         {
             public readonly Transform Root;
             public readonly Vector3 BaseScale;
+            public readonly float Height;
+            public readonly bool IsModel;
 
             /// <summary>Time.time when a merge swelled this module (scale 1.15 → 1 over 0.15 s, docs/03 A7).</summary>
             public float MergeAt = -1f;
 
-            public ModuleView(Transform root, Vector3 baseScale)
+            public ModuleView(Transform root, Vector3 baseScale, float height, bool isModel)
             {
                 Root = root;
                 BaseScale = baseScale;
+                Height = height;
+                IsModel = isModel;
             }
         }
     }

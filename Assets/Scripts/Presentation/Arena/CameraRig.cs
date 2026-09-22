@@ -28,10 +28,14 @@ namespace TowerDefense.Presentation.Arena
             Camera.orthographic = true;
             Camera.clearFlags = CameraClearFlags.SolidColor;
             Camera.backgroundColor = Palette.Background;
-            Camera.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+            Camera.transform.rotation = Quaternion.Euler(90f - TiltDegrees, 0f, 0f);
             Camera.nearClipPlane = 0.1f;
             Camera.farClipPlane = 100f;
         }
+
+        /// <summary>Tilt from straight down (docs/03 A6): volume and soft shadows, still as readable as top-down.</summary>
+        private const float TiltDegrees = 35f;
+        private const float CameraDistance = 20f;
 
         public Camera Camera { get; }
 
@@ -42,13 +46,16 @@ namespace TowerDefense.Presentation.Arena
             float target = phase == GamePhase.Shop ? ShopViewRadius : ArenaViewRadius;
             _viewRadius = Mathf.Lerp(_viewRadius, target, 1f - Mathf.Exp(-deltaTime * 3f));
 
+            // On a tilted orthographic camera the ground's depth is foreshortened by sin(elevation).
+            float foreshortening = Mathf.Sin((90f - TiltDegrees) * Mathf.Deg2Rad);
             float aspect = Mathf.Max(0.1f, Camera.aspect);
             float usable = 1f - TopBarFraction - BottomBarFraction;
-            float size = Mathf.Max(_viewRadius / usable, _viewRadius / aspect);
+            float size = Mathf.Max(_viewRadius * foreshortening / usable, _viewRadius / aspect);
             Camera.orthographicSize = size;
             float bandCentre = BottomBarFraction + usable * 0.5f;
-            float offset = (bandCentre - 0.5f) * size * 2f;
-            Camera.transform.position = new Vector3(0f, 20f, -offset);
+            float screenOffset = (bandCentre - 0.5f) * size * 2f;
+            Vector3 lookAt = new Vector3(0f, 0f, -screenOffset / foreshortening);
+            Camera.transform.position = lookAt - Camera.transform.forward * CameraDistance;
         }
 
         /// <summary>Screen point to the ground plane (y = 0).</summary>

@@ -15,14 +15,114 @@ namespace TowerDefense.Presentation.Arena
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
         private static readonly Dictionary<PrimitiveType, Mesh> PrimitiveMeshes = new Dictionary<PrimitiveType, Mesh>();
 
+        private static readonly int RimColorId = Shader.PropertyToID("_RimColor");
+        private static readonly int RimStrengthId = Shader.PropertyToID("_RimStrength");
+        private static readonly int EmissionColorId = Shader.PropertyToID("_EmissionColor");
+        private static readonly int EmissionStrengthId = Shader.PropertyToID("_EmissionStrength");
+
         private readonly Material _unlit;
         private readonly Material _lineMaterial;
+        private readonly Material _surfaceTemplate;
         private readonly MaterialPropertyBlock _block = new MaterialPropertyBlock();
+        private readonly Dictionary<SurfaceStyle, Material> _surfaces = new Dictionary<SurfaceStyle, Material>();
+        private readonly List<Material> _owned = new List<Material>();
 
-        public ArenaKit(Material unlit, Material lineMaterial)
+        public ArenaKit(Material unlit, Material lineMaterial, Material surfaceTemplate)
         {
             _unlit = unlit;
             _lineMaterial = lineMaterial;
+            _surfaceTemplate = surfaceTemplate;
+        }
+
+        /// <summary>
+        /// Shared three-surface material for a style (one material per style keeps the SRP Batcher effective:
+        /// no property blocks on lit objects).
+        /// </summary>
+        public Material Surface(in SurfaceStyle style)
+        {
+            if (!_surfaces.TryGetValue(style, out Material material))
+            {
+                material = NewSurface(style);
+                _surfaces.Add(style, material);
+            }
+
+            return material;
+        }
+
+        /// <summary>A material of its own, for objects whose colour animates (the Core's hit tint).</summary>
+        public Material NewSurface(in SurfaceStyle style)
+        {
+            var material = new Material(_surfaceTemplate);
+            ApplyStyle(material, style);
+            _owned.Add(material);
+            return material;
+        }
+
+        public static void ApplyStyle(Material material, in SurfaceStyle style)
+        {
+            material.SetColor(BaseColorId, style.Body);
+            material.SetColor(RimColorId, style.Rim);
+            material.SetFloat(RimStrengthId, style.RimStrength);
+            material.SetColor(EmissionColorId, style.Inside);
+            material.SetFloat(EmissionStrengthId, style.InsideStrength);
+        }
+
+        /// <summary>A lit primitive (no collider) with a three-surface material; casts and receives soft shadows.</summary>
+        public GameObject CreateSurface(PrimitiveType type, string objectName, Vector3 position, Vector3 scale, Material material, bool castShadows = true)
+        {
+            var go = new GameObject(objectName);
+            go.AddComponent<MeshFilter>().sharedMesh = PrimitiveMesh(type);
+            MeshRenderer renderer = go.AddComponent<MeshRenderer>();
+            go.transform.SetParent(Root, false);
+            go.transform.localPosition = position;
+            go.transform.localScale = scale;
+            renderer.sharedMaterial = material;
+            renderer.shadowCastingMode = castShadows ? ShadowCastingMode.On : ShadowCastingMode.Off;
+            renderer.receiveShadows = true;
+            return go;
+        }
+
+        private static readonly Dictionary<string, Mesh> Models = new Dictionary<string, Mesh>();
+
+        /// <summary>
+        /// A Blender model from <c>Resources/Models</c> (Tools/blender/build_models_v1.py) with the body material on
+        /// sub-mesh 0 and the glowing accent on sub-mesh 1. Model "forward" is local −Z. Null when the model is missing,
+        /// so callers can fall back to a primitive.
+        /// </summary>
+        public GameObject CreateModel(string resourcePath, string objectName, Vector3 position, float scale, Material body)
+        {
+            if (!Models.TryGetValue(resourcePath, out Mesh mesh))
+            {
+                mesh = Resources.Load<Mesh>(resourcePath);
+                Models[resourcePath] = mesh;
+            }
+
+            if (mesh == null)
+            {
+                return null;
+            }
+
+            var go = new GameObject(objectName);
+            go.AddComponent<MeshFilter>().sharedMesh = mesh;
+            MeshRenderer renderer = go.AddComponent<MeshRenderer>();
+            go.transform.SetParent(Root, false);
+            go.transform.localPosition = position;
+            go.transform.localScale = Vector3.one * scale;
+            renderer.sharedMaterials = mesh.subMeshCount > 1 ? new[] { body, Surface(Palette.AccentSurface) } : new[] { body };
+            renderer.shadowCastingMode = ShadowCastingMode.On;
+            renderer.receiveShadows = true;
+            return go;
+        }
+
+        public void DestroyOwnedMaterials()
+        {
+            foreach (Material material in _owned)
+            {
+                Object.Destroy(material);
+            }
+
+            _owned.Clear();
+            _surfaces.Clear();
         }
 
         public GameSimulation Sim { get; set; }
