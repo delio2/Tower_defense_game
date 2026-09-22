@@ -124,7 +124,8 @@ namespace TowerDefense.Simulation
 
         // ---------------------------------------------------------------- shop policies
 
-        private static void PlayShop(GameSimulation sim, BotStrategy strategy)
+        /// <summary>Plays the current shop visit with a strategy (without starting the wave).</summary>
+        public static void PlayShop(GameSimulation sim, BotStrategy strategy)
         {
             switch (strategy)
             {
@@ -176,6 +177,11 @@ namespace TowerDefense.Simulation
                     continue;
                 }
 
+                if (TryBuyExtraSlot(sim, budget))
+                {
+                    continue;
+                }
+
                 if (TryBestBuy(sim, budget))
                 {
                     continue;
@@ -222,6 +228,35 @@ namespace TowerDefense.Simulation
             }
 
             sim.Enqueue(Command.Move(bestFrom, bestTo));
+            sim.ApplyPendingCommandsNow();
+            return true;
+        }
+
+        /// <summary>Opens an extra slot only when the ring is full and there is money left to fill it (cost + 3).</summary>
+        private static bool TryBuyExtraSlot(GameSimulation sim, int budget)
+        {
+            if (sim.Ring.HasFreeSlot() || !sim.CanBuyExtraSlot || sim.ExtraSlotCost + 3 > budget)
+            {
+                return false;
+            }
+
+            long bestDps = -1;
+            int bestIndex = -1;
+            for (int insertAt = 0; insertAt <= sim.Ring.SlotCount; insertAt++)
+            {
+                if (sim.TryPreviewBuySlot(insertAt, out long dps) && dps > bestDps)
+                {
+                    bestDps = dps;
+                    bestIndex = insertAt;
+                }
+            }
+
+            if (bestIndex < 0)
+            {
+                return false;
+            }
+
+            sim.Enqueue(Command.BuySlot(bestIndex));
             sim.ApplyPendingCommandsNow();
             return true;
         }

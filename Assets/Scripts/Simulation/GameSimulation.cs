@@ -67,6 +67,11 @@ namespace TowerDefense.Simulation
         public bool IsGuardianWave => _waves.IsGuardianWave(CurrentWave);
         public bool CanUndo => Phase == GamePhase.Shop && _undo.Count > 0;
 
+        /// <summary>The extra slot is on sale once the first Guardian is beaten, until the ring has 8 slots (GDD v0.2 §5).</summary>
+        public bool IsExtraSlotUnlocked => WavesCleared >= _config.WavesPerAct;
+        public bool CanBuyExtraSlot => Phase == GamePhase.Shop && IsExtraSlotUnlocked && Ring.SlotCount < Ring.MaxSlots;
+        public int ExtraSlotCost => _config.ExtraSlotCost;
+
         public IReadOnlyList<Enemy> Enemies => _enemies;
         public IReadOnlyList<(long Tick, Command Command)> CommandLog => _commandLog;
 
@@ -180,6 +185,8 @@ namespace TowerDefense.Simulation
                     }
 
                     return PulseCooldownRemaining == 0 ? CommandResult.Ok : CommandResult.PulseNotReady;
+                case CommandType.BuySlot:
+                    return ValidateBuySlot(command.A);
                 default:
                     return CommandResult.Ok;
             }
@@ -222,6 +229,7 @@ namespace TowerDefense.Simulation
             hasher.Add(TotalDamage);
             hasher.Add(Kills);
             hasher.Add(_undo.Count);
+            hasher.Add(Ring.SlotCount);
             foreach (int offer in _offers)
             {
                 hasher.Add(offer);
@@ -306,9 +314,41 @@ namespace TowerDefense.Simulation
                 case CommandType.Pulse:
                     UsePulse();
                     break;
+                case CommandType.BuySlot:
+                    _undo.Push(TakeSnapshot());
+                    Credits -= _config.ExtraSlotCost;
+                    Ring.InsertSlot(command.A);
+                    RecalculateRing();
+                    _events.Add(new SimEvent(SimEventType.SlotAdded, Tick, value: Ring.SlotCount, extra: command.A));
+                    break;
             }
 
             return CommandResult.Ok;
+        }
+
+        private CommandResult ValidateBuySlot(int insertAt)
+        {
+            if (Phase != GamePhase.Shop)
+            {
+                return CommandResult.OnlyInShop;
+            }
+
+            if (!IsExtraSlotUnlocked)
+            {
+                return CommandResult.SlotNotUnlocked;
+            }
+
+            if (Ring.SlotCount >= Ring.MaxSlots)
+            {
+                return CommandResult.SlotLimitReached;
+            }
+
+            if (insertAt < 0 || insertAt > Ring.SlotCount)
+            {
+                return CommandResult.InvalidSlot;
+            }
+
+            return Credits >= _config.ExtraSlotCost ? CommandResult.Ok : CommandResult.NotEnoughCredits;
         }
 
         private CommandResult ValidateBuy(int offerIndex, int slot, out ModuleDefinition definition, out ModuleInstance mergeTarget)
@@ -693,14 +733,16 @@ namespace TowerDefense.Simulation
         {
             public readonly int Credits;
             public readonly int[] Offers;
+            public readonly int SlotCount;
             public readonly ModuleSnapshot[] Slots;
             public readonly long Integrity;
             public readonly long MaxIntegrity;
 
-            public ShopSnapshot(int credits, int[] offers, ModuleSnapshot[] slots, long integrity, long maxIntegrity)
+            public ShopSnapshot(int credits, int[] offers, int slotCount, ModuleSnapshot[] slots, long integrity, long maxIntegrity)
             {
                 Credits = credits;
                 Offers = offers;
+                SlotCount = slotCount;
                 Slots = slots;
                 Integrity = integrity;
                 MaxIntegrity = maxIntegrity;
@@ -735,16 +777,16 @@ namespace TowerDefense.Simulation
                 }
             }
 
-            return new ShopSnapshot(Credits, (int[])_offers.Clone(), slots, Integrity, MaxIntegrity);
+            return new ShopSnapshot(Credits, (int[])_offers.Clone(), Ring.SlotCount, slots, Integrity, MaxIntegrity);
         }
 
         private void RestoreSnapshot(ShopSnapshot snapshot)
         {
             Credits = snapshot.Credits;
             Array.Copy(snapshot.Offers, _offers, _offers.Length);
+            Ring.Reset(snapshot.SlotCount);
             for (int slot = 0; slot < Ring.SlotCount; slot++)
             {
-                Ring.Remove(slot);
                 ModuleSnapshot saved = snapshot.Slots[slot];
                 if (saved.Id == 0)
                 {
@@ -802,6 +844,22 @@ namespace TowerDefense.Simulation
 
             Ring copy = CopyRing();
             copy.Swap(from, to);
+            copy.Recalculate(_config.CoreDamagePermille);
+            dpsAfter = DpsOf(copy);
+            return true;
+        }
+
+        /// <summary>What the ring DPS would become after opening an empty slot at <paramref name="insertAt"/>.</summary>
+        public bool TryPreviewBuySlot(int insertAt, out long dpsAfter)
+        {
+            dpsAfter = 0;
+            if (ValidateBuySlot(insertAt) != CommandResult.Ok)
+            {
+                return false;
+            }
+
+            Ring copy = CopyRing();
+            copy.InsertSlot(insertAt);
             copy.Recalculate(_config.CoreDamagePermille);
             dpsAfter = DpsOf(copy);
             return true;

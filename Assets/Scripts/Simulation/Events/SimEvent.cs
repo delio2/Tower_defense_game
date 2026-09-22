@@ -33,6 +33,9 @@ namespace TowerDefense.Simulation
         Victory = 15,
         Defeat = 16,
         Undone = 17,
+
+        /// <summary>Value = new slot count, Extra = index of the new slot.</summary>
+        SlotAdded = 18,
     }
 
     /// <summary>

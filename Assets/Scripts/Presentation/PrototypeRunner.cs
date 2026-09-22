@@ -746,6 +746,15 @@ namespace TowerDefense.Presentation
 
             float second = top + rowHeight + gap;
             float buttonWidth = (width - gap * 3f) / 2f;
+            if (_sim.CanBuyExtraSlot)
+            {
+                GUI.enabled = _sim.Credits >= _sim.ExtraSlotCost;
+                if (GUI.Button(new Rect(gap, second - 100f, buttonWidth, 90f), $"Slot +1 ({_sim.ExtraSlotCost})", _buttonStyle))
+                {
+                    _sim.Enqueue(Command.BuySlot(_sim.Ring.SlotCount));
+                }
+            }
+
             GUI.enabled = _sim.Credits >= _sim.RerollCost;
             if (GUI.Button(new Rect(gap, second, buttonWidth, 90f), $"Reroll ({_sim.RerollCost})", _buttonStyle))
             {

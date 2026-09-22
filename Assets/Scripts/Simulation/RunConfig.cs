@@ -36,6 +36,9 @@ namespace TowerDefense.Simulation
         public int FirstRerollCost = 1;
         public int ShopOffers = 4;
 
+        /// <summary>Extra ring slot: offered after the first Guardian, up to <see cref="Ring.MaxSlots"/> (GDD v0.2 §5, §10).</summary>
+        public int ExtraSlotCost = 8;
+
         // Pulse (GDD v0.2 §4)
         public long PulseDamage = 20 * SimConstants.HpScale;
         public long PulseRadius = 3000 * SimConstants.MilliToMicro;

@@ -321,6 +321,94 @@ namespace TowerDefense.Simulation.Tests
             Assert.IsTrue(director.IsGuardianWave(6));
         }
 
+        [Test]
+        public void Directions_OfSlot_IsEvenWithinOneStepForEveryRingSize()
+        {
+            for (int slotCount = 6; slotCount <= Ring.MaxSlots; slotCount++)
+            {
+                int ideal = Directions.Count / slotCount;
+                for (int slot = 1; slot < slotCount; slot++)
+                {
+                    int gap = Directions.Normalize(Directions.OfSlot(slot - 1, slotCount) - Directions.OfSlot(slot, slotCount));
+                    Assert.That(gap, Is.InRange(ideal, ideal + 1), $"{slotCount} slots, gap before slot {slot}");
+                }
+
+                Assert.AreEqual(Directions.Up, Directions.OfSlot(0, slotCount), "slot 0 is always at the top");
+            }
+        }
+
+        [Test]
+        public void BuySlot_IsLockedUntilTheFirstGuardian()
+        {
+            GameSimulation sim = Create(3, credits: 50);
+            Assert.AreEqual(CommandResult.SlotNotUnlocked, sim.Validate(Command.BuySlot(0)));
+            Assert.IsFalse(sim.CanBuyExtraSlot);
+            Assert.AreEqual(6, sim.Ring.SlotCount);
+        }
+
+        [Test]
+        public void BuySlot_OpensAnEmptySlotShiftsModulesAndStopsAtEight()
+        {
+            // Beat act 1 with the greedy bot, then continue in a second act to reach a shop after the Guardian.
+            var config = new RunConfig { Seed = 11, Acts = 2, StartingCredits = 200 };
+            GameSimulation sim = new GameSimulation(config, ContentDatabase.CreatePrototypeDefaults());
+            while (!sim.IsOver && sim.WavesCleared < config.WavesPerAct)
+            {
+                BalanceBotStepOneWave(sim);
+            }
+
+            Assert.IsFalse(sim.IsOver, "the bot should survive act 1 with 200 starting Credits");
+            Assert.IsTrue(sim.CanBuyExtraSlot);
+
+            ModuleInstance first = sim.Ring.At(0);
+            Assert.IsNotNull(first, "slot 0 holds the starting Emitter");
+            sim.Enqueue(Command.BuySlot(0));
+            sim.ApplyPendingCommandsNow();
+
+            Assert.AreEqual(7, sim.Ring.SlotCount);
+            Assert.IsNull(sim.Ring.At(0), "the new slot is empty");
+            Assert.AreSame(first, sim.Ring.At(1), "modules after the insertion point shift by one");
+            Assert.AreEqual(1, first.Slot);
+
+            sim.Enqueue(Command.Undo());
+            sim.ApplyPendingCommandsNow();
+            Assert.AreEqual(6, sim.Ring.SlotCount, "undo restores the slot count");
+            Assert.AreEqual(first.Id, sim.Ring.At(0).Id, "undo rebuilds the module in its original slot (same id, new instance)");
+
+            int credits = sim.Credits;
+            Assert.GreaterOrEqual(credits, 2 * sim.ExtraSlotCost, "enough Credits left for two slots");
+            sim.Enqueue(Command.BuySlot(6));
+            sim.Enqueue(Command.BuySlot(7));
+            sim.ApplyPendingCommandsNow();
+            Assert.AreEqual(8, sim.Ring.SlotCount);
+            Assert.AreEqual(credits - 2 * sim.ExtraSlotCost, sim.Credits);
+            Assert.AreEqual(CommandResult.SlotLimitReached, sim.Validate(Command.BuySlot(0)));
+        }
+
+        /// <summary>Plays one shop + one wave with the greedy bot shop policy, through the public API.</summary>
+        private static void BalanceBotStepOneWave(GameSimulation sim)
+        {
+            int cleared = sim.WavesCleared;
+            for (int guard = 0; guard < 100_000 && !sim.IsOver && sim.WavesCleared == cleared; guard++)
+            {
+                if (sim.Phase == GamePhase.Shop)
+                {
+                    BalanceBot.PlayShop(sim, BotStrategy.MaxDps);
+                    sim.Enqueue(Command.StartWave());
+                    sim.ApplyPendingCommandsNow();
+                }
+                else
+                {
+                    if (sim.IsPulseReady)
+                    {
+                        sim.Enqueue(Command.Pulse());
+                    }
+
+                    sim.Step();
+                }
+            }
+        }
+
         private static GameSimulation PlayWithBot(ulong seed, BotStrategy strategy = BotStrategy.Naive)
         {
             GameSimulation sim = Create(seed);

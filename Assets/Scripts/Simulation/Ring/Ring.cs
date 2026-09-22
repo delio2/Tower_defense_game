@@ -69,6 +69,33 @@ namespace TowerDefense.Simulation
 
         internal void Remove(int slot) => _slots[slot] = null;
 
+        /// <summary>Opens an empty slot at <paramref name="index"/> (0..SlotCount); later modules shift by one.</summary>
+        internal void InsertSlot(int index)
+        {
+            for (int slot = SlotCount - 1; slot >= index; slot--)
+            {
+                _slots[slot + 1] = _slots[slot];
+                if (_slots[slot + 1] != null)
+                {
+                    _slots[slot + 1].Slot = slot + 1;
+                }
+            }
+
+            _slots[index] = null;
+            SlotCount++;
+        }
+
+        /// <summary>Empties every slot and sets the slot count (undo restore).</summary>
+        internal void Reset(int slotCount)
+        {
+            for (int slot = 0; slot < MaxSlots; slot++)
+            {
+                _slots[slot] = null;
+            }
+
+            SlotCount = slotCount;
+        }
+
         internal void Swap(int from, int to)
         {
             ModuleInstance a = _slots[from];

@@ -15,8 +15,11 @@ namespace TowerDefense.Simulation
         StartWave = 4,
         Pulse = 5,
 
-        /// <summary>Reverts the last Buy/Sell/Move of the current shop visit (never a Reroll).</summary>
+        /// <summary>Reverts the last Buy/Sell/Move/BuySlot of the current shop visit (never a Reroll).</summary>
         Undo = 6,
+
+        /// <summary>A = index where the new empty slot opens (0..SlotCount); modules from there shift by one.</summary>
+        BuySlot = 7,
     }
 
     /// <summary>
@@ -44,6 +47,7 @@ namespace TowerDefense.Simulation
         public static Command StartWave() => new Command(CommandType.StartWave);
         public static Command Pulse() => new Command(CommandType.Pulse);
         public static Command Undo() => new Command(CommandType.Undo);
+        public static Command BuySlot(int insertAt) => new Command(CommandType.BuySlot, insertAt);
 
         public override string ToString() => $"{Type}({A},{B})";
     }
@@ -62,5 +66,7 @@ namespace TowerDefense.Simulation
         PulseNotReady,
         GameOver,
         NothingToUndo,
+        SlotNotUnlocked,
+        SlotLimitReached,
     }
 }

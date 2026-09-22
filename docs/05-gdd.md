@@ -51,7 +51,7 @@ Automatic save **at every shop**, resumable at any time.
 ## 3. Arena and units (deterministic)
 - **Fixed tick: 60 per second.** No floats in game state (D11).
 - **Units:** balance data is in **milli-units** (1000 = 1 unit); simulation state uses **micro-units** (1,000,000 = 1 unit) to avoid precision loss. The Core is at (0,0) with radius 0.7. Ring slots are at radius 1.5. Enemies spawn at radius 9.0.
-- **Directions:** **192** fixed directions (integer cosine table ×10,000; sine is the cosine shifted by a quarter turn). 192 is divisible by 6 and 8, the possible ring sizes.
+- **Directions:** **192** fixed directions (integer cosine table ×10,000; sine is the cosine shifted by a quarter turn). 192 is divisible by 6 and 8; with **7 slots** each slot takes the nearest direction (gaps of 27 or 28 steps, error under 1.9°), deterministically.
 - **Enemy movement:** **radial** towards the Core. Each enemy has a direction and a distance; every tick the distance decreases by its speed. Knockback increases it.
 - **Contact:** at distance ≤ 0.7 the enemy hits the Core (contact damage) and disappears.
 
@@ -67,7 +67,7 @@ Automatic save **at every shop**, resumable at any time.
   | **Glass** | all damage ×1.5, integrity 50 | Emitter + Amplifier, 2 Credits |
 
 ## 5. The Ring
-- **6 slots** at start, arranged as a hexagon. The **extra slot** (up to 8) is bought in the shop after the first Guardian, for 8 Credits *(not in the prototype yet, which has one act)*.
+- **6 slots** at start, arranged as a hexagon. The **extra slot** (up to 8) is bought in the shop after the first Guardian, for 8 Credits: the command `BuySlot(insertAt)` opens an **empty** slot at the chosen position and the following modules shift by one (`09` §2.3); it can be undone like any shop action.
 - **Neighbourhood:** every slot has 2 neighbours; the ring is circular.
 - In the shop modules **move freely** (drag or swap); during a wave they are locked.
 
@@ -179,8 +179,8 @@ Proposed secondary modes (Guardian Gauntlet, Surge): `10` §2.1. Gates for updat
 ## 13. Replay and verification (D19)
 - **Target format:** game version + balance version + mode + seed + Core type + Grade + list of (tick, command).
 - **Current prototype format (`R1`):** balance version + seed + final hash + waves + total damage + ticks + commands. **Missing:** game version, mode, Core type and Grade: to be added (format `R2`) when Core types and modes arrive.
-- **Commands:** `Buy(offerIndex, slot)` · `Sell(slot)` · `Move(from, to)` · `Undo` · `Reroll` · `StartWave` · `Pulse`. Pause and game speed are **not** commands: they do not change the outcome.
-- **`Undo`** restores the shop state before the last `Buy`, `Sell` or `Move` of the current visit (multi-level). `Reroll` and `StartWave` clear the stack: a reroll cannot be undone, otherwise future offers could be peeked for free. `Undo` does not use the RNG, so it stays deterministic and is recorded in the replay.
+- **Commands:** `Buy(offerIndex, slot)` · `Sell(slot)` · `Move(from, to)` · `BuySlot(insertAt)` · `Undo` · `Reroll` · `StartWave` · `Pulse`. Pause and game speed are **not** commands: they do not change the outcome.
+- **`Undo`** restores the shop state before the last `Buy`, `Sell`, `Move` or `BuySlot` of the current visit (multi-level). `Reroll` and `StartWave` clear the stack: a reroll cannot be undone, otherwise future offers could be peeked for free. `Undo` does not use the RNG, so it stays deterministic and is recorded in the replay.
 - **Verification:** re-playing the replay must give the same final hash and score. Locally now (tests); on the server with Cloud Code C# (D23).
 - Replays are valid **only for the same balance version**: leaderboards and ghosts are split by version or season.
 
@@ -265,7 +265,8 @@ Reduce motion · effect intensity · damage numbers (all / big only / none) · h
 1. ✅ **Simulation v2** (reuses RNG, hash and commands): radial arena, Core, 3 enemies (Drifter, Swarmlet, Brute) + Guardian, 7 modules (Emitter, Scatter, Amplifier, Lens, Overclock, Bank, Bulwark), shop with merge and undo, previews, Pulse, 1 act.
 2. ✅ **Replay:** recording, playback and hash verification (automated test, including tampering).
 2b. ✅ **Balance bots** (`BalanceBot`, `BalanceRunner`, editor menu `TowerDefense/Balance`): three strategies, CSV + console summary; first results in §18.
-2c. ✅ **Content in ScriptableObjects** (`Assets/Content/Resources`, `ContentLoader`): the prototype reads balance data from assets equal to the code defaults. **22 automated tests** in total.
+2c. ✅ **Content in ScriptableObjects** (`Assets/Content/Resources`, `ContentLoader`): the prototype reads balance data from assets equal to the code defaults.
+2d. ✅ **Extra slot** (`BuySlot`, ring 6 → 8, undo, preview, bots buy it when the ring is full). **25 automated tests** in total.
 3. 🔄 **Calm presentation** with simple shapes and a provisional interface, **with tactile interaction** (§15.1). *Done:* `Prototype` scene, simple shapes, tap card → tap slot, Sell/Move, Reroll, Next wave, Pulse, speed 1x/2x/3x, pause, damage numbers, combo lines. *Missing:* magnetic drag, **Undo in the UI** (the command exists), **previews in the UI** (the `TryPreview*` functions exist but are unused), drag-to-sell, animated merge, wave-end summary, haptics, basic options.
 4. ⬜ **Test with 3–5 people** (muted first).
 5. ⬜ Decision: go on, fix, or change.

@@ -71,7 +71,10 @@ namespace TowerDefense.Simulation
             y = radius * Sin(direction) / Scale;
         }
 
-        /// <summary>Direction of ring slot <paramref name="slot"/> out of <paramref name="slotCount"/>, clockwise from the top.</summary>
-        public static int OfSlot(int slot, int slotCount) => Normalize(Up - slot * (Count / slotCount));
+        /// <summary>
+        /// Direction of ring slot <paramref name="slot"/> out of <paramref name="slotCount"/>, clockwise from the top,
+        /// rounded to the nearest table entry (7 slots do not divide 192 evenly; the error is under one step).
+        /// </summary>
+        public static int OfSlot(int slot, int slotCount) => Normalize(Up - (slot * Count + slotCount / 2) / slotCount);
     }
 }
