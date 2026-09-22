@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace TowerDefense.Simulation
@@ -13,6 +14,22 @@ namespace TowerDefense.Simulation
 
         /// <summary>Economy modules first, keeps a reserve for the interest cap, spends everything before a Guardian.</summary>
         EconomyFirst = 2,
+
+        /// <summary>Archetype "swarm" (docs/07 §2.2): greedy, but multi-target weapons and their boosters weigh double.</summary>
+        Swarm = 3,
+
+        /// <summary>Archetype "sniper": greedy, but heavy, long-range weapons and Lens/Amplifier weigh double.</summary>
+        Sniper = 4,
+
+        /// <summary>Archetype "fortress": Bulwark, Frost and Capacitor first, then greedy; Pulses at the first enemy in reach.</summary>
+        Fortress = 5,
+
+        /// <summary>
+        /// One-wave lookahead: at every shop it copies the run, plays the shop with each archetype, plays the next wave
+        /// on every copy and keeps the plan that survives with the most Integrity and damage. Slow (it re-simulates the
+        /// run once per candidate per shop): meant for the command-line farm, Tools/BotFarm.
+        /// </summary>
+        Planner = 6,
     }
 
     /// <summary>Outcome of one bot run, flattened for reports (see <see cref="BalanceRunner"/>).</summary>
@@ -35,6 +52,9 @@ namespace TowerDefense.Simulation
 
         /// <summary>The ring at the end, slot by slot ("Emitter3 Amplifier2 - ..."), to spot build archetypes.</summary>
         public string FinalRing;
+
+        /// <summary>Planner only: the archetype chosen at each shop, one letter per shop (M S N F E).</summary>
+        public string Plan = string.Empty;
 
         /// <summary>Average combat seconds per wave played (the shop is timeless).</summary>
         public double SecondsPerWave => Ticks / (double)SimConstants.TicksPerSecond / (WavesCleared + (Won ? 0 : 1));
@@ -66,7 +86,15 @@ namespace TowerDefense.Simulation
             {
                 if (sim.Phase == GamePhase.Shop)
                 {
-                    PlayShop(sim, strategy);
+                    if (strategy == BotStrategy.Planner)
+                    {
+                        result.Plan += PlanLetter(PlayPlannerShop(sim));
+                    }
+                    else
+                    {
+                        PlayShop(sim, strategy);
+                    }
+
                     sim.Enqueue(Command.StartWave());
                     sim.ApplyPendingCommandsNow();
                 }
@@ -111,9 +139,13 @@ namespace TowerDefense.Simulation
 
         // ---------------------------------------------------------------- wave policy
 
+        /// <summary>The bots' wave policy, for callers that drive a live run (the autoplay benchmark).</summary>
+        public static bool WantsPulse(GameSimulation sim, BotStrategy strategy) => sim.IsPulseReady && ShouldPulse(sim, strategy);
+
         private static bool ShouldPulse(GameSimulation sim, BotStrategy strategy)
         {
             long emergencyRadius = SimConstants.CoreRadius * 2;
+            bool eager = strategy == BotStrategy.Naive || strategy == BotStrategy.Fortress;
             long threshold = strategy == BotStrategy.Naive ? sim.Config.PulseRadius / 2 : sim.Config.PulseRadius;
             int inRange = 0;
             foreach (Enemy enemy in sim.Enemies)
@@ -134,8 +166,8 @@ namespace TowerDefense.Simulation
                 }
             }
 
-            // Naive pulses at the first enemy in reach; the others wait for a group (GDD v0.2 §4).
-            return strategy == BotStrategy.Naive ? inRange > 0 : inRange >= 3;
+            // Naive and Fortress pulse at the first enemy in reach; the others wait for a group (GDD v0.2 §4).
+            return eager ? inRange > 0 : inRange >= 3;
         }
 
         // ---------------------------------------------------------------- shop policies
@@ -157,8 +189,128 @@ namespace TowerDefense.Simulation
                         : sim.Config.InterestStep * (sim.Config.InterestCap + sim.Ring.InterestCapBonus) * EconomyReserveFactor;
                     PlayGreedyShop(sim, reserve, economyFirst: true);
                     break;
+                case BotStrategy.Swarm:
+                    PlayGreedyShop(sim, reserve: 0, economyFirst: false, weights: SwarmWeights);
+                    break;
+                case BotStrategy.Sniper:
+                    PlayGreedyShop(sim, reserve: 0, economyFirst: false, weights: SniperWeights);
+                    break;
+                case BotStrategy.Fortress:
+                    PlayGreedyShop(sim, reserve: 0, economyFirst: false, supportFirst: FortressModules);
+                    break;
+                case BotStrategy.Planner:
+                    PlayPlannerShop(sim);
+                    break;
             }
         }
+
+        // ---------------------------------------------------------------- archetypes
+
+        /// <summary>Permille weight of each module's DPS gain per Credit; 1000 when a kind is not listed.</summary>
+        private static int[] Weights(params (ModuleKind Kind, int Permille)[] entries)
+        {
+            var weights = new int[32];
+            for (int i = 0; i < weights.Length; i++)
+            {
+                weights[i] = 1000;
+            }
+
+            foreach ((ModuleKind kind, int permille) in entries)
+            {
+                weights[(int)kind] = permille;
+            }
+
+            return weights;
+        }
+
+        private static readonly int[] SwarmWeights = Weights(
+            (ModuleKind.Scatter, 2000), (ModuleKind.Arc, 2000), (ModuleKind.Echo, 1500), (ModuleKind.Overclock, 1500),
+            (ModuleKind.Lance, 400), (ModuleKind.Mortar, 400));
+
+        private static readonly int[] SniperWeights = Weights(
+            (ModuleKind.Lance, 2000), (ModuleKind.Mortar, 2000), (ModuleKind.Lens, 1500), (ModuleKind.Amplifier, 1500),
+            (ModuleKind.Scatter, 400), (ModuleKind.Arc, 400));
+
+        private static readonly ModuleKind[] FortressModules = { ModuleKind.Bulwark, ModuleKind.Frost, ModuleKind.Capacitor };
+
+        // ---------------------------------------------------------------- planner (one-wave lookahead)
+
+        private static readonly BotStrategy[] PlannerCandidates =
+        {
+            BotStrategy.MaxDps, BotStrategy.Swarm, BotStrategy.Sniper, BotStrategy.Fortress, BotStrategy.EconomyFirst,
+        };
+
+        /// <summary>Wave time the lookahead may simulate before giving up (a wave lasts about 30 s).</summary>
+        private const int MaxLookaheadTicks = 180 * SimConstants.TicksPerSecond;
+
+        /// <summary>Plays the shop with the candidate whose copy of the run does best in the next wave; returns it.</summary>
+        private static BotStrategy PlayPlannerShop(GameSimulation sim)
+        {
+            Replay history = Replay.Record(sim);
+            BotStrategy best = BotStrategy.MaxDps;
+            long bestScore = long.MinValue;
+            foreach (BotStrategy candidate in PlannerCandidates)
+            {
+                GameSimulation copy = Clone(history, sim);
+                PlayShop(copy, candidate);
+                long score = ScoreNextWave(copy, candidate);
+                if (score > bestScore)
+                {
+                    bestScore = score;
+                    best = candidate;
+                }
+            }
+
+            PlayShop(sim, best);
+            return best;
+        }
+
+        /// <summary>An independent copy of a run: its replay so far, re-simulated on a fresh simulation.</summary>
+        internal static GameSimulation Clone(GameSimulation sim) => Clone(Replay.Record(sim), sim);
+
+        private static GameSimulation Clone(Replay history, GameSimulation sim)
+        {
+            return ReplayVerifier.Resimulate(history, new GameSimulation(sim.Config.Copy(), sim.Content));
+        }
+
+        /// <summary>
+        /// Survival first, then Integrity kept (in 5-point steps, so noise does not decide), then the ring's DPS plus
+        /// the Credits in hand at a rough exchange rate of 1 Credit = 1/40 of the ring's DPS (estimate).
+        /// </summary>
+        private static long ScoreNextWave(GameSimulation sim, BotStrategy strategy)
+        {
+            long dps = sim.RingDps();
+            int credits = sim.Credits;
+            sim.Enqueue(Command.StartWave());
+            sim.ApplyPendingCommandsNow();
+            for (int tick = 0; tick < MaxLookaheadTicks && sim.Phase == GamePhase.Wave; tick++)
+            {
+                if (sim.IsPulseReady && ShouldPulse(sim, strategy))
+                {
+                    sim.Enqueue(Command.Pulse());
+                }
+
+                sim.Step();
+            }
+
+            if (sim.Phase == GamePhase.Defeat)
+            {
+                return long.MinValue / 2 + sim.WaveEnemiesLeft * -1L;
+            }
+
+            long integritySteps = sim.Integrity / (5L * SimConstants.HpScale);
+            long strength = Math.Min(dps + credits * Math.Max(1, dps / 40), (1L << 40) - 1);
+            return (integritySteps << 40) + strength;
+        }
+
+        private static char PlanLetter(BotStrategy strategy) => strategy switch
+        {
+            BotStrategy.Swarm => 'S',
+            BotStrategy.Sniper => 'N',
+            BotStrategy.Fortress => 'F',
+            BotStrategy.EconomyFirst => 'E',
+            _ => 'M',
+        };
 
         private static void PlayNaiveShop(GameSimulation sim)
         {
@@ -177,7 +329,7 @@ namespace TowerDefense.Simulation
         /// Repeats "best action per Credit" until nothing improves: buy (DPS gain per Credit), swap (free DPS gain),
         /// economy modules when asked, and one reroll when the shop offers nothing useful and Credits allow it.
         /// </summary>
-        private static void PlayGreedyShop(GameSimulation sim, int reserve, bool economyFirst)
+        private static void PlayGreedyShop(GameSimulation sim, int reserve, bool economyFirst, int[] weights = null, ModuleKind[] supportFirst = null)
         {
             bool rerolled = false;
             for (int action = 0; action < MaxShopActions; action++)
@@ -193,12 +345,17 @@ namespace TowerDefense.Simulation
                     continue;
                 }
 
+                if (supportFirst != null && TryBuyKinds(sim, budget, supportFirst, maxSlots: 2))
+                {
+                    continue;
+                }
+
                 if (TryBuyExtraSlot(sim, budget))
                 {
                     continue;
                 }
 
-                if (TryBestBuy(sim, budget))
+                if (TryBestBuy(sim, budget, weights))
                 {
                     continue;
                 }
@@ -277,7 +434,7 @@ namespace TowerDefense.Simulation
             return true;
         }
 
-        private static bool TryBestBuy(GameSimulation sim, int budget)
+        private static bool TryBestBuy(GameSimulation sim, int budget, int[] weights = null)
         {
             long before = sim.RingDps();
             long bestScore = 0;
@@ -304,7 +461,7 @@ namespace TowerDefense.Simulation
                     }
 
                     // Gain per Credit, scaled to keep integers; ties favour the cheaper purchase.
-                    long score = (after - before) * 1000 / cost;
+                    long score = (after - before) * (weights == null ? 1000 : weights[(int)kind.Value]) / cost;
                     if (score > bestScore)
                     {
                         bestScore = score;
@@ -358,6 +515,49 @@ namespace TowerDefense.Simulation
 
                 bool merges = sim.Ring.FindMergeTarget(kind.Value) != null;
                 if (!merges && economySlots >= 2)
+                {
+                    continue;
+                }
+
+                int slot = FirstFreeSlot(sim);
+                if (sim.Validate(Command.Buy(offer, slot)) != CommandResult.Ok)
+                {
+                    continue;
+                }
+
+                sim.Enqueue(Command.Buy(offer, slot));
+                sim.ApplyPendingCommandsNow();
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Buys (or merges) the first affordable offer among <paramref name="kinds"/> while fewer than
+        /// <paramref name="maxSlots"/> ring slots hold them. These modules add no DPS, so the greedy buyer never picks them.
+        /// </summary>
+        private static bool TryBuyKinds(GameSimulation sim, int budget, ModuleKind[] kinds, int maxSlots)
+        {
+            int owned = 0;
+            for (int slot = 0; slot < sim.Ring.SlotCount; slot++)
+            {
+                ModuleInstance module = sim.Ring.At(slot);
+                if (module != null && Array.IndexOf(kinds, module.Kind) >= 0)
+                {
+                    owned++;
+                }
+            }
+
+            for (int offer = 0; offer < sim.OfferCount; offer++)
+            {
+                ModuleKind? kind = sim.OfferAt(offer);
+                if (kind == null || Array.IndexOf(kinds, kind.Value) < 0 || sim.Content.Module(kind.Value).Cost > budget)
+                {
+                    continue;
+                }
+
+                if (sim.Ring.FindMergeTarget(kind.Value) == null && owned >= maxSlots)
                 {
                     continue;
                 }

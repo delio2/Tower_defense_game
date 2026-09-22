@@ -36,7 +36,7 @@ namespace TowerDefense.Simulation
         public string ToCsv()
         {
             var sb = new StringBuilder();
-            sb.AppendLine("seed,strategy,won,waves_cleared,ticks,seconds_per_wave,total_damage,kills,credits_left,purchases,merges,rerolls,pulse_uses,defeated_by,final_hash,final_ring");
+            sb.AppendLine("seed,strategy,won,waves_cleared,ticks,seconds_per_wave,total_damage,kills,credits_left,purchases,merges,rerolls,pulse_uses,defeated_by,final_hash,final_ring,plan");
             foreach (RunResult r in Rows)
             {
                 sb.Append(r.Seed.ToString(CultureInfo.InvariantCulture)).Append(',')
@@ -54,7 +54,8 @@ namespace TowerDefense.Simulation
                   .Append(r.PulseUses).Append(',')
                   .Append(r.DefeatedBy.HasValue ? r.DefeatedBy.Value.ToString() : string.Empty).Append(',')
                   .Append(r.FinalHash.ToString(CultureInfo.InvariantCulture)).Append(',')
-                  .Append(r.FinalRing)
+                  .Append(r.FinalRing).Append(',')
+                  .Append(r.Plan)
                   .AppendLine();
             }
 

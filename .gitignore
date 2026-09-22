@@ -56,3 +56,8 @@ Thumbs.db
 
 # Android Gradle temp (created by builds)
 /.utmp/
+
+# Bot farm (Tools/BotFarm): keep the project file, ignore its build output
+!/Tools/BotFarm/BotFarm.csproj
+/Tools/BotFarm/bin/
+/Tools/BotFarm/obj/

@@ -234,5 +234,28 @@ namespace TowerDefense.Simulation.Tests
             Assert.AreEqual(a.FinalHash, b.FinalHash);
             Assert.IsTrue(a.Won || a.DefeatedBy.HasValue);
         }
+
+        [Test]
+        public void BotClone_MatchesTheRunItCopies()
+        {
+            var sim = new GameSimulation(new RunConfig { Seed = 5 }, ContentDatabase.CreatePrototypeDefaults());
+            while (sim.WavesCleared < 4 && !sim.IsOver)
+            {
+                if (sim.Phase == GamePhase.Shop)
+                {
+                    BalanceBot.PlayShop(sim, BotStrategy.Swarm);
+                    sim.Enqueue(Command.StartWave());
+                    sim.ApplyPendingCommandsNow();
+                }
+                else
+                {
+                    sim.Step();
+                }
+            }
+
+            GameSimulation copy = BalanceBot.Clone(sim);
+            Assert.AreEqual(sim.ComputeStateHash(), copy.ComputeStateHash(), "the planner's lookahead starts from the same state");
+            Assert.AreEqual(sim.Credits, copy.Credits);
+        }
     }
 }

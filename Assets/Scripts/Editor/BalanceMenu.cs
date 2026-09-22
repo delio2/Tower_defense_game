@@ -14,7 +14,10 @@ namespace TowerDefense.Editor
     public static class BalanceMenu
     {
         private const string OutputFolder = "Temp/Balance";
-        private static readonly BotStrategy[] AllStrategies = { BotStrategy.Naive, BotStrategy.MaxDps, BotStrategy.EconomyFirst };
+        private static readonly BotStrategy[] AllStrategies = 
+        {
+            BotStrategy.Naive, BotStrategy.MaxDps, BotStrategy.EconomyFirst, BotStrategy.Swarm, BotStrategy.Sniper, BotStrategy.Fortress,
+        }; // Planner is slow: run it from Tools/BotFarm
 
         [MenuItem("TowerDefense/Balance/Run bots (100 seeds)")]
         public static void Run100() => Run(100);

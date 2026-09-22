@@ -30,6 +30,9 @@ namespace TowerDefense.Simulation
         public int StartingSlots = 6;
         public ModuleKind[] StartingModules = { ModuleKind.Emitter };
 
+        /// <summary>A field-by-field copy (arrays are shared: nothing mutates them after setup).</summary>
+        public RunConfig Copy() => (RunConfig)MemberwiseClone();
+
         /// <summary>Global damage multiplier of the Core type, permille (Glass core: 1500).</summary>
         public int CoreDamagePermille = SimConstants.Permille;
 
