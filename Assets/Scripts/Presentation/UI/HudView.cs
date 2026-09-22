@@ -134,6 +134,8 @@ namespace TowerDefense.Presentation.UI
         private readonly Button _undo;
         private readonly Button _reroll;
         private readonly Button _buySlot;
+        private readonly Label _rerollCost;
+        private readonly Label _buySlotCost;
         private readonly Button _next;
         private readonly VisualElement _waveControls;
         private readonly VisualElement _coreArc;
@@ -249,6 +251,8 @@ namespace TowerDefense.Presentation.UI
             _undo = root.Q<Button>("undo");
             _reroll = root.Q<Button>("reroll");
             _buySlot = root.Q<Button>("buy-slot");
+            _rerollCost = root.Q<Label>("reroll-cost");
+            _buySlotCost = root.Q<Label>("buy-slot-cost");
             _next = root.Q<Button>("next");
             _waveControls = root.Q<VisualElement>("wave-controls");
             _coreArc = root.Q<VisualElement>("core-arc");
@@ -978,10 +982,10 @@ namespace TowerDefense.Presentation.UI
             Show(_sellZone, state.ShowSellZone);
             _sellZone.EnableInClassList("sell-zone--hot", state.SellZoneHot);
             _undo.SetEnabled(sim.CanUndo);
-            SetText(_reroll, $"Reroll {sim.RerollCost}");
+            SetText(_rerollCost, sim.RerollCost.ToString());
             _reroll.SetEnabled(sim.Credits >= sim.RerollCost);
             Show(_buySlot, sim.CanBuyExtraSlot);
-            SetText(_buySlot, $"Slot +1 ({sim.ExtraSlotCost})");
+            SetText(_buySlotCost, sim.ExtraSlotCost.ToString());
             _buySlot.SetEnabled(sim.Credits >= sim.ExtraSlotCost);
         }
 
@@ -1007,7 +1011,7 @@ namespace TowerDefense.Presentation.UI
                 ModuleDefinition definition = sim.Content.Module(offer.Value);
                 bool merges = sim.Ring.FindMergeTarget(offer.Value) != null;
                 bool affordable = sim.Credits >= definition.Cost;
-                SetText(card.Q<Label>("name"), offer.Value.ToString());
+                FitName(card.Q<Label>("name"), offer.Value.ToString());
 
                 int reach = ReachOf(definition);
                 VisualElement reachRow = card.Q<VisualElement>("reach");
@@ -1025,8 +1029,12 @@ namespace TowerDefense.Presentation.UI
                 var cost = card.Q<Label>("cost");
                 SetText(cost, definition.Cost.ToString());
                 cost.EnableInClassList("card__cost--unaffordable", !affordable);
-                var badge = card.Q<Label>("badge");
-                SetText(badge, merges ? $"Merge L{sim.Ring.FindMergeTarget(offer.Value).Level + 1}" : string.Empty);
+                VisualElement badge = card.Q<VisualElement>("badge");
+                Show(badge, merges);
+                if (merges)
+                {
+                    SetText(card.Q<Label>("badge-level"), $"L{sim.Ring.FindMergeTarget(offer.Value).Level + 1}");
+                }
                 var icon = card.Q<VisualElement>("icon");
                 Texture2D art = CardArt(offer.Value);
                 icon.style.backgroundImage = art != null ? new StyleBackground(art) : new StyleBackground(StyleKeyword.None);
@@ -1066,8 +1074,14 @@ namespace TowerDefense.Presentation.UI
         {
             var card = new VisualElement();
             card.AddToClassList("card");
-            var badge = new Label { name = "badge", pickingMode = PickingMode.Ignore };
+            var badge = new VisualElement { name = "badge", pickingMode = PickingMode.Ignore };
             badge.AddToClassList("card__badge");
+            var badgeIcon = new VisualElement { pickingMode = PickingMode.Ignore };
+            badgeIcon.AddToClassList("card__badge-icon");
+            var badgeLevel = new Label { name = "badge-level", pickingMode = PickingMode.Ignore };
+            badgeLevel.AddToClassList("card__badge-level");
+            badge.Add(badgeIcon);
+            badge.Add(badgeLevel);
             var glyph = new VisualElement { name = "glyph", pickingMode = PickingMode.Ignore };
             glyph.AddToClassList("card__glyph");
             var icon = new VisualElement { name = "icon", pickingMode = PickingMode.Ignore };
@@ -1103,6 +1117,33 @@ namespace TowerDefense.Presentation.UI
             card.Add(costRow);
             return card;
         }
+
+        /// <summary>
+        /// Writes a module name and shrinks it until it fits its card on one line. A fixed size cannot work: the
+        /// card is a share of the screen width, so the same 34 px that fits a 16:9 panel clipped "Overclock" on a
+        /// taller phone. Steps down rather than scaling smoothly, so names stay visually consistent.
+        /// </summary>
+        private static void FitName(Label label, string text)
+        {
+            SetText(label, text);
+            float available = label.resolvedStyle.width;
+            if (available <= 1f)
+            {
+                return; // first frame: no layout yet, the next refresh sizes it
+            }
+
+            foreach (float size in NameSizes)
+            {
+                label.style.fontSize = size;
+                if (label.MeasureTextSize(text, 0f, VisualElement.MeasureMode.Undefined, 0f, VisualElement.MeasureMode.Undefined).x <= available)
+                {
+                    return;
+                }
+            }
+        }
+
+        /// <summary>Sizes a card name may take, largest first (the design system's caption size and below).</summary>
+        private static readonly float[] NameSizes = { 36f, 34f, 30f, 27f };
 
         /// <summary>Range bands a weapon can cover from the ring: short, mid, far (docs/12 §1, D32).</summary>
         private const int ReachBands = 3;

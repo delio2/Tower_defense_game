@@ -56,9 +56,17 @@
             </ui:VisualElement>
             <ui:VisualElement name="cards" class="cards row" />
             <ui:VisualElement name="actions" class="actions row">
-                <ui:Button name="undo" class="btn btn-secondary" text="Undo" />
-                <ui:Button name="reroll" class="btn btn-secondary" text="Reroll 1" />
-                <ui:Button name="buy-slot" class="btn btn-secondary hidden" text="Slot +1 (8)" />
+                <ui:Button name="undo" class="btn btn-secondary btn--compact">
+                    <ui:VisualElement class="btn__icon btn__icon--undo" picking-mode="Ignore" />
+                </ui:Button>
+                <ui:Button name="reroll" class="btn btn-secondary btn--compact">
+                    <ui:VisualElement class="btn__icon btn__icon--reroll" picking-mode="Ignore" />
+                    <ui:Label name="reroll-cost" class="btn__value" text="1" picking-mode="Ignore" />
+                </ui:Button>
+                <ui:Button name="buy-slot" class="btn btn-secondary btn--compact hidden">
+                    <ui:VisualElement class="btn__icon btn__icon--slot" picking-mode="Ignore" />
+                    <ui:Label name="buy-slot-cost" class="btn__value" text="8" picking-mode="Ignore" />
+                </ui:Button>
                 <ui:Button name="next" class="btn btn-primary" text="Next" />
             </ui:VisualElement>
         </ui:VisualElement>

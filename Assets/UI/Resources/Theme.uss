@@ -619,8 +619,8 @@
 }
 
 .card__name {
-    /* One line, always: at caption size the longest name (Overclock) is wider than the card. */
-    font-size: 34px;
+    /* Starting size; HudView steps it down until the name fits the card it is on (any screen shape). */
+    font-size: 36px;
     color: var(--ivory);
     -unity-text-align: middle-center;
     white-space: nowrap;
@@ -695,17 +695,59 @@
     color: var(--coral);
 }
 
+/* Merge badge: the drawn merge icon and the level it would reach. "Merge L2" as words overran the card corner. */
 .card__badge {
     position: absolute;
     top: 12px;
     right: 18px;
+    flex-direction: row;
+    align-items: center;
+}
+
+.card__badge-icon {
+    width: 33px;
+    height: 33px;
+    margin-right: 6px;
+    background-image: url("/Assets/UI/Icons/merge.png");
+    -unity-background-scale-mode: scale-to-fit;
+    -unity-background-image-tint-color: var(--gold);
+}
+
+.card__badge-level {
     font-size: 30px;
     color: var(--gold);
+    -unity-font-definition: url("/Assets/UI/Fonts/Outfit-SemiBold.asset");
 }
 
 .actions {
     height: 168px;
     margin-right: -24px;
+}
+
+/* Icon buttons: a drawn glyph and, where there is a price, the number. The primary action keeps its word. */
+.btn--compact {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    flex-grow: 0.7;
+}
+
+.btn__icon {
+    width: 54px;
+    height: 54px;
+    -unity-background-scale-mode: scale-to-fit;
+    -unity-background-image-tint-color: var(--ivory);
+}
+
+.btn__icon--undo { background-image: url("/Assets/UI/Icons/undo.png"); }
+.btn__icon--reroll { background-image: url("/Assets/UI/Icons/reroll.png"); }
+.btn__icon--slot { background-image: url("/Assets/UI/Icons/slot.png"); }
+
+.btn__value {
+    font-size: var(--font-body);
+    color: var(--ivory);
+    margin-left: 12px;
+    -unity-font-definition: url("/Assets/UI/Fonts/Outfit-SemiBold.asset");
 }
 
 .actions > .btn {
