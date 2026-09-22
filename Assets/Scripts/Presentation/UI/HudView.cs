@@ -520,15 +520,32 @@ namespace TowerDefense.Presentation.UI
                 var badge = card.Q<Label>("badge");
                 SetText(badge, merges ? $"Merge L{sim.Ring.FindMergeTarget(offer.Value).Level + 1}" : string.Empty);
                 var icon = card.Q<VisualElement>("icon");
-                icon.EnableInClassList("card__icon--weapon", definition.Category == ModuleCategory.Weapon);
-                icon.EnableInClassList("card__icon--booster", definition.Category == ModuleCategory.Booster);
-                icon.EnableInClassList("card__icon--economy", definition.Category == ModuleCategory.Economy);
+                Texture2D art = CardArt(offer.Value);
+                icon.style.backgroundImage = art != null ? new StyleBackground(art) : new StyleBackground(StyleKeyword.None);
+                icon.EnableInClassList("card__icon--art", art != null);
+                icon.EnableInClassList("card__icon--weapon", art == null && definition.Category == ModuleCategory.Weapon);
+                icon.EnableInClassList("card__icon--booster", art == null && definition.Category == ModuleCategory.Booster);
+                icon.EnableInClassList("card__icon--economy", art == null && definition.Category == ModuleCategory.Economy);
                 card.EnableInClassList("card--uncommon", definition.Rarity == Rarity.Uncommon);
                 card.EnableInClassList("card--rare", definition.Rarity == Rarity.Rare);
                 card.EnableInClassList("card--disabled", !affordable);
                 card.EnableInClassList("card--selected", i == state.SelectedOffer);
                 card.EnableInClassList("card--source", i == state.DragSourceOffer);
             }
+        }
+
+        private static readonly Dictionary<ModuleKind, Texture2D> CardArtCache = new Dictionary<ModuleKind, Texture2D>();
+
+        /// <summary>Card art rendered from the Blender models with the game's light (Assets/UI/Resources/Cards, docs/03 A10).</summary>
+        private static Texture2D CardArt(ModuleKind kind)
+        {
+            if (!CardArtCache.TryGetValue(kind, out Texture2D art))
+            {
+                art = Resources.Load<Texture2D>($"Cards/{kind}");
+                CardArtCache[kind] = art;
+            }
+
+            return art;
         }
 
         private static VisualElement BuildCard()
