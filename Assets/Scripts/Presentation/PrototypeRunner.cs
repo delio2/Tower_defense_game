@@ -391,16 +391,19 @@ namespace TowerDefense.Presentation
                 return;
             }
 
+            // Not an else-if chain: a fast tap can press and release within one frame.
             Vector2 screen = pointer.position.ReadValue();
             if (pointer.press.wasPressedThisFrame)
             {
                 OnPress(screen);
             }
-            else if (pointer.press.isPressed && _pendingKind != DragKind.None)
+
+            if (pointer.press.isPressed && !pointer.press.wasReleasedThisFrame && _pendingKind != DragKind.None)
             {
                 OnHold(screen);
             }
-            else if (pointer.press.wasReleasedThisFrame && _pendingKind != DragKind.None)
+
+            if (pointer.press.wasReleasedThisFrame && _pendingKind != DragKind.None)
             {
                 OnRelease(screen);
             }
@@ -498,7 +501,8 @@ namespace TowerDefense.Presentation
 
             Vector3 world = ScreenToWorld(screen);
             int previousTarget = _dragTargetSlot;
-            _dragTargetSlot = NearestSlot(world, MagnetRadius);
+            int nearest = NearestSlot(world, MagnetRadius);
+            _dragTargetSlot = nearest >= 0 && IsValidDropSlot(nearest) ? nearest : -1;
             if (_dragTargetSlot >= 0 && _dragTargetSlot != previousTarget)
             {
                 Haptics.Light(); // magnet tick
@@ -556,13 +560,13 @@ namespace TowerDefense.Presentation
             bool dropped = false;
             if (_dragKind == DragKind.Offer)
             {
-                int slot = _dragTargetSlot >= 0 ? _dragTargetSlot : MergeTargetSlot(_dragIndex);
-                if (slot >= 0)
+                // Only a release on a valid, magnet-snapped slot buys; anywhere else floats the card back (docs/03 B3).
+                if (_dragTargetSlot >= 0)
                 {
-                    CommandResult result = _sim.Validate(Command.Buy(_dragIndex, slot));
+                    CommandResult result = _sim.Validate(Command.Buy(_dragIndex, _dragTargetSlot));
                     if (result == CommandResult.Ok)
                     {
-                        _sim.Enqueue(Command.Buy(_dragIndex, slot));
+                        _sim.Enqueue(Command.Buy(_dragIndex, _dragTargetSlot));
                         dropped = true;
                     }
                     else
@@ -620,6 +624,21 @@ namespace TowerDefense.Presentation
             _previewText = null;
         }
 
+        /// <summary>
+        /// Where the dragged object may land: a new card on any empty slot, a duplicate card only on its merge target,
+        /// a ring module on any other slot (swap).
+        /// </summary>
+        private bool IsValidDropSlot(int slot)
+        {
+            if (_dragKind == DragKind.Offer)
+            {
+                int mergeSlot = MergeTargetSlot(_dragIndex);
+                return mergeSlot >= 0 ? slot == mergeSlot : _sim.Ring.At(slot) == null;
+            }
+
+            return _dragKind == DragKind.Module && slot != _dragIndex;
+        }
+
         /// <summary>Slot of the module a card would merge into, or -1.</summary>
         private int MergeTargetSlot(int offer)
         {
@@ -633,7 +652,7 @@ namespace TowerDefense.Presentation
             long before = _sim.RingDps();
             if (_dragKind == DragKind.Offer)
             {
-                int slot = _dragTargetSlot >= 0 ? _dragTargetSlot : MergeTargetSlot(_dragIndex);
+                int slot = _dragTargetSlot;
                 if (slot < 0)
                 {
                     return null;
@@ -798,9 +817,7 @@ namespace TowerDefense.Presentation
                 }
 
                 _petals[slot].transform.localPosition = SlotWorld(slot);
-                bool validTarget = _dragKind == DragKind.Offer
-                    ? (ring.At(slot) == null && MergeTargetSlot(_dragIndex) < 0) || slot == MergeTargetSlot(_dragIndex)
-                    : _dragKind == DragKind.Module && slot != _dragIndex;
+                bool validTarget = _dragKind != DragKind.None && IsValidDropSlot(slot);
                 bool highlighted = slot == _selectedSlot || slot == _dragTargetSlot || validTarget
                     || (_selectedOffer >= 0 && ring.At(slot) == null);
                 SetColor(_petals[slot], highlighted ? Palette.PetalSelected : Palette.Petal);

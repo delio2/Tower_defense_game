@@ -120,6 +120,7 @@ namespace TowerDefense.Presentation.UI
         private readonly List<VisualElement> _cardViews = new List<VisualElement>();
         private readonly List<Label> _numberPool = new List<Label>();
         private float _toastUntil;
+        private IVisualElementScheduledItem _ghostHide;
 
         public HudView(VisualElement root)
         {
@@ -250,6 +251,8 @@ namespace TowerDefense.Presentation.UI
         /// <summary>Shows the drag ghost above the finger.</summary>
         public void ShowGhost(string title, string cost, Vector2 screenPosition)
         {
+            _ghostHide?.Pause();
+            _ghostHide = null;
             _ghost.RemoveFromClassList("drag-ghost--returning");
             Show(_ghost, true);
             SetText(_ghostName, title);
@@ -264,7 +267,9 @@ namespace TowerDefense.Presentation.UI
             {
                 _ghost.AddToClassList("drag-ghost--returning");
                 PlaceGhost(returnToPanel.Value);
-                _ghost.schedule.Execute(() => Show(_ghost, false)).ExecuteLater(260);
+                _ghostHide?.Pause();
+                _ghostHide = _ghost.schedule.Execute(() => Show(_ghost, false));
+                _ghostHide.ExecuteLater(260);
                 return;
             }
 
@@ -472,7 +477,6 @@ namespace TowerDefense.Presentation.UI
         {
             while (_cardViews.Count < sim.OfferCount)
             {
-                int index = _cardViews.Count;
                 VisualElement card = BuildCard();
                 _cards.Add(card);
                 _cardViews.Add(card);

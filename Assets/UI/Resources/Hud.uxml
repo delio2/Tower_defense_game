@@ -4,9 +4,9 @@
         <ui:VisualElement name="numbers" class="numbers" picking-mode="Ignore" />
 
         <ui:VisualElement name="top-bar" class="top-bar" picking-mode="Ignore">
-            <ui:Label name="integrity" class="top-number" text="♥ 100" />
-            <ui:Label name="wave" class="top-number" text="Wave 1/6" />
-            <ui:Label name="credits" class="top-number" text="◈ 6" />
+            <ui:Label name="integrity" class="top-number" text="♥ 100" picking-mode="Ignore" />
+            <ui:Label name="wave" class="top-number" text="Wave 1/6" picking-mode="Ignore" />
+            <ui:Label name="credits" class="top-number" text="◈ 6" picking-mode="Ignore" />
             <ui:Button name="options-open" class="gear" text="⚙" />
         </ui:VisualElement>
 
