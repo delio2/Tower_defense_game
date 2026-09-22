@@ -2,7 +2,8 @@
     "name": "TowerDefense.Editor",
     "rootNamespace": "TowerDefense.Editor",
     "references": [
-        "TowerDefense.Simulation"
+        "TowerDefense.Simulation",
+        "TowerDefense.Presentation"
     ],
     "includePlatforms": [
         "Editor"

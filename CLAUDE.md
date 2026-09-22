@@ -13,7 +13,7 @@ Roguelite core defense for Android (Unity 6, URP, C#). Deterministic simulation 
 ## Project facts
 - Unity **6000.6.2f1**, Universal 3D (URP 17.6), new Input System, UI Toolkit (D22). Portrait, one-handed. minSdk 26, targetSdk 36.
 - Assemblies: `Assets/Scripts/Simulation` (pure C#, `noEngineReferences`), `Assets/Scripts/Presentation` (Unity), `Assets/Tests/EditMode` (NUnit).
-- Scene: `Assets/Scenes/Prototype.unity`. Balance data: `ContentDatabase.CreatePrototypeDefaults()` until ScriptableObjects exist (`Assets/Content/`).
+- Scene: `Assets/Scenes/Prototype.unity`. Balance data: ScriptableObjects in `Assets/Content/Resources/` (catalog `PrototypeCatalog`), generated from `ContentDatabase.CreatePrototypeDefaults()` by *TowerDefense → Content → Generate…*; the defaults stay the reference for tests.
 - Git: this folder is the repository; Git LFS for binaries. **Commit only when the user asks** (`/commit` skill).
 
 ## Tools (MCP)
@@ -26,6 +26,7 @@ Roguelite core defense for Android (Unity 6, URP, C#). Deterministic simulation 
 
 ## Verify before saying "done"
 - After any C# change: `read_console` until there are no compile errors, then `/verify` (runs the EditMode tests, assembly `TowerDefense.Simulation.Tests`). All tests must pass.
+- Without Unity MCP: `python Tools/compile_check.py` compiles the four assemblies offline (no tests).
 - After visual changes: take a screenshot and look at it.
 
 ## Rules that always apply

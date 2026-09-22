@@ -50,7 +50,7 @@ The first GitHub access opens a login window (Git Credential Manager).
 7. In the Game View choose a **portrait** resolution: resolution menu → **+** → *Fixed Resolution* 1080 × 1920.
 8. Press **Play** to try the prototype (keep Unity in the foreground).
 
-**Check that everything works:** Window → General → **Test Runner** → EditMode → **Run All** → all tests must pass (20 as of 2026-09-21).
+**Check that everything works:** Window → General → **Test Runner** → EditMode → **Run All** → all tests must pass (22 as of 2026-09-22).
 
 ## 5. Connecting Claude Code (MCP)
 The repository already contains `.mcp.json` (Unity server), `.claude/settings.json`, rules and skills: **opening Claude Code inside `TowerDefense` is enough for Unity.** The parent-folder configuration below adds the Blender server and lets one session span several game projects.

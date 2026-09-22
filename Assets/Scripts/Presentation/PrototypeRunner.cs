@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TowerDefense.Presentation.Content;
 using TowerDefense.Simulation;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -125,7 +126,7 @@ namespace TowerDefense.Presentation
             _replayStatus = null;
             _viewRadius = ShopViewRadius;
 
-            _sim = new GameSimulation(new RunConfig { Seed = (ulong)_seed }, ContentDatabase.CreatePrototypeDefaults());
+            _sim = new GameSimulation(new RunConfig { Seed = (ulong)_seed }, ContentLoader.LoadPrototypeOrDefaults());
             _root = new GameObject("Arena").transform;
             _root.SetParent(transform, false);
             BuildArena();
@@ -231,7 +232,7 @@ namespace TowerDefense.Presentation
 
             // Every finished run is recorded and re-simulated: the same check the server will do (D19).
             string text = Replay.Record(_sim).Serialize();
-            ReplayCheck check = ReplayVerifier.Verify(Replay.Deserialize(text), ContentDatabase.CreatePrototypeDefaults(),
+            ReplayCheck check = ReplayVerifier.Verify(Replay.Deserialize(text), ContentLoader.LoadPrototypeOrDefaults(),
                 () => new RunConfig());
             _replayStatus = check.IsValid
                 ? $"Replay verified ({_sim.CommandLog.Count} commands, {text.Length} bytes)"

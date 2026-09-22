@@ -13,6 +13,8 @@ namespace TowerDefense.Simulation
         private readonly Dictionary<ModuleKind, ModuleDefinition> _modules = new Dictionary<ModuleKind, ModuleDefinition>();
         private readonly Dictionary<EnemyKind, EnemyDefinition> _enemies = new Dictionary<EnemyKind, EnemyDefinition>();
         private readonly List<ModuleKind> _shopPool = new List<ModuleKind>();
+        private readonly List<ModuleKind> _moduleOrder = new List<ModuleKind>();
+        private readonly List<EnemyKind> _enemyOrder = new List<EnemyKind>();
 
         public ModuleDefinition Module(ModuleKind kind) => _modules[kind];
         public EnemyDefinition Enemy(EnemyKind kind) => _enemies[kind];
@@ -20,8 +22,21 @@ namespace TowerDefense.Simulation
         /// <summary>Modules that can appear in the shop, in a fixed order (determinism).</summary>
         public IReadOnlyList<ModuleKind> ShopPool => _shopPool;
 
+        /// <summary>Every module kind, in insertion order (stable, unlike dictionary order).</summary>
+        public IReadOnlyList<ModuleKind> ModuleKinds => _moduleOrder;
+
+        /// <summary>Every enemy kind, in insertion order.</summary>
+        public IReadOnlyList<EnemyKind> EnemyKinds => _enemyOrder;
+
+        public bool IsInShop(ModuleKind kind) => _shopPool.Contains(kind);
+
         public void Add(ModuleDefinition definition, bool inShop = true)
         {
+            if (!_modules.ContainsKey(definition.Kind))
+            {
+                _moduleOrder.Add(definition.Kind);
+            }
+
             _modules[definition.Kind] = definition;
             if (inShop && !_shopPool.Contains(definition.Kind))
             {
@@ -29,7 +44,15 @@ namespace TowerDefense.Simulation
             }
         }
 
-        public void Add(EnemyDefinition definition) => _enemies[definition.Kind] = definition;
+        public void Add(EnemyDefinition definition)
+        {
+            if (!_enemies.ContainsKey(definition.Kind))
+            {
+                _enemyOrder.Add(definition.Kind);
+            }
+
+            _enemies[definition.Kind] = definition;
+        }
 
         /// <summary>Prototype roster (GDD v0.2 §19): 7 modules, Drifter/Swarmlet/Brute and the Guardian.</summary>
         public static ContentDatabase CreatePrototypeDefaults()

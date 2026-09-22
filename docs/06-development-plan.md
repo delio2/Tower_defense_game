@@ -63,7 +63,7 @@ Deterministic simulation (60 ticks/s, integers), 7 modules, 3 enemies + Guardian
 **Simulation**
 - [ ] `BuySlot` command (extra slot for 8 Credits after the first Guardian, `05` §5) and a 7–8 slot `Ring`.
 - [x] **Bot runner** (`BalanceBot`, `BalanceRunner` in `Simulation`; menu `TowerDefense/Balance/Run bots`): N seeds × strategies (Naive, MaxDps, EconomyFirst); wins, defeat wave and cause, seconds per wave, unused Credits, rerolls, merges, Pulse uses. CSV in `Temp/Balance/`, summary in the console. First results in `05` §18.
-- [ ] **Content in ScriptableObjects** (`Assets/Content/`): `ModuleAsset`, `EnemyAsset`, `RunConfigAsset` in `Presentation`, with a `ContentLoader` that fills `ContentDatabase`. `CreatePrototypeDefaults()` stays for tests. Test: SOs and defaults produce the same hash on the same seed.
+- [x] **Content in ScriptableObjects** (`Assets/Content/Resources/`): `ModuleAsset`, `EnemyAsset`, `ContentCatalog` in `Presentation` (integers only), `ContentLoader` fills `ContentDatabase`; the prototype loads the catalog from Resources. Menu *TowerDefense → Content → Generate…* creates the assets from `CreatePrototypeDefaults()`, which stays the reference. Tests: lossless round trip and asset ≡ defaults (same hash). `RunConfigAsset` deferred to Phase 2 (Core types).
 - [ ] **Compact number notation** table (1.2K · 3.4M · 5.6B) in the simulation (integer, deterministic) with a test.
 
 **Presentation (`05` §15.1, `03` Part B, `07` §1.2, `09`)**
@@ -172,7 +172,7 @@ The operational calendar is in **`10` §4** (6-month roadmap, October 2026 → M
 
 ## 4. Next steps (in order)
 1. ✅ Bot runner + CSV (2026-09-21).
-2. `ContentLoader` from ScriptableObjects + equivalence test with the defaults.
+2. ✅ `ContentLoader` from ScriptableObjects + equivalence tests (2026-09-22).
 3. `BuySlot` command + test.
 4. UI Toolkit instead of IMGUI: HUD, cards, module panel.
 5. Dragging with magnet and preview.

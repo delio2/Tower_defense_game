@@ -3,6 +3,8 @@
     "rootNamespace": "TowerDefense.Simulation.Tests",
     "references": [
         "TowerDefense.Simulation",
+        "TowerDefense.Presentation",
+        "TowerDefense.Editor",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],
