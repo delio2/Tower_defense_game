@@ -23,6 +23,14 @@ namespace TowerDefense.Presentation
         private const float ShopViewRadius = 3.4f;
         private const float SlotPickRadius = 0.6f;
         private const float CorePickRadius = 0.9f;
+
+        /// <summary>Magnet radius around a slot centre, world units (docs/07 §1.2).</summary>
+        private const float MagnetRadius = 0.45f;
+
+        /// <summary>Drag threshold: 8 dp (docs/07 §1.2), converted to screen pixels from the panel scale.</summary>
+        private const float DragThresholdDp = 8f;
+
+        private enum DragKind : byte { None, Offer, Module }
         private const int MaxStepsPerFrame = 240;
 
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
@@ -54,6 +62,13 @@ namespace TowerDefense.Presentation
         private int _selectedOffer = -1;
         private int _selectedSlot = -1;
         private bool _moveMode;
+        private DragKind _pendingKind;
+        private DragKind _dragKind;
+        private int _dragIndex = -1;
+        private Vector2 _pressScreen;
+        private int _dragTargetSlot = -1;
+        private bool _dragOverSell;
+        private string _previewText;
         private float _coreWarning;
         private float _viewRadius = ShopViewRadius;
         private string _replayStatus;
@@ -118,6 +133,7 @@ namespace TowerDefense.Presentation
             _selectedOffer = -1;
             _selectedSlot = -1;
             _moveMode = false;
+            ResetDrag();
             _replayStatus = null;
             _viewRadius = ShopViewRadius;
 
@@ -157,7 +173,6 @@ namespace TowerDefense.Presentation
             }
 
             _hud = new HudView(document.rootVisualElement);
-            _hud.OfferTapped += OnOfferTapped;
             _hud.RerollTapped += () => { _sim.Enqueue(Command.Reroll()); _selectedOffer = -1; };
             _hud.NextWaveTapped += () => { _sim.Enqueue(Command.StartWave()); ClearSelection(); };
             _hud.UndoTapped += () => { _sim.Enqueue(Command.Undo()); ClearSelection(); };
@@ -216,6 +231,10 @@ namespace TowerDefense.Presentation
                 Paused = _paused,
                 ReplayStatus = _replayStatus,
                 Seed = _seed,
+                PreviewText = _previewText,
+                DragSourceOffer = _dragKind == DragKind.Offer ? _dragIndex : -1,
+                ShowSellZone = _dragKind == DragKind.Module,
+                SellZoneHot = _dragOverSell,
             }, Describe);
         }
 
@@ -316,15 +335,48 @@ namespace TowerDefense.Presentation
         private void HandlePointer()
         {
             Pointer pointer = Pointer.current;
-            if (pointer == null || !pointer.press.wasPressedThisFrame || _sim.IsOver)
+            if (pointer == null)
             {
                 return;
             }
 
             Vector2 screen = pointer.position.ReadValue();
-            if (IsOverUi(screen))
+            if (pointer.press.wasPressedThisFrame)
+            {
+                OnPress(screen);
+            }
+            else if (pointer.press.isPressed && _pendingKind != DragKind.None)
+            {
+                OnHold(screen);
+            }
+            else if (pointer.press.wasReleasedThisFrame && _pendingKind != DragKind.None)
+            {
+                OnRelease(screen);
+            }
+        }
+
+        private void OnPress(Vector2 screen)
+        {
+            if (_sim.IsOver)
             {
                 return;
+            }
+
+            _pressScreen = screen;
+            if (_sim.Phase == GamePhase.Shop)
+            {
+                int card = _hud != null ? _hud.CardAt(screen) : -1;
+                if (card >= 0)
+                {
+                    _pendingKind = DragKind.Offer;
+                    _dragIndex = card;
+                    return;
+                }
+            }
+
+            if (IsOverUi(screen))
+            {
+                return; // buttons are handled by UI Toolkit
             }
 
             Vector3 world = ScreenToWorld(screen);
@@ -339,6 +391,20 @@ namespace TowerDefense.Presentation
             }
 
             int slot = PickSlot(world);
+            if (slot >= 0 && _sim.Ring.At(slot) != null && !_moveMode && _selectedOffer < 0)
+            {
+                // A press on a module may become a drag; a plain tap selects it on release.
+                _pendingKind = DragKind.Module;
+                _dragIndex = slot;
+                return;
+            }
+
+            TapArena(slot);
+        }
+
+        /// <summary>The pre-drag shop interaction: tap a card, then a slot; or Move mode.</summary>
+        private void TapArena(int slot)
+        {
             if (slot < 0)
             {
                 _selectedSlot = -1;
@@ -362,6 +428,210 @@ namespace TowerDefense.Presentation
             }
 
             _selectedSlot = _sim.Ring.At(slot) != null && _selectedSlot != slot ? slot : -1;
+        }
+
+        private void OnHold(Vector2 screen)
+        {
+            if (_dragKind == DragKind.None)
+            {
+                float thresholdPixels = DragThresholdDp * Screen.height / 640f; // 1920 px reference = 640 dp
+                if ((screen - _pressScreen).sqrMagnitude < thresholdPixels * thresholdPixels)
+                {
+                    return;
+                }
+
+                _dragKind = _pendingKind;
+                ClearSelection();
+            }
+
+            Vector3 world = ScreenToWorld(screen);
+            _dragTargetSlot = NearestSlot(world, MagnetRadius);
+            _dragOverSell = _dragKind == DragKind.Module && _hud != null && _hud.IsOverSellZone(screen);
+            _previewText = BuildPreview();
+            if (_hud == null)
+            {
+                return;
+            }
+
+            if (_dragKind == DragKind.Offer)
+            {
+                ModuleKind? offer = _sim.OfferAt(_dragIndex);
+                if (offer == null)
+                {
+                    CancelDrag();
+                    return;
+                }
+
+                _hud.ShowGhost(offer.Value.ToString(), _sim.Content.Module(offer.Value).Cost.ToString(), screen);
+            }
+            else
+            {
+                ModuleInstance module = _sim.Ring.At(_dragIndex);
+                if (module == null)
+                {
+                    CancelDrag();
+                    return;
+                }
+
+                _hud.ShowGhost($"{module.Kind} L{module.Level}", string.Empty, screen);
+            }
+        }
+
+        private void OnRelease(Vector2 screen)
+        {
+            if (_dragKind == DragKind.None)
+            {
+                // A tap: cards select an offer (or merge at once); modules open their panel.
+                if (_pendingKind == DragKind.Offer)
+                {
+                    OnOfferTapped(_dragIndex);
+                }
+                else
+                {
+                    TapArena(_dragIndex);
+                }
+
+                ResetDrag();
+                return;
+            }
+
+            bool dropped = false;
+            if (_dragKind == DragKind.Offer)
+            {
+                int slot = _dragTargetSlot >= 0 ? _dragTargetSlot : MergeTargetSlot(_dragIndex);
+                if (slot >= 0)
+                {
+                    CommandResult result = _sim.Validate(Command.Buy(_dragIndex, slot));
+                    if (result == CommandResult.Ok)
+                    {
+                        _sim.Enqueue(Command.Buy(_dragIndex, slot));
+                        dropped = true;
+                    }
+                    else
+                    {
+                        ShowMessage(DescribeRejection(result));
+                    }
+                }
+            }
+            else if (_dragOverSell)
+            {
+                _sim.Enqueue(Command.Sell(_dragIndex));
+                dropped = true;
+            }
+            else if (_dragTargetSlot >= 0 && _dragTargetSlot != _dragIndex)
+            {
+                _sim.Enqueue(Command.Move(_dragIndex, _dragTargetSlot));
+                dropped = true;
+            }
+
+            if (dropped)
+            {
+                _hud?.HideGhost();
+            }
+            else
+            {
+                CancelDrag();
+                return;
+            }
+
+            ResetDrag();
+        }
+
+        /// <summary>Invalid release: the ghost floats back to where it came from (docs/03 B3 rule 5).</summary>
+        private void CancelDrag()
+        {
+            if (_hud != null)
+            {
+                Vector2 origin = _dragKind == DragKind.Offer
+                    ? _hud.CardCentre(_dragIndex)
+                    : _hud.WorldToPanel(_camera, SlotWorld(_dragIndex));
+                _hud.HideGhost(origin);
+            }
+
+            ResetDrag();
+        }
+
+        private void ResetDrag()
+        {
+            _pendingKind = DragKind.None;
+            _dragKind = DragKind.None;
+            _dragIndex = -1;
+            _dragTargetSlot = -1;
+            _dragOverSell = false;
+            _previewText = null;
+        }
+
+        /// <summary>Slot of the module a card would merge into, or -1.</summary>
+        private int MergeTargetSlot(int offer)
+        {
+            ModuleKind? kind = _sim.OfferAt(offer);
+            return kind.HasValue ? _sim.Ring.FindMergeTarget(kind.Value)?.Slot ?? -1 : -1;
+        }
+
+        /// <summary>The effect of the pending drop, computed by the simulation previews (what you see is what happens).</summary>
+        private string BuildPreview()
+        {
+            long before = _sim.RingDps();
+            if (_dragKind == DragKind.Offer)
+            {
+                int slot = _dragTargetSlot >= 0 ? _dragTargetSlot : MergeTargetSlot(_dragIndex);
+                if (slot < 0)
+                {
+                    return null;
+                }
+
+                if (!_sim.TryPreviewBuy(_dragIndex, slot, out long after, out bool merges))
+                {
+                    return DescribeRejection(_sim.Validate(Command.Buy(_dragIndex, slot)));
+                }
+
+                ModuleInstance target = merges ? _sim.Ring.At(slot) : null;
+                string level = target != null ? $"Level {target.Level + 1} · " : string.Empty;
+                return level + DpsChange(before, after);
+            }
+
+            if (_dragOverSell && _sim.TryPreviewSell(_dragIndex, out long afterSell, out int refund))
+            {
+                return $"Sell: +{refund} · " + DpsChange(before, afterSell);
+            }
+
+            if (_dragTargetSlot >= 0 && _dragTargetSlot != _dragIndex && _sim.TryPreviewMove(_dragIndex, _dragTargetSlot, out long afterMove))
+            {
+                return DpsChange(before, afterMove);
+            }
+
+            return null;
+        }
+
+        private static string DpsChange(long before, long after)
+        {
+            string from = NumberFormat.CompactHundredths(before);
+            string to = NumberFormat.CompactHundredths(after);
+            if (before <= 0)
+            {
+                return $"DPS {from} → {to}";
+            }
+
+            long percent = (after - before) * 100 / before;
+            string sign = percent >= 0 ? "+" : string.Empty;
+            return $"DPS {from} → {to} ({sign}{percent}%)";
+        }
+
+        private int NearestSlot(Vector3 world, float radius)
+        {
+            int best = -1;
+            float bestDistance = radius;
+            for (int slot = 0; slot < _sim.Ring.SlotCount; slot++)
+            {
+                float distance = Vector3.Distance(new Vector3(world.x, 0f, world.z), SlotWorld(slot));
+                if (distance < bestDistance)
+                {
+                    bestDistance = distance;
+                    best = slot;
+                }
+            }
+
+            return best;
         }
 
         private void TryPulse()
@@ -468,7 +738,11 @@ namespace TowerDefense.Presentation
                 }
 
                 _petals[slot].transform.localPosition = SlotWorld(slot);
-                bool highlighted = slot == _selectedSlot || (_selectedOffer >= 0 && ring.At(slot) == null);
+                bool validTarget = _dragKind == DragKind.Offer
+                    ? (ring.At(slot) == null && MergeTargetSlot(_dragIndex) < 0) || slot == MergeTargetSlot(_dragIndex)
+                    : _dragKind == DragKind.Module && slot != _dragIndex;
+                bool highlighted = slot == _selectedSlot || slot == _dragTargetSlot || validTarget
+                    || (_selectedOffer >= 0 && ring.At(slot) == null);
                 SetColor(_petals[slot], highlighted ? Palette.PetalSelected : Palette.Petal);
             }
 

@@ -13,6 +13,10 @@
 
         <ui:VisualElement name="shop" class="bottom-panel" picking-mode="Ignore">
             <ui:Label name="preview" class="caption" text="Next: —" />
+            <ui:Label name="preview-effect" class="preview-effect hidden" text="" picking-mode="Ignore" />
+            <ui:VisualElement name="sell-zone" class="sell-zone hidden" picking-mode="Ignore">
+                <ui:Label name="sell-zone-label" class="sell-zone__label" text="Sell" picking-mode="Ignore" />
+            </ui:VisualElement>
             <ui:VisualElement name="module-panel" class="module-panel row glass hidden">
                 <ui:Label name="module-info" class="module-info" text="" />
                 <ui:Button name="sell" class="btn btn-secondary" text="Sell" />
@@ -37,6 +41,11 @@
                 <ui:Button name="speed" class="btn btn-secondary" text="1x" />
                 <ui:Button name="pause" class="btn btn-secondary" text="Pause" />
             </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="drag-ghost" class="drag-ghost hidden" picking-mode="Ignore">
+            <ui:Label name="ghost-name" class="card__name" text="" picking-mode="Ignore" />
+            <ui:Label name="ghost-cost" class="card__cost" text="" picking-mode="Ignore" />
         </ui:VisualElement>
 
         <ui:VisualElement name="game-over" class="overlay hidden">

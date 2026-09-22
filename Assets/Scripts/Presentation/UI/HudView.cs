@@ -16,6 +16,16 @@ namespace TowerDefense.Presentation.UI
         public bool Paused;
         public string ReplayStatus;
         public int Seed;
+
+        /// <summary>Text shown above the cards while dragging ("DPS 16 → 24 (+50%)"); null hides it.</summary>
+        public string PreviewText;
+
+        /// <summary>Offer index being dragged (dimmed), or -1.</summary>
+        public int DragSourceOffer;
+
+        /// <summary>True while a ring module is dragged: shows the Sell zone.</summary>
+        public bool ShowSellZone;
+        public bool SellZoneHot;
     }
 
     /// <summary>A damage number to draw this frame, in panel coordinates.</summary>
@@ -33,7 +43,6 @@ namespace TowerDefense.Presentation.UI
     /// </summary>
     public sealed class HudView
     {
-        public event Action<int> OfferTapped;
         public event Action RerollTapped;
         public event Action NextWaveTapped;
         public event Action UndoTapped;
@@ -74,6 +83,14 @@ namespace TowerDefense.Presentation.UI
         private readonly VisualElement _gameOver;
         private readonly Label _gameOverTitle;
         private readonly Label _gameOverStats;
+        private readonly Label _previewEffect;
+        private readonly VisualElement _sellZone;
+        private readonly VisualElement _ghost;
+        private readonly Label _ghostName;
+        private readonly Label _ghostCost;
+
+        /// <summary>The dragged object sits above the finger so it is never covered (docs/03 B3), in panel pixels.</summary>
+        private const float GhostLift = 150f;
 
         private readonly List<VisualElement> _cardViews = new List<VisualElement>();
         private readonly List<Label> _numberPool = new List<Label>();
@@ -107,6 +124,11 @@ namespace TowerDefense.Presentation.UI
             _gameOver = root.Q<VisualElement>("game-over");
             _gameOverTitle = root.Q<Label>("game-over-title");
             _gameOverStats = root.Q<Label>("game-over-stats");
+            _previewEffect = root.Q<Label>("preview-effect");
+            _sellZone = root.Q<VisualElement>("sell-zone");
+            _ghost = root.Q<VisualElement>("drag-ghost");
+            _ghostName = root.Q<Label>("ghost-name");
+            _ghostCost = root.Q<Label>("ghost-cost");
 
             _sell.clicked += () => SellTapped?.Invoke();
             _move.clicked += () => MoveTapped?.Invoke();
@@ -133,6 +155,73 @@ namespace TowerDefense.Presentation.UI
             Vector2 panelPosition = RuntimePanelUtils.ScreenToPanel(panel, new Vector2(screenPosition.x, Screen.height - screenPosition.y));
             VisualElement picked = panel.Pick(panelPosition);
             return picked != null && picked != _root;
+        }
+
+        private Vector2 ToPanel(Vector2 screenPosition)
+        {
+            return RuntimePanelUtils.ScreenToPanel(_root.panel, new Vector2(screenPosition.x, Screen.height - screenPosition.y));
+        }
+
+        /// <summary>Offer card under a screen point, or -1. Sold cards do not count.</summary>
+        public int CardAt(Vector2 screenPosition)
+        {
+            if (_root.panel == null || _cards.ClassListContains("hidden") || _shop.ClassListContains("hidden"))
+            {
+                return -1;
+            }
+
+            Vector2 panelPosition = ToPanel(screenPosition);
+            for (int i = 0; i < _cardViews.Count; i++)
+            {
+                VisualElement card = _cardViews[i];
+                if (!card.ClassListContains("card--sold") && card.worldBound.Contains(panelPosition))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        public bool IsOverSellZone(Vector2 screenPosition)
+        {
+            return _root.panel != null && !_sellZone.ClassListContains("hidden") && _sellZone.worldBound.Contains(ToPanel(screenPosition));
+        }
+
+        /// <summary>Panel position of a card centre, to float a ghost back to it.</summary>
+        public Vector2 CardCentre(int index)
+        {
+            return index >= 0 && index < _cardViews.Count ? _cardViews[index].worldBound.center : Vector2.zero;
+        }
+
+        /// <summary>Shows the drag ghost above the finger.</summary>
+        public void ShowGhost(string title, string cost, Vector2 screenPosition)
+        {
+            _ghost.RemoveFromClassList("drag-ghost--returning");
+            Show(_ghost, true);
+            SetText(_ghostName, title);
+            SetText(_ghostCost, cost);
+            PlaceGhost(ToPanel(screenPosition) + new Vector2(0f, -GhostLift));
+        }
+
+        /// <summary>Hides the ghost; with a return point it floats back first (soft return, no error flash).</summary>
+        public void HideGhost(Vector2? returnToPanel = null)
+        {
+            if (returnToPanel.HasValue && !_ghost.ClassListContains("hidden"))
+            {
+                _ghost.AddToClassList("drag-ghost--returning");
+                PlaceGhost(returnToPanel.Value);
+                _ghost.schedule.Execute(() => Show(_ghost, false)).ExecuteLater(260);
+                return;
+            }
+
+            Show(_ghost, false);
+        }
+
+        private void PlaceGhost(Vector2 panelCentre)
+        {
+            _ghost.style.left = panelCentre.x - 120f;
+            _ghost.style.top = panelCentre.y - 100f;
         }
 
         public void ShowToast(string text)
@@ -238,6 +327,10 @@ namespace TowerDefense.Presentation.UI
                 RefreshCards(sim, state, describe);
             }
 
+            Show(_previewEffect, !string.IsNullOrEmpty(state.PreviewText));
+            SetText(_previewEffect, state.PreviewText ?? string.Empty);
+            Show(_sellZone, state.ShowSellZone);
+            _sellZone.EnableInClassList("sell-zone--hot", state.SellZoneHot);
             _undo.SetEnabled(sim.CanUndo);
             SetText(_reroll, $"Reroll {sim.RerollCost}");
             _reroll.SetEnabled(sim.Credits >= sim.RerollCost);
@@ -252,7 +345,6 @@ namespace TowerDefense.Presentation.UI
             {
                 int index = _cardViews.Count;
                 VisualElement card = BuildCard();
-                card.RegisterCallback<ClickEvent>(_ => OfferTapped?.Invoke(index));
                 _cards.Add(card);
                 _cardViews.Add(card);
             }
@@ -285,6 +377,7 @@ namespace TowerDefense.Presentation.UI
                 card.EnableInClassList("card--rare", definition.Rarity == Rarity.Rare);
                 card.EnableInClassList("card--disabled", !affordable);
                 card.EnableInClassList("card--selected", i == state.SelectedOffer);
+                card.EnableInClassList("card--source", i == state.DragSourceOffer);
             }
         }
 

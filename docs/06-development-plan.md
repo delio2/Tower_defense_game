@@ -67,9 +67,9 @@ Deterministic simulation (60 ticks/s, integers), 7 modules, 3 enemies + Guardian
 - [x] **Compact number notation** (`NumberFormat`, integer, invariant: 9999 · 12.3K · 123K · 1.2M · 5.6B · 1.5T) with a test; the prototype uses it.
 
 **Presentation (`05` §15.1, `03` Part B, `07` §1.2, `09`)**
-- [ ] Dragging with the **object above the finger**, valid slots lit, **magnet**; invalid release → soft return.
-- [ ] **Preview at the top** while dragging, computed by `TryPreviewBuy/Move/Sell` (DPS before → after, "Level 2 → ×1.8", "Sell: +2").
-- [ ] **Sell zone** at the bottom, **Undo** in the UI, tap-card-then-slot as the alternative.
+- [x] Dragging with the **object above the finger** (ghost +150 px), valid slots lit, **magnet** 0.45 units, 8 dp threshold (tap keeps the card-then-slot path); invalid release → soft return (250 ms). Cards → slots (buy/merge), modules → slots (move) or Sell zone.
+- [x] **Preview above the cards** while dragging, computed by `TryPreviewBuy/Move/Sell` ("DPS 16 → 36 (+125%)", "Level 2 · DPS …", "Sell: +2 · DPS …").
+- [x] **Sell zone** (appears only while dragging a module), **Undo** in the UI, tap-card-then-slot as the alternative.
 - [ ] Animated merge (attraction + soft glow, scale 1.15 → 1), combo lines that light up softly.
 - [ ] **Wave-end summary** with progressive counting, skippable with a tap.
 - [ ] Haptics at 3 levels (Android `VibrationEffect`), can be disabled.
@@ -175,7 +175,7 @@ The operational calendar is in **`10` §4** (6-month roadmap, October 2026 → M
 2. ✅ `ContentLoader` from ScriptableObjects + equivalence tests (2026-09-22).
 3. ✅ `BuySlot` command + tests (2026-09-22).
 4. ✅ UI Toolkit instead of IMGUI (2026-09-22).
-5. Dragging with magnet and preview.
+5. ✅ Dragging with magnet and preview (2026-09-22) — manual check on the phone pending.
 6. Undo and Sell in the UI; animated merge; wave-end summary.
 7. Basic options + haptics.
 8. Android development build on the phone → Gate 1 with 3–5 testers.

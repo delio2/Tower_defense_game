@@ -169,6 +169,66 @@
     /* "Breathing" replaces red dots: one element per screen (docs/09 §4.2). Driven from code (scale). */
 }
 
+/* Drag feedback (docs/03 B3, docs/09 §2.3): preview at the top, Sell zone only while dragging a module */
+.preview-effect {
+    position: absolute;
+    left: var(--gutter);
+    right: var(--gutter);
+    top: -120px;
+    font-size: var(--font-body);
+    color: var(--gold);
+    -unity-text-align: middle-center;
+}
+
+.sell-zone {
+    position: absolute;
+    left: var(--gutter);
+    right: var(--gutter);
+    bottom: 240px;
+    height: 150px;
+    border-radius: var(--radius-card);
+    border-width: 3px;
+    border-color: var(--coral);
+    background-color: rgba(240, 122, 106, 0.08);
+    justify-content: center;
+    align-items: center;
+    transition-property: opacity;
+    transition-duration: 0.15s;
+}
+
+.sell-zone--hot {
+    background-color: rgba(240, 122, 106, 0.25);
+}
+
+.sell-zone__label {
+    font-size: var(--font-body);
+    color: var(--coral);
+}
+
+.drag-ghost {
+    position: absolute;
+    width: 240px;
+    height: 200px;
+    border-radius: var(--radius-card);
+    border-width: 3px;
+    border-color: var(--teal);
+    background-color: rgba(20, 22, 48, 0.85);
+    justify-content: center;
+    align-items: center;
+    scale: 1.1 1.1;
+    transition-property: left, top;
+    transition-duration: 0s;
+}
+
+.drag-ghost--returning {
+    transition-property: left, top;
+    transition-duration: 0.25s;
+}
+
+.card--source {
+    opacity: 0.35;
+}
+
 /* Offer cards (docs/09 §2.3) */
 .cards {
     height: 372px;
