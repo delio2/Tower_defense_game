@@ -103,9 +103,8 @@ namespace TowerDefense.Presentation
             Application.runInBackground = true;
 #endif
             _block = new MaterialPropertyBlock();
-            Shader unlitShader = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Unlit/Color");
-            _unlit = new Material(unlitShader) { name = "PrototypeUnlit" };
-            _lineMaterial = new Material(Shader.Find("Sprites/Default")) { name = "PrototypeLines" };
+            _unlit = LoadMaterial("Materials/PrototypeUnlit", "Universal Render Pipeline/Unlit");
+            _lineMaterial = LoadMaterial("Materials/PrototypeLines", "Sprites/Default");
             SetupCamera();
             SetupHud();
             for (int i = transform.childCount - 1; i >= 0; i--)
@@ -115,6 +114,23 @@ namespace TowerDefense.Presentation
 
             _root = null;
             StartRun();
+        }
+
+        /// <summary>
+        /// Material assets in Resources keep their shaders in player builds (Shader.Find returns null on the device for
+        /// shaders no asset references); the editor fallback covers a missing asset.
+        /// </summary>
+        private static Material LoadMaterial(string resourcePath, string fallbackShader)
+        {
+            var template = Resources.Load<Material>(resourcePath);
+            if (template != null)
+            {
+                return new Material(template);
+            }
+
+            Debug.LogWarning($"Material {resourcePath} missing in Resources: falling back to Shader.Find({fallbackShader}).");
+            Shader shader = Shader.Find(fallbackShader) ?? Shader.Find("Unlit/Color");
+            return new Material(shader);
         }
 
         private void OnDestroy()
@@ -1195,11 +1211,15 @@ namespace TowerDefense.Presentation
             return new Vector3(x / (float)SimConstants.Micro, 0f, y / (float)SimConstants.Micro);
         }
 
+        /// <summary>
+        /// Primitive meshes without colliders: GameObject.CreatePrimitive would add one, and the Physics module is
+        /// stripped from player builds (no physics in gameplay, D11).
+        /// </summary>
         private GameObject CreatePrimitive(PrimitiveType type, string objectName, Transform parent, Vector3 position, Vector3 scale, Color color)
         {
-            GameObject go = GameObject.CreatePrimitive(type);
-            go.name = objectName;
-            Destroy(go.GetComponent<Collider>());
+            var go = new GameObject(objectName);
+            go.AddComponent<MeshFilter>().sharedMesh = PrimitiveMesh(type);
+            go.AddComponent<MeshRenderer>();
             go.transform.SetParent(parent, false);
             go.transform.localPosition = position;
             go.transform.localScale = scale;
@@ -1209,6 +1229,28 @@ namespace TowerDefense.Presentation
             renderer.receiveShadows = false;
             SetColor(renderer, color);
             return go;
+        }
+
+        private static readonly Dictionary<PrimitiveType, Mesh> PrimitiveMeshes = new Dictionary<PrimitiveType, Mesh>();
+
+        private static Mesh PrimitiveMesh(PrimitiveType type)
+        {
+            if (!PrimitiveMeshes.TryGetValue(type, out Mesh mesh))
+            {
+                string file = type switch
+                {
+                    PrimitiveType.Sphere => "Sphere.fbx",
+                    PrimitiveType.Capsule => "Capsule.fbx",
+                    PrimitiveType.Cylinder => "Cylinder.fbx",
+                    PrimitiveType.Plane => "Plane.fbx",
+                    PrimitiveType.Quad => "Quad.fbx",
+                    _ => "Cube.fbx",
+                };
+                mesh = Resources.GetBuiltinResource<Mesh>(file);
+                PrimitiveMeshes[type] = mesh;
+            }
+
+            return mesh;
         }
 
         private LineRenderer CreateLine(string objectName, float width, Color color, bool loop)

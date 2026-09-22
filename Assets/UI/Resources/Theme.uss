@@ -9,8 +9,8 @@
     --coral: #F07A6A;
     --rose: #C8507A;
     --night: #141630;
-    --glass: rgba(243, 233, 215, 0.06);
-    --glass-border: rgba(243, 233, 215, 0.12);
+    --glass: #272B5A;
+    --glass-border: #4A4E7E;
     --radius-card: 48px;
     --radius-button: 72px;
     --gutter: 48px;
@@ -212,7 +212,7 @@
     border-radius: var(--radius-card);
     border-width: 3px;
     border-color: var(--teal);
-    background-color: rgba(20, 22, 48, 0.85);
+    background-color: #1A1D40;
     justify-content: center;
     align-items: center;
     scale: 1.1 1.1;
@@ -356,7 +356,7 @@
     width: 60%;
     height: 360px;
     border-radius: var(--radius-button);
-    background-color: rgba(243, 233, 215, 0.12);
+    background-color: #2B2F5A;
     border-color: var(--ivory-40);
     border-width: 3px;
     justify-content: center;
@@ -397,6 +397,21 @@
     height: 168px;
 }
 
+.credits-group {
+    flex-direction: row;
+    align-items: center;
+}
+
+/* Credits icon drawn, not a glyph: fonts on the device lack the symbols */
+.credit-icon {
+    width: 36px;
+    height: 36px;
+    margin-right: 18px;
+    background-color: var(--gold);
+    rotate: 45deg;
+    border-radius: 6px;
+}
+
 /* Options sheet (docs/09 §2.7): one list, immediate effect */
 .gear {
     width: 96px;
@@ -414,7 +429,7 @@
 .sheet {
     width: 900px;
     padding: 48px;
-    background-color: rgba(20, 22, 48, 0.9);
+    background-color: #1A1D40;
 }
 
 .sheet__title {
@@ -482,7 +497,7 @@
     width: 720px;
     padding: 48px;
     align-items: center;
-    background-color: rgba(20, 22, 48, 0.75);
+    background-color: #1A1D40;
 }
 
 .summary__title {

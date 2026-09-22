@@ -90,7 +90,7 @@ git push                 # at the end: save online
 ## 7. Testing on an Android phone (when needed)
 1. On the phone: Settings → About → tap "Build number" 7 times → Developer options → **USB debugging** on.
 2. Connect with the USB cable and accept the authorization.
-3. Unity: **File → Build Profiles → Android → Switch Platform** (slow the first time) → **Build And Run**.
+3. Unity: **File → Build Profiles → Android → Switch Platform** (slow the first time) → **Build And Run**. With Claude: `manage_build` (`platform android`, then `build` with `auto_run`); the APK lands in `Builds/Android/` (ignored by git). Screenshots from the phone: `adb exec-out screencap -p > file.png`; errors: `adb logcat -d -s Unity:E`.
    Android settings are already in the project: portrait, Android 8+ minimum, target Android 16, IL2CPP ARM64, provisional package `com.d3lioss.towerdefense`.
 
 ## 8. Common problems

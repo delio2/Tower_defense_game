@@ -1,0 +1,2 @@
+C:\Users\edpo\Desktop\Progetti\Giochi\TowerDefense\Library\Bee\Android\Prj\IL2CPP\Gradle\unityLibrary\src\main\cpp\CMakeLists.txt
+C:\Users\edpo\Desktop\Progetti\Giochi\TowerDefense\Library\Bee\Android\Prj\IL2CPP\Gradle\unityLibrary\src\main\cpp\GameActivity\CMakeLists.txt

@@ -176,7 +176,7 @@ The operational calendar is in **`10` §4** (6-month roadmap, October 2026 → M
 **Done in order:** bot runner → ScriptableObject content → `BuySlot` → compact notation → UI Toolkit HUD → magnetic drag with previews → merge animation and wave summary → options and haptics → 14 modules, 7 enemies, 3 acts, elites → balance v0.3 → Core types, Grades 1–3, Endless → replay R2 → save/resume → Core tuning, enemy silhouettes.
 
 **Next, in order:**
-1. **Android development build** on a phone (USB debugging; `docs/setup/NEW-PC-SETUP.md` §7). Check touch dragging, haptics, 30 fps, the wave summary and the options sheet on the device.
+1. ✅ **Android development build** (2026-09-22, Pixel 10, Android 17): runs, touch works, save/resume works across installs. Fixed on the device: stripped shaders (materials as assets), stripped Physics (no colliders), missing glyphs (ASCII text + drawn icons), non-blending panel alpha (opaque tints). Still to check by hand: dragging feel, haptics, fps on a 4 GB phone.
 2. **Gate 1 + Gate 2 with 3–5 testers** (muted): the criteria are in Phase 1 and Phase 2 above. Record durations, whether the neighbourhood is understood by the second shop, and which builds win.
 3. **Google Play account** (the user; long lead time, D13).
 4. **Phase 3 — mood shot** (`03` A9) in Blender via MCP: Core with petals, one module of each category, two enemies, a card; then the tilted 35° camera and URP lighting; then models for the 14 modules and 7 enemies.

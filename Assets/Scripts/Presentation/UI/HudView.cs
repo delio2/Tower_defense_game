@@ -357,14 +357,14 @@ namespace TowerDefense.Presentation.UI
             }
 
             int gained = _summaryCreditsGained;
-            SetText(_summaryTitle, $"Wave {_summaryWave} ✓");
+            SetText(_summaryTitle, $"Wave {_summaryWave} cleared");
             float damageT = Mathf.Clamp01(t / SummaryDamageEnd);
             long shownDamage = (long)(_summaryDamageValue * EaseOut(damageT));
             SetText(_summaryDamage, $"Damage {NumberFormat.CompactHundredths(shownDamage)}");
             float coinT = Mathf.Clamp01((t - SummaryDamageEnd) / (SummaryCoinsEnd - SummaryDamageEnd));
             int shownGain = Mathf.RoundToInt(gained * coinT);
             string interest = _summaryInterest > 0 && coinT >= 1f ? $"  (+{_summaryInterest} interest)" : string.Empty;
-            SetText(_summaryCredits, $"◈ {_summaryCreditsAfter - gained + shownGain}   +{shownGain}{interest}");
+            SetText(_summaryCredits, $"Credits {_summaryCreditsAfter - gained + shownGain}   +{shownGain}{interest}");
         }
 
         private static float EaseOut(float t) => 1f - (1f - t) * (1f - t) * (1f - t);
@@ -438,7 +438,7 @@ namespace TowerDefense.Presentation.UI
             if (sim.IsOver)
             {
                 string title = sim.Phase == GamePhase.Victory ? "Victory"
-                    : sim.HasWon ? $"Endless · wave {sim.WavesCleared}"
+                    : sim.HasWon ? $"Endless: wave {sim.WavesCleared}"
                     : $"Wave {sim.WavesCleared + 1} of {sim.TotalWaves}";
                 SetText(_gameOverTitle, title);
                 string stopped = sim.DefeatedBy.HasValue ? $"Stopped by: {sim.DefeatedBy.Value}\n" : string.Empty;
@@ -451,9 +451,10 @@ namespace TowerDefense.Presentation.UI
             long integrity = sim.Integrity / SimConstants.HpScale;
             SetText(_integrity, $"♥ {integrity}");
             _integrity.EnableInClassList("top-number--warning", sim.Integrity * 4 <= sim.MaxIntegrity);
-            string total = sim.Config.Endless && sim.HasWon ? "∞" : sim.TotalWaves.ToString();
-            SetText(_wave, sim.IsGuardianWave ? $"Guardian {sim.CurrentWave}/{total}" : $"Wave {sim.CurrentWave}/{total}");
-            SetText(_credits, $"◈ {sim.Credits}");
+            bool endless = sim.Config.Endless && sim.HasWon;
+            string label = sim.IsGuardianWave ? "Guardian" : "Wave";
+            SetText(_wave, endless ? $"{label} {sim.CurrentWave} (endless)" : $"{label} {sim.CurrentWave}/{sim.TotalWaves}");
+            SetText(_credits, sim.Credits.ToString());
         }
 
         private void RefreshShop(GameSimulation sim, HudState state, Func<ModuleKind, string> describe)
@@ -485,7 +486,7 @@ namespace TowerDefense.Presentation.UI
             SetText(_reroll, $"Reroll {sim.RerollCost}");
             _reroll.SetEnabled(sim.Credits >= sim.RerollCost);
             Show(_buySlot, sim.CanBuyExtraSlot);
-            SetText(_buySlot, $"Slot +1 · {sim.ExtraSlotCost}");
+            SetText(_buySlot, $"Slot +1 ({sim.ExtraSlotCost})");
             _buySlot.SetEnabled(sim.Credits >= sim.ExtraSlotCost);
         }
 
@@ -517,7 +518,7 @@ namespace TowerDefense.Presentation.UI
                 SetText(cost, definition.Cost.ToString());
                 cost.EnableInClassList("card__cost--unaffordable", !affordable);
                 var badge = card.Q<Label>("badge");
-                SetText(badge, merges ? $"⇧ L{sim.Ring.FindMergeTarget(offer.Value).Level + 1}" : string.Empty);
+                SetText(badge, merges ? $"Merge L{sim.Ring.FindMergeTarget(offer.Value).Level + 1}" : string.Empty);
                 var icon = card.Q<VisualElement>("icon");
                 icon.EnableInClassList("card__icon--weapon", definition.Category == ModuleCategory.Weapon);
                 icon.EnableInClassList("card__icon--booster", definition.Category == ModuleCategory.Booster);

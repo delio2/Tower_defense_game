@@ -6,8 +6,11 @@
         <ui:VisualElement name="top-bar" class="top-bar" picking-mode="Ignore">
             <ui:Label name="integrity" class="top-number" text="♥ 100" picking-mode="Ignore" />
             <ui:Label name="wave" class="top-number" text="Wave 1/6" picking-mode="Ignore" />
-            <ui:Label name="credits" class="top-number" text="◈ 6" picking-mode="Ignore" />
-            <ui:Button name="options-open" class="gear" text="⚙" />
+            <ui:VisualElement class="credits-group" picking-mode="Ignore">
+                <ui:VisualElement class="credit-icon" picking-mode="Ignore" />
+                <ui:Label name="credits" class="top-number" text="6" picking-mode="Ignore" />
+            </ui:VisualElement>
+            <ui:Button name="options-open" class="gear" text="..." />
         </ui:VisualElement>
 
         <ui:Label name="toast" class="toast" picking-mode="Ignore" text="" />
@@ -26,10 +29,10 @@
             </ui:VisualElement>
             <ui:VisualElement name="cards" class="cards row" />
             <ui:VisualElement name="actions" class="actions row">
-                <ui:Button name="undo" class="btn btn-secondary" text="↶ Undo" />
+                <ui:Button name="undo" class="btn btn-secondary" text="Undo" />
                 <ui:Button name="reroll" class="btn btn-secondary" text="Reroll 1" />
-                <ui:Button name="buy-slot" class="btn btn-secondary hidden" text="Slot +1 · 8" />
-                <ui:Button name="next" class="btn btn-primary" text="▶ Next" />
+                <ui:Button name="buy-slot" class="btn btn-secondary hidden" text="Slot +1 (8)" />
+                <ui:Button name="next" class="btn btn-primary" text="Next" />
             </ui:VisualElement>
         </ui:VisualElement>
 
@@ -86,7 +89,7 @@
 
         <ui:VisualElement name="wave-summary" class="summary hidden">
             <ui:VisualElement class="summary__panel glass" picking-mode="Ignore">
-                <ui:Label name="summary-title" class="summary__title" text="Wave 1 ✓" picking-mode="Ignore" />
+                <ui:Label name="summary-title" class="summary__title" text="Wave 1 cleared" picking-mode="Ignore" />
                 <ui:Label name="summary-damage" class="summary__line" text="" picking-mode="Ignore" />
                 <ui:Label name="summary-credits" class="summary__line summary__credits" text="" picking-mode="Ignore" />
                 <ui:Label class="summary__hint" text="tap to continue" picking-mode="Ignore" />
@@ -101,7 +104,7 @@
         <ui:VisualElement name="game-over" class="overlay hidden">
             <ui:Label name="game-over-title" class="overlay__title" text="Victory" />
             <ui:Label name="game-over-stats" class="overlay__stats" text="" />
-            <ui:Button name="play-again" class="btn btn-primary" text="▶ Play again" />
+            <ui:Button name="play-again" class="btn btn-primary" text="Play again" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>
