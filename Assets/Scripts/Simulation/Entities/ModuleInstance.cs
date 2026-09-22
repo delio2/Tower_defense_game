@@ -26,6 +26,9 @@ namespace TowerDefense.Simulation
         /// <summary>Combined damage multiplier from neighbours, permille (for UI: "x2.25").</summary>
         public long DamageMultiplierPermille { get; internal set; } = SimConstants.Permille;
 
+        /// <summary>Echo from neighbours: every hit fires a second one at this fraction (0 = none), permille.</summary>
+        public int EchoPermille { get; internal set; }
+
         public ModuleKind Kind => Definition.Kind;
         public ModuleCategory Category => Definition.Category;
 

@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d57d8325e6a61a24d9f87a9aefd8ebf7, type: 3}
-  m_Name: Lens
+  m_Name: Capacitor
   m_EditorClassIdentifier: TowerDefense.Presentation::TowerDefense.Presentation.Content.ModuleAsset
-  _kind: 11
-  _category: 1
-  _rarity: 0
-  _cost: 3
+  _kind: 24
+  _category: 2
+  _rarity: 1
+  _cost: 4
   _inShop: 1
   _damage: 0
   _cooldownTicks: 0
@@ -29,8 +29,8 @@ MonoBehaviour:
   _splashRadiusMilli: 0
   _minRangeMilli: 0
   _damageMultiplierBonusPermille: 0
-  _flatDamageBonus: 2
-  _rangeBonusMilli: 1500
+  _flatDamageBonus: 0
+  _rangeBonusMilli: 0
   _cooldownReductionPermille: 0
   _echoPermille: 0
   _interestCapBonus: 0
@@ -40,5 +40,5 @@ MonoBehaviour:
   _killsPerCredit: 0
   _slowPermille: 0
   _slowRadiusMilli: 0
-  _pulseCooldownReductionPermille: 0
-  _pulseDamageBonusPermille: 0
+  _pulseCooldownReductionPermille: 200
+  _pulseDamageBonusPermille: 500

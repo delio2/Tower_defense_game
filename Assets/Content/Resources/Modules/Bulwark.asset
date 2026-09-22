@@ -21,11 +21,24 @@ MonoBehaviour:
   _cooldownTicks: 0
   _rangeMilli: 0
   _targetCount: 1
+  _behaviour: 0
+  _chainCount: 0
+  _chainRangeMilli: 0
+  _chainFalloffPermille: 1000
+  _pierceWidthMilli: 0
+  _splashRadiusMilli: 0
+  _minRangeMilli: 0
   _damageMultiplierBonusPermille: 0
   _flatDamageBonus: 0
   _rangeBonusMilli: 0
   _cooldownReductionPermille: 0
+  _echoPermille: 0
   _interestCapBonus: 0
   _creditsPerWave: 0
   _maxIntegrityBonus: 25
   _repairPerWave: 5
+  _killsPerCredit: 0
+  _slowPermille: 0
+  _slowRadiusMilli: 0
+  _pulseCooldownReductionPermille: 0
+  _pulseDamageBonusPermille: 0

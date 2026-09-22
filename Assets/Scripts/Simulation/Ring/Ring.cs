@@ -20,6 +20,17 @@ namespace TowerDefense.Simulation
         public long MaxIntegrityBonus { get; private set; }
         public long RepairPerWave { get; private set; }
 
+        /// <summary>Salvage: Credits per kill in permille (100 = one Credit every 10 kills).</summary>
+        public int SalvagePermillePerKill { get; private set; }
+
+        /// <summary>Frost: strongest slow on the ring and its radius from the Core.</summary>
+        public int SlowPermille { get; private set; }
+        public long SlowRadius { get; private set; }
+
+        /// <summary>Capacitor: Pulse cooldown reduction (capped at 90%) and damage bonus, permille.</summary>
+        public int PulseCooldownReductionPermille { get; private set; }
+        public int PulseDamageBonusPermille { get; private set; }
+
         public Ring(int slotCount)
         {
             SlotCount = slotCount;
@@ -123,6 +134,11 @@ namespace TowerDefense.Simulation
             CreditsPerWave = 0;
             MaxIntegrityBonus = 0;
             RepairPerWave = 0;
+            SalvagePermillePerKill = 0;
+            SlowPermille = 0;
+            SlowRadius = 0;
+            PulseCooldownReductionPermille = 0;
+            PulseDamageBonusPermille = 0;
 
             for (int slot = 0; slot < SlotCount; slot++)
             {
@@ -139,12 +155,30 @@ namespace TowerDefense.Simulation
                     CreditsPerWave += (int)ModuleRules.ScaleEffect(definition.CreditsPerWave, module.Level);
                     MaxIntegrityBonus += ModuleRules.ScaleEffect(definition.MaxIntegrityBonus, module.Level);
                     RepairPerWave += ModuleRules.ScaleEffect(definition.RepairPerWave, module.Level);
+                    if (definition.KillsPerCredit > 0)
+                    {
+                        SalvagePermillePerKill += (int)ModuleRules.ScaleEffect(SimConstants.Permille / definition.KillsPerCredit, module.Level);
+                    }
+
+                    if (definition.SlowPermille > 0)
+                    {
+                        int slow = (int)Math.Min(900, ModuleRules.ScaleEffect(definition.SlowPermille, module.Level));
+                        if (slow > SlowPermille)
+                        {
+                            SlowPermille = slow;
+                            SlowRadius = definition.SlowRadiusMilli * SimConstants.MilliToMicro;
+                        }
+                    }
+
+                    PulseCooldownReductionPermille = (int)Math.Min(900, PulseCooldownReductionPermille + ModuleRules.ScaleEffect(definition.PulseCooldownReductionPermille, module.Level));
+                    PulseDamageBonusPermille += (int)ModuleRules.ScaleEffect(definition.PulseDamageBonusPermille, module.Level);
                 }
 
                 if (definition.Category != ModuleCategory.Weapon)
                 {
                     module.EffectiveDamage = 0;
                     module.DamageMultiplierPermille = SimConstants.Permille;
+                    module.EchoPermille = 0;
                     continue;
                 }
 
@@ -152,13 +186,14 @@ namespace TowerDefense.Simulation
                 long multiplier = SimConstants.Permille;
                 long rangeMilli = definition.RangeMilli;
                 long cooldown = definition.CooldownTicks;
+                long echo = 0;
 
                 int left = LeftOf(slot);
                 int right = RightOf(slot);
-                ApplyBooster(_slots[left], ref flat, ref multiplier, ref rangeMilli, ref cooldown);
+                ApplyBooster(_slots[left], ref flat, ref multiplier, ref rangeMilli, ref cooldown, ref echo);
                 if (right != left)
                 {
-                    ApplyBooster(_slots[right], ref flat, ref multiplier, ref rangeMilli, ref cooldown);
+                    ApplyBooster(_slots[right], ref flat, ref multiplier, ref rangeMilli, ref cooldown, ref echo);
                 }
 
                 long baseDamage = definition.Damage * ModuleRules.WeaponDamageScale(module.Level) / SimConstants.Permille;
@@ -169,10 +204,11 @@ namespace TowerDefense.Simulation
                 module.DamageMultiplierPermille = multiplier * globalDamagePermille / SimConstants.Permille;
                 module.EffectiveRange = rangeMilli * SimConstants.MilliToMicro;
                 module.EffectiveCooldown = (int)Math.Max(MinCooldownTicks, cooldown);
+                module.EchoPermille = (int)Math.Min(SimConstants.Permille, echo);
             }
         }
 
-        private static void ApplyBooster(ModuleInstance neighbour, ref long flat, ref long multiplier, ref long rangeMilli, ref long cooldown)
+        private static void ApplyBooster(ModuleInstance neighbour, ref long flat, ref long multiplier, ref long rangeMilli, ref long cooldown, ref long echo)
         {
             if (neighbour == null || neighbour.Category != ModuleCategory.Booster)
             {
@@ -186,6 +222,7 @@ namespace TowerDefense.Simulation
             rangeMilli += ModuleRules.ScaleEffect(booster.RangeBonusMilli, level);
             long reduction = Math.Min(900, ModuleRules.ScaleEffect(booster.CooldownReductionPermille, level));
             cooldown = cooldown * (SimConstants.Permille - reduction) / SimConstants.Permille;
+            echo += ModuleRules.ScaleEffect(booster.EchoPermille, level);
         }
     }
 }

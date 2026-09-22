@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5f1ed04cc43a3344fa2696df27cd8130, type: 3}
-  m_Name: Brute
+  m_Name: Warden
   m_EditorClassIdentifier: TowerDefense.Presentation::TowerDefense.Presentation.Content.EnemyAsset
-  _kind: 2
-  _hp: 70
-  _armor: 3
-  _speedMilli: 550
-  _contactDamage: 15
+  _kind: 5
+  _hp: 40
+  _armor: 1
+  _speedMilli: 700
+  _contactDamage: 8
   _budgetCostMilli: 3000
   _groupSize: 1
   _dashEveryTicks: 0
@@ -24,7 +24,7 @@ MonoBehaviour:
   _dashSpeedPermille: 1000
   _splitInto: 0
   _splitCount: 0
-  _shieldRadiusMilli: 0
-  _shieldPermille: 1000
+  _shieldRadiusMilli: 1500
+  _shieldPermille: 500
   _summonCount: 0
   _summonKind: 0

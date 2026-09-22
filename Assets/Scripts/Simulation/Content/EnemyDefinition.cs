@@ -35,6 +35,23 @@ namespace TowerDefense.Simulation
         /// <summary>How many enemies spawn together (Swarmlet groups).</summary>
         public int GroupSize { get; }
 
+        /// <summary>Dasher: every <see cref="DashEveryTicks"/> ticks it moves at <see cref="DashSpeedPermille"/> for <see cref="DashTicks"/> ticks.</summary>
+        public int DashEveryTicks { get; set; }
+        public int DashTicks { get; set; }
+        public int DashSpeedPermille { get; set; } = SimConstants.Permille;
+
+        /// <summary>Splitter: on death spawns this many enemies of this kind where it died.</summary>
+        public EnemyKind SplitInto { get; set; }
+        public int SplitCount { get; set; }
+
+        /// <summary>Warden: enemies within the radius take this fraction of damage (500 = −50%).</summary>
+        public int ShieldRadiusMilli { get; set; }
+        public int ShieldPermille { get; set; } = SimConstants.Permille;
+
+        /// <summary>Guardian: number of enemies summoned every 25% of health lost.</summary>
+        public int SummonCount { get; set; }
+        public EnemyKind SummonKind { get; set; }
+
         public bool IsGuardian => Kind == EnemyKind.Guardian;
 
         public EnemyDefinition(EnemyKind kind, long hp, long armor, int speedMilli, long contactDamage, int budgetCostMilli, int groupSize = 1)

@@ -1188,8 +1188,15 @@ namespace TowerDefense.Presentation
                 ModuleKind.Amplifier => "Neighbours deal x1.5 damage",
                 ModuleKind.Lens => "Neighbours: +1.5 range, +2 damage",
                 ModuleKind.Overclock => "Neighbours fire 25% faster",
+                ModuleKind.Arc => "Chains over 4 enemies, -10% per jump",
+                ModuleKind.Lance => "Pierces every enemy on a line",
+                ModuleKind.Mortar => "Explodes on the farthest enemy",
+                ModuleKind.Echo => "Neighbour hits echo at 50%",
                 ModuleKind.Bank => "+1 interest cap, +1 credit per wave",
+                ModuleKind.Salvage => "+1 credit per 10 kills",
                 ModuleKind.Bulwark => "+25 integrity, repairs 5 per wave",
+                ModuleKind.Frost => "Enemies near the core move 25% slower",
+                ModuleKind.Capacitor => "Pulse: -20% cooldown, +50% damage",
                 _ => kind.ToString(),
             };
         }

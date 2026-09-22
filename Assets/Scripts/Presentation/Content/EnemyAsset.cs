@@ -15,12 +15,34 @@ namespace TowerDefense.Presentation.Content
         [SerializeField, Min(0)] private int _budgetCostMilli = 1000;
         [SerializeField, Min(1)] private int _groupSize = 1;
 
+        [Header("Specials")]
+        [SerializeField, Min(0)] private int _dashEveryTicks;
+        [SerializeField, Min(0)] private int _dashTicks;
+        [SerializeField] private int _dashSpeedPermille = 1000;
+        [SerializeField] private EnemyKind _splitInto;
+        [SerializeField, Min(0)] private int _splitCount;
+        [SerializeField, Min(0)] private int _shieldRadiusMilli;
+        [SerializeField] private int _shieldPermille = 1000;
+        [SerializeField, Min(0)] private int _summonCount;
+        [SerializeField] private EnemyKind _summonKind;
+
         public EnemyKind Kind => _kind;
 
         public EnemyDefinition ToDefinition()
         {
             long hp = SimConstants.HpScale;
-            return new EnemyDefinition(_kind, _hp * hp, _armor * hp, _speedMilli, _contactDamage * hp, _budgetCostMilli, _groupSize);
+            return new EnemyDefinition(_kind, _hp * hp, _armor * hp, _speedMilli, _contactDamage * hp, _budgetCostMilli, _groupSize)
+            {
+                DashEveryTicks = _dashEveryTicks,
+                DashTicks = _dashTicks,
+                DashSpeedPermille = _dashSpeedPermille,
+                SplitInto = _splitInto,
+                SplitCount = _splitCount,
+                ShieldRadiusMilli = _shieldRadiusMilli,
+                ShieldPermille = _shieldPermille,
+                SummonCount = _summonCount,
+                SummonKind = _summonKind,
+            };
         }
 
         public void CopyFrom(EnemyDefinition d)
@@ -33,6 +55,15 @@ namespace TowerDefense.Presentation.Content
             _contactDamage = (int)(d.ContactDamage / hp);
             _budgetCostMilli = d.BudgetCostMilli;
             _groupSize = d.GroupSize;
+            _dashEveryTicks = d.DashEveryTicks;
+            _dashTicks = d.DashTicks;
+            _dashSpeedPermille = d.DashSpeedPermille;
+            _splitInto = d.SplitInto;
+            _splitCount = d.SplitCount;
+            _shieldRadiusMilli = d.ShieldRadiusMilli;
+            _shieldPermille = d.ShieldPermille;
+            _summonCount = d.SummonCount;
+            _summonKind = d.SummonKind;
         }
     }
 }

@@ -32,6 +32,22 @@ namespace TowerDefense.Simulation
         Rare = 2,
     }
 
+    /// <summary>How a weapon picks and damages targets (GDD v0.2 §6).</summary>
+    public enum WeaponBehaviour : byte
+    {
+        /// <summary>The <see cref="ModuleDefinition.TargetCount"/> enemies closest to the Core, in range.</summary>
+        Nearest = 0,
+
+        /// <summary>Hits the closest enemy, then chains to nearby enemies with a falloff per jump (Arc).</summary>
+        Chain = 1,
+
+        /// <summary>Hits every enemy on the line from the module towards the closest target (Lance).</summary>
+        Pierce = 2,
+
+        /// <summary>Explodes on the farthest enemy in range beyond a minimum distance, damaging everything nearby (Mortar).</summary>
+        Splash = 3,
+    }
+
     /// <summary>
     /// Immutable balance data for one module (GDD v0.2 §6). Effects of boosters and economy modules are expressed
     /// at level 1 and scaled by <see cref="ModuleRules.EffectScale"/>.
@@ -49,6 +65,19 @@ namespace TowerDefense.Simulation
         public int CooldownTicks { get; set; }
         public int RangeMilli { get; set; }
         public int TargetCount { get; set; } = 1;
+        public WeaponBehaviour Behaviour { get; set; } = WeaponBehaviour.Nearest;
+
+        /// <summary>Chain: maximum enemies hit; jump range; damage kept per jump (900 = −10%).</summary>
+        public int ChainCount { get; set; }
+        public int ChainRangeMilli { get; set; }
+        public int ChainFalloffPermille { get; set; } = SimConstants.Permille;
+
+        /// <summary>Pierce: half-width of the line, in milli-units.</summary>
+        public int PierceWidthMilli { get; set; }
+
+        /// <summary>Splash: explosion radius and the minimum distance of the chosen target from the module.</summary>
+        public int SplashRadiusMilli { get; set; }
+        public int MinRangeMilli { get; set; }
 
         // Boosters (applied to both neighbours)
         public int DamageMultiplierBonusPermille { get; set; }
@@ -56,11 +85,25 @@ namespace TowerDefense.Simulation
         public int RangeBonusMilli { get; set; }
         public int CooldownReductionPermille { get; set; }
 
+        /// <summary>Echo: every neighbour hit fires a second one at this fraction of the damage.</summary>
+        public int EchoPermille { get; set; }
+
         // Economy and utility
         public int InterestCapBonus { get; set; }
         public int CreditsPerWave { get; set; }
         public long MaxIntegrityBonus { get; set; }
         public long RepairPerWave { get; set; }
+
+        /// <summary>Salvage: Credits per this many kills in a wave (0 = none).</summary>
+        public int KillsPerCredit { get; set; }
+
+        /// <summary>Frost: slow applied to enemies within the radius of the Core.</summary>
+        public int SlowPermille { get; set; }
+        public int SlowRadiusMilli { get; set; }
+
+        /// <summary>Capacitor: Pulse cooldown reduction and damage bonus.</summary>
+        public int PulseCooldownReductionPermille { get; set; }
+        public int PulseDamageBonusPermille { get; set; }
 
         public ModuleDefinition(ModuleKind kind, ModuleCategory category, Rarity rarity, int cost)
         {
@@ -69,6 +112,15 @@ namespace TowerDefense.Simulation
             Rarity = rarity;
             Cost = cost;
         }
+
+        /// <summary>Targets a single shot is expected to hit, for the DPS shown in previews.</summary>
+        public int ExpectedTargets => Behaviour switch
+        {
+            WeaponBehaviour.Chain => ChainCount,
+            WeaponBehaviour.Pierce => 2,
+            WeaponBehaviour.Splash => 3,
+            _ => TargetCount,
+        };
     }
 
     public static class ModuleRules

@@ -54,8 +54,8 @@ namespace TowerDefense.Simulation.Tests
             }
 
             Assert.IsNotNull(catalog, "Assets/Content/Resources/PrototypeCatalog.asset is missing: run TowerDefense/Content/Generate prototype catalog");
-            Assert.AreEqual(7, catalog.Modules.Count);
-            Assert.AreEqual(4, catalog.Enemies.Count);
+            Assert.AreEqual(14, catalog.Modules.Count);
+            Assert.AreEqual(7, catalog.Enemies.Count);
             Assert.AreEqual(HashAfterBotRun(ContentDatabase.CreatePrototypeDefaults()), HashAfterBotRun(ContentLoader.Build(catalog)),
                 "the asset catalog diverged from the code defaults: regenerate it or bump the balance version");
         }
@@ -78,6 +78,19 @@ namespace TowerDefense.Simulation.Tests
             Assert.AreEqual(a.CreditsPerWave, b.CreditsPerWave, k);
             Assert.AreEqual(a.MaxIntegrityBonus, b.MaxIntegrityBonus, k);
             Assert.AreEqual(a.RepairPerWave, b.RepairPerWave, k);
+            Assert.AreEqual(a.Behaviour, b.Behaviour, k);
+            Assert.AreEqual(a.ChainCount, b.ChainCount, k);
+            Assert.AreEqual(a.ChainRangeMilli, b.ChainRangeMilli, k);
+            Assert.AreEqual(a.ChainFalloffPermille, b.ChainFalloffPermille, k);
+            Assert.AreEqual(a.PierceWidthMilli, b.PierceWidthMilli, k);
+            Assert.AreEqual(a.SplashRadiusMilli, b.SplashRadiusMilli, k);
+            Assert.AreEqual(a.MinRangeMilli, b.MinRangeMilli, k);
+            Assert.AreEqual(a.EchoPermille, b.EchoPermille, k);
+            Assert.AreEqual(a.KillsPerCredit, b.KillsPerCredit, k);
+            Assert.AreEqual(a.SlowPermille, b.SlowPermille, k);
+            Assert.AreEqual(a.SlowRadiusMilli, b.SlowRadiusMilli, k);
+            Assert.AreEqual(a.PulseCooldownReductionPermille, b.PulseCooldownReductionPermille, k);
+            Assert.AreEqual(a.PulseDamageBonusPermille, b.PulseDamageBonusPermille, k);
         }
 
         private static void AssertSameEnemy(EnemyDefinition a, EnemyDefinition b)
@@ -89,6 +102,15 @@ namespace TowerDefense.Simulation.Tests
             Assert.AreEqual(a.ContactDamage, b.ContactDamage, k);
             Assert.AreEqual(a.BudgetCostMilli, b.BudgetCostMilli, k);
             Assert.AreEqual(a.GroupSize, b.GroupSize, k);
+            Assert.AreEqual(a.DashEveryTicks, b.DashEveryTicks, k);
+            Assert.AreEqual(a.DashTicks, b.DashTicks, k);
+            Assert.AreEqual(a.DashSpeedPermille, b.DashSpeedPermille, k);
+            Assert.AreEqual(a.SplitInto, b.SplitInto, k);
+            Assert.AreEqual(a.SplitCount, b.SplitCount, k);
+            Assert.AreEqual(a.ShieldRadiusMilli, b.ShieldRadiusMilli, k);
+            Assert.AreEqual(a.ShieldPermille, b.ShieldPermille, k);
+            Assert.AreEqual(a.SummonCount, b.SummonCount, k);
+            Assert.AreEqual(a.SummonKind, b.SummonKind, k);
         }
     }
 }

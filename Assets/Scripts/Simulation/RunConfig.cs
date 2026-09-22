@@ -6,12 +6,12 @@ namespace TowerDefense.Simulation
     public sealed class RunConfig
     {
         /// <summary>Bumped on every balance change: replays only verify against the same version (D19).</summary>
-        public const string BalanceVersion = "0.2.0";
+        public const string BalanceVersion = "0.3.0";
 
         public ulong Seed = 1;
 
-        /// <summary>Prototype: one act (5 waves + Guardian). The full game has 3.</summary>
-        public int Acts = 1;
+        /// <summary>3 acts of 5 waves + Guardian (GDD v0.2 §2). Tests and probes may shorten it.</summary>
+        public int Acts = 3;
         public int WavesPerAct = 6;
 
         public int StartingCredits = 6;

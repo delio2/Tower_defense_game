@@ -10,20 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5f1ed04cc43a3344fa2696df27cd8130, type: 3}
-  m_Name: Brute
+  m_Name: Splitter
   m_EditorClassIdentifier: TowerDefense.Presentation::TowerDefense.Presentation.Content.EnemyAsset
-  _kind: 2
-  _hp: 70
-  _armor: 3
-  _speedMilli: 550
-  _contactDamage: 15
-  _budgetCostMilli: 3000
+  _kind: 4
+  _hp: 30
+  _armor: 0
+  _speedMilli: 850
+  _contactDamage: 6
+  _budgetCostMilli: 2000
   _groupSize: 1
   _dashEveryTicks: 0
   _dashTicks: 0
   _dashSpeedPermille: 1000
-  _splitInto: 0
-  _splitCount: 0
+  _splitInto: 1
+  _splitCount: 2
   _shieldRadiusMilli: 0
   _shieldPermille: 1000
   _summonCount: 0

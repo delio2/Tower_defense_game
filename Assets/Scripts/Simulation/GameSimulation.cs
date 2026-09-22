@@ -39,6 +39,7 @@ namespace TowerDefense.Simulation
         private int _nextEnemyId = 1;
         private int _spawnCursor;
         private long _waveStartTick;
+        private int _killsAtWaveStart;
 
         public RunConfig Config => _config;
         public ContentDatabase Content => _content;
@@ -251,6 +252,8 @@ namespace TowerDefense.Simulation
                 hasher.Add(enemy.Direction);
                 hasher.Add(enemy.Radius);
                 hasher.Add(enemy.Hp);
+                hasher.Add(enemy.IsElite ? 1 : 0);
+                hasher.Add(enemy.AgeTicks);
             }
 
             return hasher.Value;
@@ -486,6 +489,7 @@ namespace TowerDefense.Simulation
             _nextWave = null;
             _spawnCursor = 0;
             _waveStartTick = Tick;
+            _killsAtWaveStart = Kills;
             PulseCooldownRemaining = 0;
             Phase = GamePhase.Wave;
             for (int slot = 0; slot < Ring.SlotCount; slot++)
@@ -505,14 +509,20 @@ namespace TowerDefense.Simulation
             while (_spawnCursor < _currentSpawns.Count && _waveStartTick + _currentSpawns[_spawnCursor].OffsetTicks <= Tick)
             {
                 SpawnEntry entry = _currentSpawns[_spawnCursor++];
-                SpawnEnemy(entry.Kind, entry.Direction, SimConstants.SpawnRadius, _enemies);
+                SpawnEnemy(entry.Kind, entry.Direction, SimConstants.SpawnRadius, _enemies, entry.IsElite);
             }
         }
 
-        private Enemy SpawnEnemy(EnemyKind kind, int direction, long radius, List<Enemy> into)
+        /// <summary>Test hook: places an enemy during a wave at an exact direction and radius (micro-units).</summary>
+        internal Enemy SpawnForTests(EnemyKind kind, int direction, long radius, bool elite = false)
+        {
+            return SpawnEnemy(kind, direction, radius, _enemies, elite);
+        }
+
+        private Enemy SpawnEnemy(EnemyKind kind, int direction, long radius, List<Enemy> into, bool elite = false)
         {
             EnemyDefinition definition = _content.Enemy(kind);
-            var enemy = new Enemy(_nextEnemyId++, definition, _waves.EnemyMaxHp(definition, CurrentWave), direction, radius);
+            var enemy = new Enemy(_nextEnemyId++, definition, _waves.EnemyMaxHp(definition, CurrentWave), direction, radius, elite);
             into.Add(enemy);
             _events.Add(new SimEvent(SimEventType.EnemySpawned, Tick, enemy.Id, (long)kind, enemy.Direction));
             return enemy;
@@ -528,7 +538,8 @@ namespace TowerDefense.Simulation
             bool guardianWave = _waves.IsGuardianWave(CurrentWave);
             int interestCap = _config.InterestCap + Ring.InterestCapBonus;
             int interest = Math.Min(interestCap, Credits / _config.InterestStep);
-            Credits += _config.CreditsPerWave + interest + Ring.CreditsPerWave + (guardianWave ? _config.GuardianBonusCredits : 0);
+            int salvage = (Kills - _killsAtWaveStart) * Ring.SalvagePermillePerKill / SimConstants.Permille;
+            Credits += _config.CreditsPerWave + interest + Ring.CreditsPerWave + salvage + (guardianWave ? _config.GuardianBonusCredits : 0);
             Integrity = Math.Min(MaxIntegrity, Integrity + Ring.RepairPerWave);
             WavesCleared++;
             _events.Add(new SimEvent(SimEventType.WaveCleared, Tick, value: WavesCleared, extra: interest));
@@ -554,7 +565,19 @@ namespace TowerDefense.Simulation
                     continue;
                 }
 
-                enemy.Radius -= enemy.SpeedPerTick;
+                enemy.AgeTicks++;
+                long speed = enemy.SpeedPerTick;
+                if (enemy.IsDashing)
+                {
+                    speed = speed * enemy.Definition.DashSpeedPermille / SimConstants.Permille;
+                }
+
+                if (Ring.SlowPermille > 0 && enemy.Radius <= Ring.SlowRadius)
+                {
+                    speed = speed * (SimConstants.Permille - Ring.SlowPermille) / SimConstants.Permille;
+                }
+
+                enemy.Radius -= speed;
                 if (enemy.Radius > SimConstants.CoreRadius)
                 {
                     continue;
@@ -591,20 +614,227 @@ namespace TowerDefense.Simulation
                 }
 
                 Directions.PointAt(Directions.OfSlot(slot, Ring.SlotCount), SimConstants.RingRadius, out long mx, out long my);
-                CollectTargets(mx, my, module.EffectiveRange, module.Definition.TargetCount);
-                if (_targets.Count == 0)
+                if (!Fire(module, mx, my))
                 {
                     continue;
-                }
-
-                foreach (Enemy target in _targets)
-                {
-                    ApplyHit(target, module.EffectiveDamage, module.Id);
                 }
 
                 module.CooldownRemaining = module.EffectiveCooldown - 1;
                 _events.Add(new SimEvent(SimEventType.ModuleFired, Tick, module.Id, extra: _targets.Count));
             }
+        }
+
+        /// <summary>Picks targets by behaviour and applies the hits (plus Echo). False when nothing is in range.</summary>
+        private bool Fire(ModuleInstance module, long mx, long my)
+        {
+            ModuleDefinition definition = module.Definition;
+            switch (definition.Behaviour)
+            {
+                case WeaponBehaviour.Chain:
+                    CollectTargets(mx, my, module.EffectiveRange, 1);
+                    if (_targets.Count == 0)
+                    {
+                        return false;
+                    }
+
+                    ChainFrom(_targets[0], definition);
+                    break;
+                case WeaponBehaviour.Pierce:
+                    CollectTargets(mx, my, module.EffectiveRange, 1);
+                    if (_targets.Count == 0)
+                    {
+                        return false;
+                    }
+
+                    CollectAlongLine(mx, my, _targets[0], module.EffectiveRange, definition.PierceWidthMilli * SimConstants.MilliToMicro);
+                    break;
+                case WeaponBehaviour.Splash:
+                    Enemy centre = FarthestInRange(mx, my, module.EffectiveRange, definition.MinRangeMilli * SimConstants.MilliToMicro);
+                    if (centre == null)
+                    {
+                        return false;
+                    }
+
+                    CollectAround(centre, definition.SplashRadiusMilli * SimConstants.MilliToMicro);
+                    break;
+                default:
+                    CollectTargets(mx, my, module.EffectiveRange, definition.TargetCount);
+                    if (_targets.Count == 0)
+                    {
+                        return false;
+                    }
+
+                    break;
+            }
+
+            // Chain damage falls off per jump; every other behaviour deals full damage to each target.
+            for (int i = 0; i < _targets.Count; i++)
+            {
+                long damage = module.EffectiveDamage;
+                if (definition.Behaviour == WeaponBehaviour.Chain)
+                {
+                    for (int jump = 0; jump < i; jump++)
+                    {
+                        damage = damage * definition.ChainFalloffPermille / SimConstants.Permille;
+                    }
+                }
+
+                ApplyHit(_targets[i], damage, module.Id);
+                if (module.EchoPermille > 0)
+                {
+                    ApplyHit(_targets[i], damage * module.EchoPermille / SimConstants.Permille, module.Id);
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>Arc: from the first target, keeps jumping to the nearest unhit enemy within the jump range.</summary>
+        private void ChainFrom(Enemy first, ModuleDefinition definition)
+        {
+            long jumpRange = definition.ChainRangeMilli * SimConstants.MilliToMicro;
+            long jumpRangeSquared = jumpRange * jumpRange;
+            Enemy current = first;
+            while (_targets.Count < definition.ChainCount)
+            {
+                current.GetPosition(out long cx, out long cy);
+                Enemy next = null;
+                long best = long.MaxValue;
+                foreach (Enemy enemy in _enemies)
+                {
+                    if (!enemy.IsAlive || _targets.Contains(enemy))
+                    {
+                        continue;
+                    }
+
+                    enemy.GetPosition(out long ex, out long ey);
+                    long dx = ex - cx, dy = ey - cy;
+                    long d = dx * dx + dy * dy;
+                    if (d <= jumpRangeSquared && d < best)
+                    {
+                        best = d;
+                        next = enemy;
+                    }
+                }
+
+                if (next == null)
+                {
+                    break;
+                }
+
+                _targets.Add(next);
+                current = next;
+            }
+        }
+
+        /// <summary>Lance: every enemy within the range whose distance to the module→target line is under the half-width.</summary>
+        private void CollectAlongLine(long mx, long my, Enemy target, long range, long halfWidth)
+        {
+            target.GetPosition(out long tx, out long ty);
+            long dx = tx - mx, dy = ty - my;
+            long length = IntegerSqrt(dx * dx + dy * dy);
+            if (length == 0)
+            {
+                return;
+            }
+
+            long rangeSquared = range * range;
+            foreach (Enemy enemy in _enemies)
+            {
+                if (!enemy.IsAlive || enemy == target)
+                {
+                    continue;
+                }
+
+                enemy.GetPosition(out long ex, out long ey);
+                long px = ex - mx, py = ey - my;
+                if (px * px + py * py > rangeSquared)
+                {
+                    continue;
+                }
+
+                // Ahead of the module (dot > 0) and close to the line (|cross| / length <= half-width).
+                long dot = px * dx + py * dy;
+                if (dot <= 0)
+                {
+                    continue;
+                }
+
+                long cross = px * dy - py * dx;
+                if (Math.Abs(cross) / length <= halfWidth)
+                {
+                    _targets.Add(enemy);
+                }
+            }
+        }
+
+        /// <summary>Mortar: the farthest alive enemy in range that is at least the minimum distance away.</summary>
+        private Enemy FarthestInRange(long mx, long my, long range, long minRange)
+        {
+            long rangeSquared = range * range;
+            long minSquared = minRange * minRange;
+            Enemy best = null;
+            long bestDistance = -1;
+            foreach (Enemy enemy in _enemies)
+            {
+                if (!enemy.IsAlive)
+                {
+                    continue;
+                }
+
+                enemy.GetPosition(out long ex, out long ey);
+                long dx = ex - mx, dy = ey - my;
+                long d = dx * dx + dy * dy;
+                if (d <= rangeSquared && d >= minSquared && d > bestDistance)
+                {
+                    bestDistance = d;
+                    best = enemy;
+                }
+            }
+
+            _targets.Clear();
+            return best;
+        }
+
+        private void CollectAround(Enemy centre, long radius)
+        {
+            centre.GetPosition(out long cx, out long cy);
+            long radiusSquared = radius * radius;
+            _targets.Clear();
+            foreach (Enemy enemy in _enemies)
+            {
+                if (!enemy.IsAlive)
+                {
+                    continue;
+                }
+
+                enemy.GetPosition(out long ex, out long ey);
+                long dx = ex - cx, dy = ey - cy;
+                if (dx * dx + dy * dy <= radiusSquared)
+                {
+                    _targets.Add(enemy);
+                }
+            }
+        }
+
+        /// <summary>Integer square root (floor), deterministic on every platform.</summary>
+        private static long IntegerSqrt(long value)
+        {
+            if (value <= 0)
+            {
+                return 0;
+            }
+
+            // Newton iteration on integers only (no floats anywhere in the simulation, D11).
+            long x = value;
+            long y = (x + 1) / 2;
+            while (y < x)
+            {
+                x = y;
+                y = (x + value / x) / 2;
+            }
+
+            return x;
         }
 
         /// <summary>Fills <see cref="_targets"/> with the enemies in range closest to the Core (ties: older first).</summary>
@@ -651,7 +881,8 @@ namespace TowerDefense.Simulation
                 return;
             }
 
-            long dealt = Math.Max(SimConstants.HpScale, damage - enemy.Definition.Armor);
+            long shielded = damage * ShieldPermilleAt(enemy) / SimConstants.Permille;
+            long dealt = Math.Max(SimConstants.HpScale, shielded - enemy.Armor);
             long applied = Math.Min(dealt, enemy.Hp);
             enemy.Hp -= dealt;
             TotalDamage += applied;
@@ -662,21 +893,57 @@ namespace TowerDefense.Simulation
                 enemy.Hp = 0;
                 Kills++;
                 _events.Add(new SimEvent(SimEventType.EnemyKilled, Tick, enemy.Id, dealt, sourceModuleId));
+                if (enemy.Definition.SplitCount > 0 && _content.HasEnemy(enemy.Definition.SplitInto))
+                {
+                    // Splitter: the children appear where it died, slightly apart (GDD v0.2 §8).
+                    int first = -(enemy.Definition.SplitCount - 1);
+                    for (int i = 0; i < enemy.Definition.SplitCount; i++)
+                    {
+                        SpawnEnemy(enemy.Definition.SplitInto, enemy.Direction + first + i * 2, enemy.Radius, _pendingSpawns);
+                    }
+                }
+
                 return;
             }
 
-            if (enemy.Definition.IsGuardian)
+            if (enemy.Definition.SummonCount > 0)
             {
                 // Every 25% of health lost, the Guardian calls a group of Swarmlets (GDD v0.2 §8).
                 while (enemy.SummonsDone < 3 && enemy.Hp <= enemy.MaxHp * (3 - enemy.SummonsDone) / 4)
                 {
                     enemy.SummonsDone++;
-                    for (int i = -2; i <= 2; i++)
+                    int count = enemy.Definition.SummonCount;
+                    int first = -(count / 2);
+                    for (int i = 0; i < count; i++)
                     {
-                        SpawnEnemy(EnemyKind.Swarmlet, enemy.Direction + i * 3, enemy.Radius, _pendingSpawns);
+                        SpawnEnemy(enemy.Definition.SummonKind, enemy.Direction + (first + i) * 3, enemy.Radius, _pendingSpawns);
                     }
                 }
             }
+        }
+
+        /// <summary>Warden aura: the strongest shield of any other alive Warden within its radius (1000 = no shield).</summary>
+        private long ShieldPermilleAt(Enemy target)
+        {
+            long best = SimConstants.Permille;
+            target.GetPosition(out long tx, out long ty);
+            foreach (Enemy warden in _enemies)
+            {
+                if (warden == target || !warden.IsAlive || warden.Definition.ShieldRadiusMilli <= 0)
+                {
+                    continue;
+                }
+
+                warden.GetPosition(out long wx, out long wy);
+                long radius = warden.Definition.ShieldRadiusMilli * SimConstants.MilliToMicro;
+                long dx = tx - wx, dy = ty - wy;
+                if (dx * dx + dy * dy <= radius * radius && warden.Definition.ShieldPermille < best)
+                {
+                    best = warden.Definition.ShieldPermille;
+                }
+            }
+
+            return best;
         }
 
         private void UsePulse()
@@ -688,7 +955,7 @@ namespace TowerDefense.Simulation
                     continue;
                 }
 
-                ApplyHit(enemy, _config.PulseDamage, 0);
+                ApplyHit(enemy, _config.PulseDamage * (SimConstants.Permille + Ring.PulseDamageBonusPermille) / SimConstants.Permille, 0);
                 if (enemy.IsAlive)
                 {
                     enemy.Radius = Math.Min(SimConstants.SpawnRadius, enemy.Radius + _config.PulseKnockback);
@@ -697,7 +964,7 @@ namespace TowerDefense.Simulation
 
             AddPendingSpawns();
             RemoveFinishedEnemies();
-            PulseCooldownRemaining = _config.PulseCooldownTicks;
+            PulseCooldownRemaining = _config.PulseCooldownTicks * (SimConstants.Permille - Ring.PulseCooldownReductionPermille) / SimConstants.Permille;
             _events.Add(new SimEvent(SimEventType.PulseUsed, Tick));
         }
 
@@ -911,7 +1178,9 @@ namespace TowerDefense.Simulation
                     continue;
                 }
 
-                dps += module.EffectiveDamage * module.Definition.TargetCount * SimConstants.TicksPerSecond / module.EffectiveCooldown;
+                long perShot = module.EffectiveDamage * module.Definition.ExpectedTargets;
+                perShot += perShot * module.EchoPermille / SimConstants.Permille;
+                dps += perShot * SimConstants.TicksPerSecond / module.EffectiveCooldown;
             }
 
             return dps;

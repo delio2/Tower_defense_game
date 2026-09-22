@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d57d8325e6a61a24d9f87a9aefd8ebf7, type: 3}
-  m_Name: Lens
+  m_Name: Salvage
   m_EditorClassIdentifier: TowerDefense.Presentation::TowerDefense.Presentation.Content.ModuleAsset
-  _kind: 11
-  _category: 1
+  _kind: 21
+  _category: 2
   _rarity: 0
   _cost: 3
   _inShop: 1
@@ -29,15 +29,15 @@ MonoBehaviour:
   _splashRadiusMilli: 0
   _minRangeMilli: 0
   _damageMultiplierBonusPermille: 0
-  _flatDamageBonus: 2
-  _rangeBonusMilli: 1500
+  _flatDamageBonus: 0
+  _rangeBonusMilli: 0
   _cooldownReductionPermille: 0
   _echoPermille: 0
   _interestCapBonus: 0
   _creditsPerWave: 0
   _maxIntegrityBonus: 0
   _repairPerWave: 0
-  _killsPerCredit: 0
+  _killsPerCredit: 10
   _slowPermille: 0
   _slowRadiusMilli: 0
   _pulseCooldownReductionPermille: 0

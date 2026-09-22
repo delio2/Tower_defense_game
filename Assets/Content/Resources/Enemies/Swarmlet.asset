@@ -19,3 +19,12 @@ MonoBehaviour:
   _contactDamage: 2
   _budgetCostMilli: 300
   _groupSize: 5
+  _dashEveryTicks: 0
+  _dashTicks: 0
+  _dashSpeedPermille: 1000
+  _splitInto: 0
+  _splitCount: 0
+  _shieldRadiusMilli: 0
+  _shieldPermille: 1000
+  _summonCount: 0
+  _summonKind: 0

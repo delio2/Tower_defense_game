@@ -11,11 +11,15 @@ namespace TowerDefense.Simulation
 
         public readonly int Direction;
 
-        public SpawnEntry(EnemyKind kind, int offsetTicks, int direction)
+        /// <summary>Elite variant (act 2+): HP ×3, armor +1.</summary>
+        public readonly bool IsElite;
+
+        public SpawnEntry(EnemyKind kind, int offsetTicks, int direction, bool isElite = false)
         {
             Kind = kind;
             OffsetTicks = offsetTicks;
             Direction = direction;
+            IsElite = isElite;
         }
     }
 
@@ -31,13 +35,19 @@ namespace TowerDefense.Simulation
         private const int MaxTypesPerWave = 3;
         private const int GroupDirectionSpread = 2;
 
-        /// <summary>Wave (within the act) in which each enemy type becomes available. Prototype roster.</summary>
-        private static readonly (EnemyKind Kind, int FromWave)[] Unlocks =
+        /// <summary>Global wave in which each enemy type becomes available (GDD v0.2 §8: acts 1, 2, 3).</summary>
+        private static readonly (EnemyKind Kind, int FromGlobalWave)[] Unlocks =
         {
             (EnemyKind.Drifter, 1),
             (EnemyKind.Swarmlet, 2),
             (EnemyKind.Brute, 3),
+            (EnemyKind.Dasher, 7),
+            (EnemyKind.Splitter, 8),
+            (EnemyKind.Warden, 13),
         };
+
+        /// <summary>Elites appear from act 2: one or two per wave (GDD v0.2 §8).</summary>
+        private const int EliteFromAct = 2;
 
         private readonly RunConfig _config;
         private readonly ContentDatabase _content;
@@ -94,12 +104,17 @@ namespace TowerDefense.Simulation
             EnemyKind? introduced = null;
             foreach (var (kind, fromWave) in Unlocks)
             {
-                if (waveInAct >= fromWave)
+                if (!_content.HasEnemy(kind))
+                {
+                    continue;
+                }
+
+                if (globalWave >= fromWave)
                 {
                     available.Add(kind);
                 }
 
-                if (waveInAct == fromWave && fromWave > 1)
+                if (globalWave == fromWave && fromWave > 1)
                 {
                     introduced = kind;
                 }
@@ -164,9 +179,18 @@ namespace TowerDefense.Simulation
 
             int window = _config.SpawnWindowTicks - startOffset;
             int interval = groups.Count > 0 ? window / groups.Count : 0;
+            int act = (globalWave - 1) / _config.WavesPerAct + 1;
+            int elites = act >= EliteFromAct && groups.Count > 0 ? 1 + _rng.NextInt(2) : 0;
             for (int i = 0; i < groups.Count; i++)
             {
-                AddGroup(spawns, groups[i], startOffset + i * interval, _rng.NextInt(Directions.Count));
+                // Elites: single (non-group) enemies only, chosen among the first groups so the count is deterministic.
+                bool elite = elites > 0 && _content.Enemy(groups[i]).GroupSize == 1;
+                if (elite)
+                {
+                    elites--;
+                }
+
+                AddGroup(spawns, groups[i], startOffset + i * interval, _rng.NextInt(Directions.Count), elite);
             }
 
             return spawns;
@@ -178,13 +202,13 @@ namespace TowerDefense.Simulation
             return (long)definition.BudgetCostMilli * definition.GroupSize;
         }
 
-        private void AddGroup(List<SpawnEntry> spawns, EnemyKind kind, int offset, int direction)
+        private void AddGroup(List<SpawnEntry> spawns, EnemyKind kind, int offset, int direction, bool elite = false)
         {
             int size = _content.Enemy(kind).GroupSize;
             int first = -(size / 2);
             for (int i = 0; i < size; i++)
             {
-                spawns.Add(new SpawnEntry(kind, offset, direction + (first + i) * GroupDirectionSpread));
+                spawns.Add(new SpawnEntry(kind, offset, direction + (first + i) * GroupDirectionSpread, elite));
             }
         }
     }

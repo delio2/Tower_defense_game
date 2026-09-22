@@ -10,18 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5f1ed04cc43a3344fa2696df27cd8130, type: 3}
-  m_Name: Brute
+  m_Name: Dasher
   m_EditorClassIdentifier: TowerDefense.Presentation::TowerDefense.Presentation.Content.EnemyAsset
-  _kind: 2
-  _hp: 70
-  _armor: 3
-  _speedMilli: 550
-  _contactDamage: 15
-  _budgetCostMilli: 3000
+  _kind: 3
+  _hp: 14
+  _armor: 0
+  _speedMilli: 800
+  _contactDamage: 5
+  _budgetCostMilli: 1500
   _groupSize: 1
-  _dashEveryTicks: 0
-  _dashTicks: 0
-  _dashSpeedPermille: 1000
+  _dashEveryTicks: 180
+  _dashTicks: 30
+  _dashSpeedPermille: 3000
   _splitInto: 0
   _splitCount: 0
   _shieldRadiusMilli: 0
