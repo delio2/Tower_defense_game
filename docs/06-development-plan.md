@@ -260,19 +260,22 @@ The operational calendar is in **`10` §4** (revised mapping in **§4.2**) (6-mo
 **Done in order:** bot runner → ScriptableObject content → `BuySlot` → compact notation → UI Toolkit HUD → magnetic drag with previews → merge animation and wave summary → options and haptics → 14 modules, 7 enemies, 3 acts, elites → balance v0.3 → Core types, Grades 1–3, Endless → replay R2 → save/resume → Core tuning, enemy silhouettes → UI foundations (tokens, typefaces, icons) → wave slice → shop slice → overlays → Android build and device pass.
 
 **Next, in order:**
-1. ✅ **Android development build** (2026-09-22, Pixel 10, Android 17). Still to check by hand: dragging feel, haptics, fps on a 4 GB phone.
+1. ✅ **Phase 2.5-A foundations** (A1 view split · A2 camera · A5 sky and rings · A6 models · A7 tokens, typefaces,
+   icons). Left inside A3/A4: the **Low/Medium/High quality split** and a draw-call count.
 2. ✅ **Slices B (wave), C (shop) and D (overlays)** — 2026-09-22, see their tables above.
-3. **Phase 2.5-A — foundations**: A1 view split ✅ · A2 camera ✅ · A5 sky and rings ✅ · A6 models v1 ✅ · A7 UI foundations ✅ (tokens → USS, fonts, icons) · A3 light/post and A4 shader 🔄 (quality levels, draw calls and device check left) · then **2.5-B Wave slice**.
-3. **2.5-B Wave → 2.5-C Shop → 2.5-D Wave end and overlays → 2.5-E device + testers** (Gate 1, 2 and 2.5 together, on the new look).
-4. In parallel, the user: approve `11` (names, gates, economy) and choose the launch scope of `12`; open the **Google Play account** (D13).
-5. **Phase 3a** in the order of its table; then 3b art completion and 3c FTUE, audio, languages, profiling.
-6. Phase 4: Garden (Archive), Daily/Weekly with local leaderboard, replay codes and ghosts, `Services` fakes.
+3. ✅ **2.5-E1 Android build and device pass** (Pixel 10, 60 fps) and **E2 comparison sheets**. Left by hand: how
+   dragging and haptics feel, and a 4 GB phone.
+4. ⬜ **2.5-E3: the testers** (3–5, muted) — Gate 1, Gate 2 and Gate 2.5 together, on the current build.
+5. ⬜ In parallel, the user: approve `11` (names, gates, economy) and choose the launch scope of `12`; open the
+   **Google Play account** (D13).
+6. ⬜ **Phase 3a** in the order of its table; then 3b art completion and 3c FTUE, audio, languages, profiling.
+7. ⬜ Phase 4: Garden (Archive), Daily/Weekly with local leaderboard, replay codes and ghosts, `Services` fakes.
 
 **Resume here (handoff, 2026-09-22):**
 - *Waiting on the user:* (1) approval of `11` names and systems and the launch scope of `12` — Phase 3 does not start before; (2) Google Play account; (3) **Gate 2.5 with 3–5 testers** (E3), on the build of E1.
 - *Next task:* **E3, the testers** (3–5, muted, on the APK in `Builds/Android/`), and the Low/Medium/High quality split left over from A3. After that, Gate 2.5 and Phase 3.
 - *Device notes (Pixel 10):* drive it over adb from `…/PlaybackEngines/AndroidPlayer/SDK/platform-tools/adb.exe`. Relaunching without `am force-stop` first crashes Unity with "UnityFoldingFeaturesWrapper.init() should be called only once" — that is the relaunch, not the game. Frame times: `dumpsys SurfaceFlinger --latency "<the (BLAST)# layer from --list>"`.
-- *Where things are:* design system (tokens, icons, all screen mockups) — artifact linked in `docs/README.md`; tokens copy `Tools/design/tokens.json` → `python Tools/tokens_to_uss.py` regenerates `Theme.uss` (including `.theme-contrast` and `.text-large`); fonts → *TowerDefense → Content → Build font assets* (`Assets/Scripts/Editor/FontMenu.cs`); icons → `python Tools/icons_to_png.py`; models → run `Tools/blender/build_models_v1.py` in Blender; arena code in `Assets/Scripts/Presentation/Arena/`, HUD in `UI/HudView.cs` (now ~1,200 lines: splitting it is the first job of Phase 3's UI work).
+- *Where things are:* design system (tokens, icons, all screen mockups) — artifact linked in `docs/README.md`; tokens copy `Tools/design/tokens.json` → `python Tools/tokens_to_uss.py` regenerates `Theme.uss` (including `.theme-contrast` and `.text-large`); fonts → *TowerDefense → Content → Build font assets* (`Assets/Scripts/Editor/FontMenu.cs`); icons → `python Tools/icons_to_png.py`; models → run `Tools/blender/build_models_v1.py` in Blender; arena code in `Assets/Scripts/Presentation/Arena/`, HUD in `UI/HudView.cs` (**1,417 lines** — splitting it is the first job of Phase 3's UI work, and A1's "no file over ~400 lines" is not met until then).
 - *Working notes:* a **dynamic font asset rewrites itself** whenever Play mode meets a character its atlas does not hold, which shows up as a 2 MB diff on `Assets/UI/Fonts/*.asset`. It is noise: `git checkout -- Assets/UI/Fonts/` before committing, or rebuild them from the menu. Portrait captures = render the camera into a 1080 × 1920 render texture **and** set `PanelSettings.targetTexture`, then read the pixels in a **second** call — the panel needs a frame to repaint (always restore both to null afterwards). `Time.timeScale = 0` freezes anything driven by `Time.time`, which is how a 2.5 s bubble can be captured at all. Unity sometimes drops `InputSystem_Actions` from `preloadedAssets` in `ProjectSettings.asset` after Play mode — revert that line. USS reloads during Play leave a stale HUD in the editor (restart Play).
 
 **Known open points:** the Grade ladder is steep between 1 and 2; Mortar and Echo rarely appear (rare + act 2); the greedy bot never buys economy modules, so economy builds are untested by bots; the state hash gained fields (slot count, elites, dash timing) under balance version 0.3.0 — no replays from 0.2.0 exist.
